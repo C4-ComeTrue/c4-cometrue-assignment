@@ -1,4 +1,4 @@
-# Assignment - Mini-Pay
+# Assignment - Opener-Market
 
 - 해당 과제는 총 6개의 Step으로 구성되어 있습니다.
 - 모든 과제는 C4-Cometrue 깃허브 레포에서 관리되어야 하며, 반드시 각 Step이 종료될 때 마다 PR 요청을 날려야 합니다.
