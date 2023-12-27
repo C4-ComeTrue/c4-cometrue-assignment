@@ -8,8 +8,7 @@
 | My-Storage | 간단한 형태의 클라우드 스토리지를 만들어 봅시다. | [링크](assignments/my-storage.md) |
 | Mini-Pay | 기본 송금과 정산 기능이 있는 페이 서비스를 만들어 봅시다. | [링크](assignments/mini-pay.md) |
 | Accelerated To-Do | iCal 형식에 맞춘 일정을 제공하는 To-Do 서버를 개발해 봅시다. | [링크](assignments/accelerated-to-do.md) |
-| Opener-Market | 구매자와 판매자 기능이 있는 오픈마켓 서비스를 개발해 봅시다. | 작성 중 |
-| Cheaper-BMW-Map | 대중교통과 관련한 다양한 기능을 제공하는 서비스를 개발해 봅시다. | 작성 중 |
+| Opener-Market | 구매자와 판매자 기능이 있는 오픈마켓 서비스를 개발해 봅시다. | [링크](assignments/opener-market.md) |
 
 ## Branch Guide
 
