@@ -12,10 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(BaseException.class)
-	public ResponseEntity<ResponseDto<Void>> handleRuntimeException(BaseException e) {
+	public ResponseEntity<ResponseDto<Void>> handleRuntimeException(BaseException baseException) {
 
-		ErrorCode errorCode = e.getErrorCode();
-		String message = e.getMessage();
+		ErrorCode errorCode = baseException.getErrorCode();
+		String message = baseException.getMessage();
 		return ResponseEntity.status(errorCode.getStatus()).body(ResponseDto.message(message));
 	}
 }
