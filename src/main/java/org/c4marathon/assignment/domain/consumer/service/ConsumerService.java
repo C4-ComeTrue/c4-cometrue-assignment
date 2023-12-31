@@ -13,22 +13,23 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ConsumerService {
 
 	private final ConsumerRepository consumerRepository;
+	private final ConsumerReadService consumerReadService;
 
 	public void signup(SignUpRequest request) {
 		if (request.getAddress() == null) {
 			throw new BaseException(CONSUMER_NEED_ADDRESS);
 		}
-		if (consumerRepository.existsByEmail(request.getEmail())) {
+		if (consumerReadService.existsByEmail(request.getEmail())) {
 			throw new BaseException(ALREADY_CONSUMER_EXISTS);
 		}
 
 		saveConsumer(request);
 	}
 
-	@Transactional
 	public void saveConsumer(SignUpRequest request) {
 		consumerRepository.save(Consumer.builder()
 			.email(request.getEmail())
