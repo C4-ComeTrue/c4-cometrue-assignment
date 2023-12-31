@@ -1,0 +1,19 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    database: mysql
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    hikari:
+      max-lifetime: 60000
+      connection-timeout: 30000
+      maximum-pool-size: 10
+    url: jdbc:mysql://localhost:3306/community
