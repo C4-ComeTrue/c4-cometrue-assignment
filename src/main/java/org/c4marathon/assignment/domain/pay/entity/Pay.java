@@ -36,7 +36,7 @@ public class Pay extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "consumer_id", nullable = false)
 	private Consumer consumer;
-	
+
 	@Builder
 	public Pay(Long amount, Consumer consumer) {
 		this.amount = amount;
