@@ -34,12 +34,18 @@ public class Consumer extends BaseEntity {
 	private String email;
 
 	@NotNull
-	@Column(name = "is_deleted", columnDefinition = "TINYINT DEFAULT 0")
+	@Column(name = "address", columnDefinition = "VARCHAR(100)")
+	private String address;
+
+	@NotNull
+	@Column(name = "is_deleted", columnDefinition = "BIT DEFAULT 0")
 	private Boolean isDeleted;
 
 	@Builder
-	public Consumer(Long balance, String email) {
-		this.balance = balance;
+	public Consumer(String email, String address) {
 		this.email = email;
+		this.address = address;
+		this.balance = 0L;
+		this.isDeleted = false;
 	}
 }

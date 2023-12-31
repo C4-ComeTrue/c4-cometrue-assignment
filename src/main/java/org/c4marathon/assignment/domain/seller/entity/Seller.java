@@ -30,11 +30,17 @@ public class Seller extends BaseEntity {
 	private String email;
 
 	@NotNull
-	@Column(name = "is_deleted", columnDefinition = "TINYINT DEFAULT 0")
+	@Column(name = "is_deleted", columnDefinition = "BIT DEFAULT 0")
 	private Boolean isDeleted;
+
+	@NotNull
+	@Column(name = "balance", columnDefinition = "BIGINT")
+	private Long balance;
 
 	@Builder
 	public Seller(String email) {
 		this.email = email;
+		this.isDeleted = false;
+		this.balance = 0L;
 	}
 }
