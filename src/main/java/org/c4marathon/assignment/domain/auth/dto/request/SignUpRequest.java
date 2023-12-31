@@ -9,9 +9,9 @@ import lombok.Getter;
 @Getter
 public class SignUpRequest {
 
-	@Size(max = 50)
-	@NotNull
+	@Size(max = 50, message = "email size exceed 50")
+	@NotNull(message = "email is null")
 	private String email;
-	@Size(max = 100)
+	@Size(max = 100, message = "address size exceed 100")
 	private String address;
 }
