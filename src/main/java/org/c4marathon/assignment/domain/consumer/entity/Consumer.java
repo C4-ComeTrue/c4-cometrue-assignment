@@ -48,4 +48,8 @@ public class Consumer extends BaseEntity {
 		this.balance = 0L;
 		this.isDeleted = false;
 	}
+
+	public void addBalance(Long amount) {
+		this.balance += amount;
+	}
 }
