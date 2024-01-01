@@ -34,6 +34,10 @@ public class OrderProduct extends BaseEntity {
 	@Column(name = "quantity", columnDefinition = "INT")
 	private Integer quantity;
 
+	@NotNull
+	@Column(name = "amount", columnDefinition = "BIGINT")
+	private Long amount;
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "order_id", nullable = false)
 	private Order order;
@@ -43,8 +47,9 @@ public class OrderProduct extends BaseEntity {
 	private Product product;
 
 	@Builder
-	public OrderProduct(Integer quantity, Order order, Product product) {
+	public OrderProduct(Integer quantity, Long amount, Order order, Product product) {
 		this.quantity = quantity;
+		this.amount = amount;
 		this.order = order;
 		this.product = product;
 	}

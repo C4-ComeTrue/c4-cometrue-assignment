@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductEntry;
@@ -16,10 +17,13 @@ import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
 import org.c4marathon.assignment.domain.order.entity.Order;
 import org.c4marathon.assignment.domain.order.repository.OrderRepository;
+import org.c4marathon.assignment.domain.order.service.OrderReadService;
 import org.c4marathon.assignment.domain.orderproduct.entity.OrderProduct;
 import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductJdbcRepository;
+import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
+import org.c4marathon.assignment.global.constant.DeliveryStatus;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 import org.c4marathon.assignment.global.error.BaseException;
 import org.springframework.stereotype.Service;
@@ -40,6 +44,8 @@ public class ConsumerService {
 	private final DeliveryRepository deliveryRepository;
 	private final ProductReadService productReadService;
 	private final OrderProductJdbcRepository orderProductJdbcRepository;
+	private final OrderReadService orderReadService;
+	private final OrderProductReadService orderProductReadService;
 
 	public void signup(SignUpRequest request) {
 		if (request.getAddress() == null) {
@@ -58,6 +64,34 @@ public class ConsumerService {
 		saveOrderProduct(request, order, consumer);
 	}
 
+	public void refundProduct(Long orderId, Consumer consumer) {
+		Order order = orderReadService.findByIdJoinFetch(orderId);
+		validateRequest(consumer, order);
+		order.getDelivery().updateDeliveryStatus(DeliveryStatus.CANCEL);
+		order.updateOrderStatus(OrderStatus.REFUND);
+		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetch(order.getId());
+
+		Long totalAmount = calculateTotalAmount(orderProducts);
+		consumer.addBalance(totalAmount);
+		consumerRepository.save(consumer);
+	}
+
+	private Long calculateTotalAmount(List<OrderProduct> orderProducts) {
+		return orderProducts.stream()
+			.peek(orderProduct -> orderProduct.getProduct().addStock(orderProduct.getQuantity()))
+			.mapToLong(orderProduct -> orderProduct.getAmount() * orderProduct.getQuantity())
+			.sum();
+	}
+
+	private void validateRequest(Consumer consumer, Order order) {
+		if (!Objects.equals(order.getConsumer().getId(), consumer.getId())) {
+			throw new BaseException(NO_PERMISSION);
+		}
+		if (!Objects.equals(order.getDelivery().getDeliveryStatus(), DeliveryStatus.BEFORE_DELIVERY)) {
+			throw new BaseException(REFUND_NOT_AVAILABLE);
+		}
+	}
+
 	private void saveOrderProduct(PurchaseProductRequest request, Order order, Consumer consumer) {
 		List<OrderProduct> orderProducts = new ArrayList<>();
 		long totalAmount = 0L;
@@ -66,7 +100,6 @@ public class ConsumerService {
 			orderProducts.add(createOrderProduct(order, purchaseProductEntry, product));
 			long amount = purchaseProductEntry.getQuantity() * product.getAmount();
 			totalAmount += amount;
-			product.getSeller().addBalance((long)(amount * (1 - FEE)));
 			product.decreaseStock(purchaseProductEntry.getQuantity());
 		}
 		updateConsumerBalance(consumer, totalAmount);
@@ -84,6 +117,7 @@ public class ConsumerService {
 	private OrderProduct createOrderProduct(Order order, PurchaseProductEntry purchaseProductEntry, Product product) {
 		return OrderProduct.builder()
 			.quantity(purchaseProductEntry.getQuantity())
+			.amount(product.getAmount())
 			.order(order)
 			.product(product)
 			.build();

@@ -47,4 +47,8 @@ public class Delivery extends BaseEntity {
 		this.invoiceNumber = invoiceNumber;
 		this.deliveryStatus = DeliveryStatus.BEFORE_DELIVERY;
 	}
+
+	public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {
+		this.deliveryStatus = deliveryStatus;
+	}
 }

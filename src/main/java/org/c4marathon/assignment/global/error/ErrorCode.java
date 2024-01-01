@@ -13,7 +13,10 @@ public enum ErrorCode {
 	ALREADY_CONSUMER_EXISTS(CONFLICT, "이미 이메일에 해당하는 소비자가 존재합니다."),
 	ALREADY_PRODUCT_NAME_EXISTS(CONFLICT, "이미 존재하는 상품명입니다."),
 	PRODUCT_NOT_FOUND(NOT_FOUND, "요청에 해당하는 상품이 존재하지 않습니다."),
-	NOT_ENOUGH_BALANCE(BAD_REQUEST, "구매자의 충전된 캐시가 부족합니다.");
+	NOT_ENOUGH_BALANCE(BAD_REQUEST, "구매자의 충전된 캐시가 부족합니다."),
+	ORDER_NOT_FOUND(NOT_FOUND, "요청에 해당하는 주문이 존재하지 않습니다."),
+	NO_PERMISSION(FORBIDDEN, "해당 자원에 대한 접근 권한이 존재하지 않습니다."),
+	REFUND_NOT_AVAILABLE(BAD_REQUEST, "환불이 불가능한 상태입니다.");
 
 	private final HttpStatus status;
 	private final String message;

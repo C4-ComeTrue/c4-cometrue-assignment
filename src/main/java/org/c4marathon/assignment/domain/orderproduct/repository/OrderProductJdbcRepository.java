@@ -22,8 +22,8 @@ public class OrderProductJdbcRepository {
 	public void saveAllBatch(List<OrderProduct> orderProducts) {
 		String sql =
 			"insert into order_product_tbl "
-				+ "(quantity, order_id, product_id, created_at, updated_at) "
-				+ "values (?, ?, ?, ?, ?)";
+				+ "(quantity, order_id, product_id, amount, created_at, updated_at) "
+				+ "values (?, ?, ?, ?, ?, ?)";
 
 		jdbcTemplate.batchUpdate(
 			sql,
@@ -33,9 +33,10 @@ public class OrderProductJdbcRepository {
 				ps.setInt(1, orderProduct.getQuantity());
 				ps.setLong(2, orderProduct.getOrder().getId());
 				ps.setLong(3, orderProduct.getProduct().getId());
+				ps.setLong(4, orderProduct.getAmount());
 				LocalDateTime now = LocalDateTime.now();
-				ps.setTimestamp(4, Timestamp.valueOf(now));
 				ps.setTimestamp(5, Timestamp.valueOf(now));
+				ps.setTimestamp(6, Timestamp.valueOf(now));
 			}
 		);
 	}
