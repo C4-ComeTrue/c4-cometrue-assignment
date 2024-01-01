@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,8 +31,8 @@ public class OrderProduct extends BaseEntity {
 	private Long id;
 
 	@NotNull
-	@Column(name = "amount", columnDefinition = "BIGINT")
-	private Long amount;
+	@Column(name = "quantity", columnDefinition = "INT")
+	private Integer quantity;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "order_id", nullable = false)
@@ -40,4 +41,11 @@ public class OrderProduct extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "product_id", nullable = false)
 	private Product product;
+
+	@Builder
+	public OrderProduct(Integer quantity, Order order, Product product) {
+		this.quantity = quantity;
+		this.order = order;
+		this.product = product;
+	}
 }

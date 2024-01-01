@@ -43,4 +43,8 @@ public class Seller extends BaseEntity {
 		this.isDeleted = false;
 		this.balance = 0L;
 	}
+
+	public void addBalance(Long amount) {
+		this.balance += amount;
+	}
 }

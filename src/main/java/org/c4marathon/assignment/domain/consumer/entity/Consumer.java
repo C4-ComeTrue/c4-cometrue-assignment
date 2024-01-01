@@ -52,4 +52,8 @@ public class Consumer extends BaseEntity {
 	public void addBalance(Long amount) {
 		this.balance += amount;
 	}
+
+	public void decreaseBalance(Long amount) {
+		this.balance -= amount;
+	}
 }

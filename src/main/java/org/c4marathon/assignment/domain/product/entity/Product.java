@@ -63,4 +63,8 @@ public class Product extends BaseEntity {
 		this.stock = stock;
 		this.seller = seller;
 	}
+
+	public void decreaseStock(Integer quantity) {
+		stock -= quantity;
+	}
 }
