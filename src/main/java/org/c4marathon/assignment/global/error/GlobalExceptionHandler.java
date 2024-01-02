@@ -24,12 +24,12 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(BindException.class)
-	public ResponseEntity<ResponseDto<Object>> BindExceptionHandler(BindingResult result) {
+	public ResponseEntity<ResponseDto<Object>> bindExceptionHandler(BindingResult result) {
 		FieldError fieldError = result.getFieldErrors().get(0);
 		return new ResponseEntity<>(
 			ResponseDto.builder()
 				.message(fieldError.getDefaultMessage())
-				.build()
-			, HttpStatus.BAD_REQUEST);
+				.build(),
+			HttpStatus.BAD_REQUEST);
 	}
 }
