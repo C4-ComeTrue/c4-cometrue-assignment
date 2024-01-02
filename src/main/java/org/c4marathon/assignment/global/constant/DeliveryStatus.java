@@ -4,6 +4,5 @@ public enum DeliveryStatus {
 
 	BEFORE_DELIVERY,
 	IN_DELIVERY,
-	COMPLETE_DELIVERY,
-	CANCEL;
+	COMPLETE_DELIVERY;
 }

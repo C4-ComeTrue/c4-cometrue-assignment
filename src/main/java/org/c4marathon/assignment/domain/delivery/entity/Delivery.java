@@ -1,15 +1,19 @@
 package org.c4marathon.assignment.domain.delivery.entity;
 
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
+import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -41,11 +45,16 @@ public class Delivery extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private DeliveryStatus deliveryStatus;
 
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "delivery_company_id", nullable = false)
+	private DeliveryCompany deliveryCompany;
+
 	@Builder
-	public Delivery(String address, String invoiceNumber) {
+	public Delivery(String address, String invoiceNumber, DeliveryCompany deliveryCompany) {
 		this.address = address;
 		this.invoiceNumber = invoiceNumber;
 		this.deliveryStatus = DeliveryStatus.BEFORE_DELIVERY;
+		this.deliveryCompany = deliveryCompany;
 	}
 
 	public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {

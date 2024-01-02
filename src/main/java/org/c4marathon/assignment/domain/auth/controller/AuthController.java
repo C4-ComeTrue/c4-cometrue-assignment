@@ -2,6 +2,7 @@ package org.c4marathon.assignment.domain.auth.controller;
 
 import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.consumer.service.ConsumerService;
+import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyService;
 import org.c4marathon.assignment.domain.seller.service.SellerService;
 import org.c4marathon.assignment.global.constant.MemberType;
 import org.c4marathon.assignment.global.response.ResponseDto;
@@ -23,14 +24,17 @@ public class AuthController {
 
 	private final ConsumerService consumerService;
 	private final SellerService sellerService;
+	private final DeliveryCompanyService deliveryCompanyService;
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/signup")
 	public ResponseDto<Void> signup(@RequestBody @Valid SignUpRequest request, @RequestParam MemberType memberType) {
 		if (memberType.equals(MemberType.CONSUMER)) {
 			consumerService.signup(request);
-		} else {
+		} else if (memberType.equals(MemberType.SELLER)) {
 			sellerService.signup(request);
+		} else {
+			deliveryCompanyService.signup(request);
 		}
 		return ResponseDto.message("success signup");
 	}

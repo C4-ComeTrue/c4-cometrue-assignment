@@ -15,6 +15,7 @@ import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
+import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyReadService;
 import org.c4marathon.assignment.domain.order.entity.Order;
 import org.c4marathon.assignment.domain.order.repository.OrderRepository;
 import org.c4marathon.assignment.domain.order.service.OrderReadService;
@@ -46,6 +47,7 @@ public class ConsumerService {
 	private final OrderProductJdbcRepository orderProductJdbcRepository;
 	private final OrderReadService orderReadService;
 	private final OrderProductReadService orderProductReadService;
+	private final DeliveryCompanyReadService deliveryCompanyReadService;
 
 	public void signup(SignUpRequest request) {
 		if (request.getAddress() == null) {
@@ -67,7 +69,7 @@ public class ConsumerService {
 	public void refundProduct(Long orderId, Consumer consumer) {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
 		validateRequest(consumer, order);
-		order.getDelivery().updateDeliveryStatus(DeliveryStatus.CANCEL);
+		order.getDelivery().updateDeliveryStatus(DeliveryStatus.COMPLETE_DELIVERY);
 		order.updateOrderStatus(OrderStatus.REFUND);
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetch(order.getId());
 
@@ -135,6 +137,7 @@ public class ConsumerService {
 		return deliveryRepository.save(Delivery.builder()
 			.address(consumer.getAddress())
 			.invoiceNumber(createInvoiceNumber(consumer))
+			.deliveryCompany(deliveryCompanyReadService.findMinimumCountOfDelivery())
 			.build());
 	}
 

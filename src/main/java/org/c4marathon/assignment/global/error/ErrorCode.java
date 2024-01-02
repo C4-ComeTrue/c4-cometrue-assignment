@@ -16,7 +16,13 @@ public enum ErrorCode {
 	NOT_ENOUGH_BALANCE(BAD_REQUEST, "구매자의 충전된 캐시가 부족합니다."),
 	ORDER_NOT_FOUND(NOT_FOUND, "요청에 해당하는 주문이 존재하지 않습니다."),
 	NO_PERMISSION(FORBIDDEN, "해당 자원에 대한 접근 권한이 존재하지 않습니다."),
-	REFUND_NOT_AVAILABLE(BAD_REQUEST, "환불이 불가능한 상태입니다.");
+	REFUND_NOT_AVAILABLE(BAD_REQUEST, "환불이 불가능한 상태입니다."),
+	ALREADY_SELLER_EXISTS(CONFLICT, "이미 이메일에 해당하는 판매자가 존재합니다."),
+	ALREADY_DELIVERY_COMPANY_EXISTS(CONFLICT, "이미 이메일에 해당하는 배송 회사가 존재합니다."),
+	DELIVERY_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 정보가 존재하지 않습니다."),
+	INVALID_DELIVERY_STATUS_REQUEST(BAD_REQUEST, "해당 배송 상태로는 변경할 수 없습니다."),
+	DELIVERY_COMPANY_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 회사가 존재하지 않습니다."),
+	DELIVERY_STATUS_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 상태가 존재하지 않습니다.");
 
 	private final HttpStatus status;
 	private final String message;
