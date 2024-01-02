@@ -5,9 +5,11 @@ import org.c4marathon.assignment.domain.seller.service.SellerService;
 import org.c4marathon.assignment.global.auth.SellerThreadLocal;
 import org.c4marathon.assignment.global.response.ResponseDto;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -18,7 +20,7 @@ public class SellerController {
 	private final SellerService sellerService;
 
 	@PostMapping("/products")
-	public ResponseDto<Void> putProduct(PutProductRequest request) {
+	public ResponseDto<Void> putProduct(@RequestBody @Valid PutProductRequest request) {
 		sellerService.putProduct(request, SellerThreadLocal.get());
 		return ResponseDto.message("success put product");
 	}
