@@ -26,7 +26,7 @@ public class SellerService {
 
 	public void signup(SignUpRequest request) {
 		if (sellerRepository.existsByEmail(request.getEmail())) {
-			throw new BaseException(ALREADY_CONSUMER_EXISTS);
+			throw new BaseException(ALREADY_SELLER_EXISTS);
 		}
 
 		saveSeller(request);
