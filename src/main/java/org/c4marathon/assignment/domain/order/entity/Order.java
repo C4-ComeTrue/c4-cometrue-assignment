@@ -7,6 +7,8 @@ import org.c4marathon.assignment.global.constant.OrderStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,6 +36,7 @@ public class Order extends BaseEntity {
 
 	@NotNull
 	@Column(name = "status", columnDefinition = "VARCHAR(20)")
+	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -49,5 +52,9 @@ public class Order extends BaseEntity {
 		this.orderStatus = orderStatus;
 		this.consumer = consumer;
 		this.delivery = delivery;
+	}
+
+	public void updateOrderStatus(OrderStatus orderStatus) {
+		this.orderStatus = orderStatus;
 	}
 }
