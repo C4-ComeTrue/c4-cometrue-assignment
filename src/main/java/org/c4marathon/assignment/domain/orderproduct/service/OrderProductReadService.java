@@ -16,7 +16,11 @@ public class OrderProductReadService {
 
 	private final OrderProductRepository orderProductRepository;
 
-	public List<OrderProduct> findByOrderJoinFetch(Long orderId) {
-		return orderProductRepository.findByOrderJoinFetch(orderId);
+	public List<OrderProduct> findByOrderJoinFetchProduct(Long orderId) {
+		return orderProductRepository.findByOrderJoinFetchProduct(orderId);
+	}
+
+	public List<OrderProduct> findByOrderJoinFetchProductAndSeller(Long orderId) {
+		return orderProductRepository.findByOrderJoinFetchProductAndSeller(orderId);
 	}
 }

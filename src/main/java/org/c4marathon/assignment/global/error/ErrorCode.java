@@ -22,7 +22,8 @@ public enum ErrorCode {
 	DELIVERY_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 정보가 존재하지 않습니다."),
 	INVALID_DELIVERY_STATUS_REQUEST(BAD_REQUEST, "해당 배송 상태로는 변경할 수 없습니다."),
 	DELIVERY_COMPANY_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 회사가 존재하지 않습니다."),
-	DELIVERY_STATUS_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 상태가 존재하지 않습니다.");
+	DELIVERY_STATUS_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 상태가 존재하지 않습니다."),
+	CONFIRM_NOT_AVAILABLE(BAD_REQUEST, "구매 확정이 불가능한 상태입니다.");
 
 	private final HttpStatus status;
 	private final String message;

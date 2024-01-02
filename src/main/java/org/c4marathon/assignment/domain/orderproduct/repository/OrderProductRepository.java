@@ -10,5 +10,8 @@ import org.springframework.data.repository.query.Param;
 public interface OrderProductRepository extends JpaRepository<OrderProduct, Long> {
 
 	@Query("select op from OrderProduct op join fetch op.product where op.order.id = :id")
-	List<OrderProduct> findByOrderJoinFetch(@Param("id") Long id);
+	List<OrderProduct> findByOrderJoinFetchProduct(@Param("id") Long id);
+
+	@Query("select op from OrderProduct op join fetch op.product join fetch op.product.seller where op.order.id = :id")
+	List<OrderProduct> findByOrderJoinFetchProductAndSeller(@Param("id") Long orderId);
 }

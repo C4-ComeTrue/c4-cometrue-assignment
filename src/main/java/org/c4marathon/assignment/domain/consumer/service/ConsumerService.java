@@ -68,14 +68,35 @@ public class ConsumerService {
 
 	public void refundProduct(Long orderId, Consumer consumer) {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
-		validateRequest(consumer, order);
+		validateRefundRequest(consumer, order);
 		order.getDelivery().updateDeliveryStatus(DeliveryStatus.COMPLETE_DELIVERY);
 		order.updateOrderStatus(OrderStatus.REFUND);
-		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetch(order.getId());
+		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProduct(order.getId());
 
 		Long totalAmount = calculateTotalAmount(orderProducts);
 		consumer.addBalance(totalAmount);
 		consumerRepository.save(consumer);
+	}
+
+	public void confirmOrder(Long orderId, Consumer consumer) {
+		Order order = orderReadService.findByIdJoinFetch(orderId);
+		validateConfirmRequest(consumer, order);
+
+		order.updateOrderStatus(OrderStatus.CONFIRM);
+		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProductAndSeller(orderId);
+
+		orderProducts.forEach(orderProduct -> orderProduct.getProduct()
+			.getSeller().addBalance((long)(orderProduct.getAmount() * orderProduct.getQuantity() * (1 - FEE))));
+	}
+
+	private void validateConfirmRequest(Consumer consumer, Order order) {
+		if (!order.getConsumer().getId().equals(consumer.getId())) {
+			throw new BaseException(NO_PERMISSION);
+		}
+		if (!order.getOrderStatus().equals(OrderStatus.COMPLETE_PAYMENT)
+			|| !order.getDelivery().getDeliveryStatus().equals(DeliveryStatus.COMPLETE_DELIVERY)) {
+			throw new BaseException(CONFIRM_NOT_AVAILABLE);
+		}
 	}
 
 	private Long calculateTotalAmount(List<OrderProduct> orderProducts) {
@@ -85,7 +106,7 @@ public class ConsumerService {
 			.sum();
 	}
 
-	private void validateRequest(Consumer consumer, Order order) {
+	private void validateRefundRequest(Consumer consumer, Order order) {
 		if (!Objects.equals(order.getConsumer().getId(), consumer.getId())) {
 			throw new BaseException(NO_PERMISSION);
 		}
