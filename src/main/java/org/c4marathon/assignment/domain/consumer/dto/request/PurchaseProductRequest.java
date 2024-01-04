@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 public class PurchaseProductRequest {
 
 	@Valid
-	List<PurchaseProductEntry> purchaseProducts;
+	private List<PurchaseProductEntry> purchaseProducts;
 }
