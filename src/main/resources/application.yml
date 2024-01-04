@@ -1,0 +1,15 @@
+server:
+  port: 80
+
+spring:
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost/pay
+    username: root
+    password: 4015pskc
+
+logging:
+  level:
+    org.hibernate.type.descriptor.sql: trace
