@@ -45,9 +45,9 @@ public class Account extends BaseEntity {
     private Member member;
 
     @Builder
-    public Account(Integer balance) {
+    public Account(Type type) {
 
-        this.balance = balance;
-        this.type = Type.REGULAR_ACCOUNT;
+        this.balance = 0;
+        this.type = type;
     }
 }
