@@ -29,8 +29,8 @@ public class ConsumerController {
 	}
 
 	@DeleteMapping("/{order_id}")
-	public ResponseDto<Void> refundProduct(@PathVariable("order_id") Long orderId) {
-		consumerService.refundProduct(orderId, ConsumerThreadLocal.get());
+	public ResponseDto<Void> refundOrder(@PathVariable("order_id") Long orderId) {
+		consumerService.refundOrder(orderId, ConsumerThreadLocal.get());
 		return ResponseDto.message("success refund product");
 	}
 

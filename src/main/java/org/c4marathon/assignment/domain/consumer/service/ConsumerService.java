@@ -66,7 +66,7 @@ public class ConsumerService {
 		saveOrderProduct(request, order, consumer);
 	}
 
-	public void refundProduct(Long orderId, Consumer consumer) {
+	public void refundOrder(Long orderId, Consumer consumer) {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
 		validateRefundRequest(consumer, order);
 		order.getDelivery().updateDeliveryStatus(DeliveryStatus.COMPLETE_DELIVERY);
