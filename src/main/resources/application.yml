@@ -1,0 +1,21 @@
+# default
+server:
+  port: 8000
+
+spring:
+  # MySQL
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${mysql.devUrl}
+    username: ${mysql.devUsername}
+    password: ${mysql.devPassword}
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        use_sql_comments: true
