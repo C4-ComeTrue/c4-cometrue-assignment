@@ -80,9 +80,7 @@ public class DeliveryCompanyControllerTest extends ControllerTestSupport {
 		}
 
 		private UpdateDeliveryStatusRequest createRequest(DeliveryStatus deliveryStatus) {
-			return UpdateDeliveryStatusRequest.builder()
-				.deliveryStatus(deliveryStatus)
-				.build();
+			return new UpdateDeliveryStatusRequest(deliveryStatus);
 		}
 	}
 }

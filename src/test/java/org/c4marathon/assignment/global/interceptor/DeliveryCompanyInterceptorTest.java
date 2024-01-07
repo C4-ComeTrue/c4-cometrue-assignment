@@ -9,7 +9,6 @@ import java.util.Optional;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
 import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.global.auth.DeliveryCompanyThreadLocal;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,11 +26,6 @@ public class DeliveryCompanyInterceptorTest extends InterceptorTestSupport {
 	@DisplayName("preHandle 시")
 	@Nested
 	class PreHandle {
-
-		@AfterEach
-		void tearDown() {
-			DeliveryCompanyThreadLocal.remove();
-		}
 
 		@DisplayName("Authorization header에 email이 포함돼 있고, email에 해당하는 회원을 조회하면 true를 반환한다.")
 		@Test

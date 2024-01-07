@@ -3,12 +3,9 @@ package org.c4marathon.assignment.domain.service.pay;
 import static org.assertj.core.api.Assertions.*;
 
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
-import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
 import org.c4marathon.assignment.domain.pay.dto.request.ChargePayRequest;
-import org.c4marathon.assignment.domain.pay.repository.PayRepository;
 import org.c4marathon.assignment.domain.pay.service.PayService;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,10 +16,6 @@ public class PayServiceTest extends ServiceTestSupport {
 
 	@Autowired
 	private PayService payService;
-	@Autowired
-	private PayRepository payRepository;
-	@Autowired
-	private ConsumerRepository consumerRepository;
 
 	@DisplayName("캐시 충전 시")
 	@Nested
@@ -38,12 +31,6 @@ public class PayServiceTest extends ServiceTestSupport {
 				.build());
 		}
 
-		@AfterEach
-		void tearDown() {
-			payRepository.deleteAllInBatch();
-			consumerRepository.deleteAllInBatch();
-		}
-
 		@DisplayName("amount에 해당하는 캐시가 충전되고, consumer의 balance가 증가한다.")
 		@Test
 		void addBalance_when_chargePay() {
@@ -51,13 +38,11 @@ public class PayServiceTest extends ServiceTestSupport {
 
 			payService.chargePay(request, consumer);
 
-			assertThat(consumer.getBalance()).isEqualTo(request.getAmount());
+			assertThat(consumer.getBalance()).isEqualTo(request.amount());
 		}
 
 		private ChargePayRequest createRequest() {
-			return ChargePayRequest.builder()
-				.amount(100L)
-				.build();
+			return new ChargePayRequest(100L);
 		}
 	}
 }

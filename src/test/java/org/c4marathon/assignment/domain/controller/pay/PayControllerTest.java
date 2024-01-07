@@ -56,9 +56,7 @@ public class PayControllerTest extends ControllerTestSupport {
 		}
 
 		private ChargePayRequest createRequest(Long amount) {
-			return ChargePayRequest.builder()
-				.amount(amount)
-				.build();
+			return new ChargePayRequest(amount);
 		}
 
 		private static Stream<Arguments> provideChargePayRequestArguments() {

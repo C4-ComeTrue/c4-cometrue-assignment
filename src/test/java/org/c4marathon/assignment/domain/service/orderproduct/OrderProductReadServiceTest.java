@@ -5,23 +5,15 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.List;
 
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
-import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
-import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
-import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.domain.order.entity.Order;
-import org.c4marathon.assignment.domain.order.repository.OrderRepository;
 import org.c4marathon.assignment.domain.orderproduct.entity.OrderProduct;
-import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductRepository;
 import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.product.entity.Product;
-import org.c4marathon.assignment.domain.product.repository.ProductRepository;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
-import org.c4marathon.assignment.domain.seller.repository.SellerRepository;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.constant.OrderStatus;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,20 +24,6 @@ public class OrderProductReadServiceTest extends ServiceTestSupport {
 
 	@Autowired
 	private OrderProductReadService orderProductReadService;
-	@Autowired
-	private OrderProductRepository orderProductRepository;
-	@Autowired
-	private OrderRepository orderRepository;
-	@Autowired
-	private ConsumerRepository consumerRepository;
-	@Autowired
-	private ProductRepository productRepository;
-	@Autowired
-	private DeliveryRepository deliveryRepository;
-	@Autowired
-	private DeliveryCompanyRepository deliveryCompanyRepository;
-	@Autowired
-	private SellerRepository sellerRepository;
 	private List<Order> orders;
 
 	@BeforeEach
@@ -64,17 +42,6 @@ public class OrderProductReadServiceTest extends ServiceTestSupport {
 			createOrderProduct(orders.get(0), product),
 			createOrderProduct(orders.get(0), product),
 			createOrderProduct(orders.get(1), product)));
-	}
-
-	@AfterEach
-	void tearDown() {
-		orderProductRepository.deleteAllInBatch();
-		productRepository.deleteAllInBatch();
-		sellerRepository.deleteAllInBatch();
-		orderRepository.deleteAllInBatch();
-		deliveryRepository.deleteAllInBatch();
-		deliveryCompanyRepository.deleteAllInBatch();
-		consumerRepository.deleteAllInBatch();
 	}
 
 	@DisplayName("id로 조회 시")

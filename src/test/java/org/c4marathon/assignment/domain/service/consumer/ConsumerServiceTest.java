@@ -11,28 +11,20 @@ import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductEntry;
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductRequest;
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
-import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
 import org.c4marathon.assignment.domain.consumer.service.ConsumerReadService;
 import org.c4marathon.assignment.domain.consumer.service.ConsumerService;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
-import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
-import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyReadService;
 import org.c4marathon.assignment.domain.order.entity.Order;
-import org.c4marathon.assignment.domain.order.repository.OrderRepository;
 import org.c4marathon.assignment.domain.orderproduct.entity.OrderProduct;
-import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductRepository;
 import org.c4marathon.assignment.domain.product.entity.Product;
-import org.c4marathon.assignment.domain.product.repository.ProductRepository;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
-import org.c4marathon.assignment.domain.seller.repository.SellerRepository;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 import org.c4marathon.assignment.global.error.BaseException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,20 +37,6 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 
 	@MockBean
 	private ConsumerReadService consumerReadService;
-	@Autowired
-	private ConsumerRepository consumerRepository;
-	@Autowired
-	private OrderProductRepository orderProductRepository;
-	@Autowired
-	private OrderRepository orderRepository;
-	@Autowired
-	private DeliveryRepository deliveryRepository;
-	@Autowired
-	private DeliveryCompanyRepository deliveryCompanyRepository;
-	@Autowired
-	private ProductRepository productRepository;
-	@Autowired
-	private SellerRepository sellerRepository;
 	@MockBean
 	private DeliveryCompanyReadService deliveryCompanyReadService;
 	@Autowired
@@ -92,25 +70,9 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			.build());
 	}
 
-	@AfterEach
-	void tearDown() {
-		orderProductRepository.deleteAllInBatch();
-		productRepository.deleteAllInBatch();
-		sellerRepository.deleteAllInBatch();
-		orderRepository.deleteAllInBatch();
-		deliveryRepository.deleteAllInBatch();
-		deliveryCompanyRepository.deleteAllInBatch();
-		consumerRepository.deleteAllInBatch();
-	}
-
 	@DisplayName("회원가입 시")
 	@Nested
 	class Signup {
-
-		@AfterEach
-		void tearDown() {
-			consumerRepository.deleteAllInBatch();
-		}
 
 		@DisplayName("address가 null이 아니고, 가입된 email이 존재하지 않는다면 성공한다.")
 		@Test
@@ -121,12 +83,12 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 				.willReturn(false);
 
 			consumerService.signup(request);
-			Optional<Consumer> consumer = consumerRepository.findByEmail(request.getEmail());
+			Optional<Consumer> consumer = consumerRepository.findByEmail(request.email());
 
 			assertThat(consumer).isPresent();
 			assertThat(consumer.get().getBalance()).isEqualTo(0);
-			assertThat(consumer.get().getEmail()).isEqualTo(request.getEmail());
-			assertThat(consumer.get().getAddress()).isEqualTo(request.getAddress());
+			assertThat(consumer.get().getEmail()).isEqualTo(request.email());
+			assertThat(consumer.get().getAddress()).isEqualTo(request.address());
 		}
 
 		@DisplayName("address가 null이면 예외를 반환한다.")
@@ -146,7 +108,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		void throwException_when_alreadyExistsEmail() {
 			SignUpRequest request = createRequest("address");
 			consumerRepository.save(Consumer.builder()
-				.email(request.getEmail())
+				.email(request.email())
 				.address("address")
 				.build());
 
@@ -160,10 +122,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		}
 
 		private SignUpRequest createRequest(String address) {
-			return SignUpRequest.builder()
-				.email("email123")
-				.address(address)
-				.build();
+			return new SignUpRequest("email123", address);
 		}
 	}
 
@@ -224,7 +183,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			assertThat(orderProducts.get(0).getProduct().getId()).isEqualTo(product.getId());
 			assertThat(orderProducts.get(0).getOrder().getId()).isEqualTo(orders.get(0).getId());
 			assertThat(orderProducts.get(0).getQuantity()).isEqualTo(
-				request.getPurchaseProducts().get(0).getQuantity());
+				request.purchaseProducts().get(0).quantity());
 		}
 
 		@DisplayName("각 productId와 quantity를 요청하면 Product의 quantity가 감소된다.")
@@ -239,7 +198,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 
 			consumerService.purchaseProduct(request, consumer);
 
-			assertThat(product.getStock()).isEqualTo(beforeStock - request.getPurchaseProducts().get(0).getQuantity());
+			assertThat(product.getStock()).isEqualTo(beforeStock - request.purchaseProducts().get(0).quantity());
 		}
 
 		@DisplayName("구매자의 캐시가 부족하다면 실패한다.")
@@ -260,12 +219,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		}
 
 		private PurchaseProductRequest createRequest() {
-			return PurchaseProductRequest.builder()
-				.purchaseProducts(List.of(PurchaseProductEntry.builder()
-					.productId(product.getId())
-					.quantity(10)
-					.build()))
-				.build();
+			return new PurchaseProductRequest(List.of(new PurchaseProductEntry(product.getId(), 10)));
 		}
 	}
 
@@ -291,6 +245,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 
 		}
 
+		@Transactional
 		@DisplayName("배송 상태가 BEFORE_DELIVERY가 아니면 실패한다.")
 		@Test
 		void fail_when_deliveryStatusIsNotBEFORE_DELIVRY() {
@@ -307,6 +262,12 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@Test
 		void updateOrderStatusAndDeliveryStatusAndBalance_when_refundOrder() {
 			Long beforeBalance = consumer.getBalance();
+			orderProductRepository.save(OrderProduct.builder()
+				.product(product)
+				.order(order)
+				.amount(product.getAmount())
+				.quantity(1)
+				.build());
 			consumerService.refundOrder(order.getId(), consumer);
 
 			assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.REFUND);

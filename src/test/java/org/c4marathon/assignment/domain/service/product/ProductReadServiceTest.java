@@ -4,13 +4,10 @@ import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
 import org.c4marathon.assignment.domain.product.entity.Product;
-import org.c4marathon.assignment.domain.product.repository.ProductRepository;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
-import org.c4marathon.assignment.domain.seller.repository.SellerRepository;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.error.BaseException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,10 +18,6 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 
 	@Autowired
 	private ProductReadService productReadService;
-	@Autowired
-	private ProductRepository productRepository;
-	@Autowired
-	private SellerRepository sellerRepository;
 	private Product product;
 	private Seller seller;
 
@@ -40,12 +33,6 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 			.seller(seller)
 			.description("description")
 			.build());
-	}
-
-	@AfterEach
-	void tearDown() {
-		productRepository.deleteAllInBatch();
-		sellerRepository.deleteAllInBatch();
 	}
 
 	@DisplayName("상품 이름, 판매자로 조회 시")

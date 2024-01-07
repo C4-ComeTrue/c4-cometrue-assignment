@@ -4,13 +4,10 @@ import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
-import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
 import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
-import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.error.BaseException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,12 +18,6 @@ public class DeliveryReadServiceTest extends ServiceTestSupport {
 
 	@Autowired
 	private DeliveryReadService deliveryReadService;
-
-	@Autowired
-	private DeliveryRepository deliveryRepository;
-
-	@Autowired
-	private DeliveryCompanyRepository deliveryCompanyRepository;
 
 	@DisplayName("id로 조회 시")
 	@Nested
@@ -44,11 +35,6 @@ public class DeliveryReadServiceTest extends ServiceTestSupport {
 				.deliveryCompany(deliveryCompany)
 				.invoiceNumber("invoiceNumber")
 				.build());
-		}
-
-		@AfterEach
-		void tearDown() {
-			deliveryRepository.deleteAllInBatch();
 		}
 
 		@DisplayName("id에 해당하는 Delivery가 존재하면 반환한다.")

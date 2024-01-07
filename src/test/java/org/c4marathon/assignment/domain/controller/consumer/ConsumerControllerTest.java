@@ -93,13 +93,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 		}
 
 		private PurchaseProductRequest createRequest(Long productId, Integer quantity) {
-			return PurchaseProductRequest.builder()
-				.purchaseProducts(List.of(
-					PurchaseProductEntry.builder()
-						.productId(productId)
-						.quantity(quantity)
-						.build()))
-				.build();
+			return new PurchaseProductRequest(List.of(new PurchaseProductEntry(productId, quantity)));
 		}
 	}
 

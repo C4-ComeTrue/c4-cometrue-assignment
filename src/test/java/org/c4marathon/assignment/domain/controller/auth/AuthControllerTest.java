@@ -71,10 +71,7 @@ public class AuthControllerTest extends ControllerTestSupport {
 		}
 
 		private SignUpRequest createRequest(String email) {
-			return SignUpRequest.builder()
-				.email(email)
-				.address("KOREA")
-				.build();
+			return new SignUpRequest(email, "KOREA");
 		}
 	}
 }

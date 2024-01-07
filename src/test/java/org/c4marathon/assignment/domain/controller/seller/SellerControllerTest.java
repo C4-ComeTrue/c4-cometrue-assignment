@@ -112,12 +112,7 @@ public class SellerControllerTest extends ControllerTestSupport {
 		}
 
 		private PutProductRequest createRequest(String name, String description, Integer stock, Long amount) {
-			return PutProductRequest.builder()
-				.name(name)
-				.description(description)
-				.stock(stock)
-				.amount(amount)
-				.build();
+			return new PutProductRequest(name, description, amount, stock);
 		}
 
 		private static Stream<Arguments> provideNameArguments() {

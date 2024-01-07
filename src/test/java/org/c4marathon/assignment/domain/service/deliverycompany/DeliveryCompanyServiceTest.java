@@ -9,17 +9,14 @@ import java.util.List;
 
 import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
-import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
 import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
 import org.c4marathon.assignment.domain.deliverycompany.dto.request.UpdateDeliveryStatusRequest;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
-import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyReadService;
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyService;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
 import org.c4marathon.assignment.global.error.BaseException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,23 +30,14 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 
 	@Autowired
 	private DeliveryCompanyService deliveryCompanyService;
-	@Autowired
-	private DeliveryCompanyRepository deliveryCompanyRepository;
 	@MockBean
 	private DeliveryCompanyReadService deliveryCompanyReadService;
-	@Autowired
-	private DeliveryRepository deliveryRepository;
 	@MockBean
 	private DeliveryReadService deliveryReadService;
 
 	@DisplayName("회원 가입 시")
 	@Nested
 	class Signup {
-
-		@AfterEach
-		void tearDown() {
-			deliveryCompanyRepository.deleteAllInBatch();
-		}
 
 		@DisplayName("가입된 email이 존재하지 않으면 성공한다.")
 		@Test
@@ -63,7 +51,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 			List<DeliveryCompany> deliveryCompanies = deliveryCompanyRepository.findAll();
 
 			assertThat(deliveryCompanies).hasSize(1);
-			assertThat(deliveryCompanies.get(0).getEmail()).isEqualTo(request.getEmail());
+			assertThat(deliveryCompanies.get(0).getEmail()).isEqualTo(request.email());
 		}
 
 		@DisplayName("가입된 email이 존재하면 예외를 반환한다.")
@@ -81,9 +69,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		}
 
 		private SignUpRequest createRequest() {
-			return SignUpRequest.builder()
-				.email("email")
-				.build();
+			return new SignUpRequest("email", "KOREA");
 		}
 	}
 
@@ -107,32 +93,22 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(delivery);
 		}
 
-		@AfterEach
-		void tearDown() {
-			deliveryRepository.deleteAllInBatch();
-			deliveryCompanyRepository.deleteAllInBatch();
-		}
-
 		@DisplayName("올바른 상태에서 변경 요청은 성공한다.")
 		@ParameterizedTest
 		@CsvSource({"BEFORE_DELIVERY,IN_DELIVERY", "IN_DELIVERY,COMPLETE_DELIVERY"})
 		void successUpdate_when_validStatus(DeliveryStatus before, DeliveryStatus after) {
-			UpdateDeliveryStatusRequest request = UpdateDeliveryStatusRequest.builder()
-				.deliveryStatus(after)
-				.build();
+			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(after);
 			delivery.updateDeliveryStatus(before);
 
 			deliveryCompanyService.updateDeliveryStatus(1L, request, deliveryCompany);
 
-			assertThat(delivery.getDeliveryStatus()).isEqualTo(request.getDeliveryStatus());
+			assertThat(delivery.getDeliveryStatus()).isEqualTo(request.deliveryStatus());
 		}
 
 		@DisplayName("IN_DELIVERY가 아닌 상태에서 COMPLETE_DELIVERY로 변경하려하면 실패한다.")
 		@Test
 		void fail_when_updateCOMPLETE_DELIVERYWhenBEFORE_DELIVERY() {
-			UpdateDeliveryStatusRequest request = UpdateDeliveryStatusRequest.builder()
-				.deliveryStatus(COMPLETE_DELIVERY)
-				.build();
+			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(COMPLETE_DELIVERY);
 			delivery.updateDeliveryStatus(BEFORE_DELIVERY);
 
 			BaseException exception = new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
@@ -144,9 +120,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		@DisplayName("BEFORE_DELIVERY가 아닌 상태에서 IN_DELIVERY로 변경하려하면 실패한다.")
 		@Test
 		void fail_when_updateIN_DELIVERYWhenBEFORE_DELIVERY() {
-			UpdateDeliveryStatusRequest request = UpdateDeliveryStatusRequest.builder()
-				.deliveryStatus(IN_DELIVERY)
-				.build();
+			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(IN_DELIVERY);
 			delivery.updateDeliveryStatus(COMPLETE_DELIVERY);
 
 			BaseException exception = new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
@@ -158,9 +132,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		@DisplayName("변경할 상태가 BEFORE_DELIVERY이면 실패한다.")
 		@Test
 		void fail_when_statusIsBEFORE_DELIVERY() {
-			UpdateDeliveryStatusRequest request = UpdateDeliveryStatusRequest.builder()
-				.deliveryStatus(BEFORE_DELIVERY)
-				.build();
+			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(BEFORE_DELIVERY);
 
 			BaseException exception = new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
 			assertThatThrownBy(() -> deliveryCompanyService.updateDeliveryStatus(1L, request, deliveryCompany))
@@ -171,9 +143,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		@DisplayName("해당 delivery를 변경할 권한이 없으면 실패한다.")
 		@Test
 		void fail_when_noPermission() {
-			UpdateDeliveryStatusRequest request = UpdateDeliveryStatusRequest.builder()
-				.deliveryStatus(BEFORE_DELIVERY)
-				.build();
+			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(BEFORE_DELIVERY);
 
 			Delivery mockDelivery = mock(Delivery.class);
 			DeliveryCompany mockDeliveryCompany = mock(DeliveryCompany.class);
