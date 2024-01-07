@@ -27,7 +27,7 @@ public class DeliveryCompanyService {
 	private final DeliveryReadService deliveryReadService;
 
 	public void signup(SignUpRequest request) {
-		if (deliveryCompanyReadService.existsByEmail(request.getEmail())) {
+		if (deliveryCompanyReadService.existsByEmail(request.email())) {
 			throw new BaseException(ALREADY_DELIVERY_COMPANY_EXISTS);
 		}
 
@@ -45,11 +45,11 @@ public class DeliveryCompanyService {
 		}
 
 		validateRequest(request, delivery);
-		delivery.updateDeliveryStatus(request.getDeliveryStatus());
+		delivery.updateDeliveryStatus(request.deliveryStatus());
 	}
 
 	private void validateRequest(UpdateDeliveryStatusRequest request, Delivery delivery) {
-		DeliveryStatus future = request.getDeliveryStatus();
+		DeliveryStatus future = request.deliveryStatus();
 		DeliveryStatus current = delivery.getDeliveryStatus();
 		if (isInvalidChangeStatus(future, current)) {
 			throw new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
@@ -64,7 +64,7 @@ public class DeliveryCompanyService {
 
 	private void saveDeliveryCompany(SignUpRequest request) {
 		deliveryCompanyRepository.save(DeliveryCompany.builder()
-			.email(request.getEmail())
+			.email(request.email())
 			.build());
 	}
 }

@@ -25,7 +25,7 @@ public class SellerService {
 	private final ProductReadService productReadService;
 
 	public void signup(SignUpRequest request) {
-		if (sellerRepository.existsByEmail(request.getEmail())) {
+		if (sellerRepository.existsByEmail(request.email())) {
 			throw new BaseException(ALREADY_SELLER_EXISTS);
 		}
 
@@ -34,12 +34,12 @@ public class SellerService {
 
 	private void saveSeller(SignUpRequest request) {
 		sellerRepository.save(Seller.builder()
-			.email(request.getEmail())
+			.email(request.email())
 			.build());
 	}
 
 	public void putProduct(PutProductRequest request, Seller seller) {
-		if (productReadService.existsByNameAndSeller(request.getName(), seller)) {
+		if (productReadService.existsByNameAndSeller(request.name(), seller)) {
 			throw new BaseException(ALREADY_PRODUCT_NAME_EXISTS);
 		}
 		saveProduct(request, seller);
@@ -47,10 +47,10 @@ public class SellerService {
 
 	private void saveProduct(PutProductRequest request, Seller seller) {
 		productRepository.save(Product.builder()
-			.name(request.getName())
-			.amount(request.getAmount())
-			.stock(request.getStock())
-			.description(request.getDescription())
+			.name(request.name())
+			.amount(request.amount())
+			.stock(request.stock())
+			.description(request.description())
 			.seller(seller)
 			.build());
 	}

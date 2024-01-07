@@ -21,9 +21,9 @@ public class PayService {
 	public void chargePay(ChargePayRequest request, Consumer consumer) {
 		payRepository.save(Pay.builder()
 			.consumer(consumer)
-			.amount(request.getAmount())
+			.amount(request.amount())
 			.build());
-		consumer.addBalance(request.getAmount());
+		consumer.addBalance(request.amount());
 		consumerRepository.save(consumer);
 	}
 }

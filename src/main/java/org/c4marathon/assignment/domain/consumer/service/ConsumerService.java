@@ -50,10 +50,10 @@ public class ConsumerService {
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
 
 	public void signup(SignUpRequest request) {
-		if (request.getAddress() == null) {
+		if (request.address() == null) {
 			throw new BaseException(CONSUMER_NEED_ADDRESS);
 		}
-		if (consumerReadService.existsByEmail(request.getEmail())) {
+		if (consumerReadService.existsByEmail(request.email())) {
 			throw new BaseException(ALREADY_CONSUMER_EXISTS);
 		}
 
@@ -118,12 +118,12 @@ public class ConsumerService {
 	private void saveOrderProduct(PurchaseProductRequest request, Order order, Consumer consumer) {
 		List<OrderProduct> orderProducts = new ArrayList<>();
 		long totalAmount = 0L;
-		for (PurchaseProductEntry purchaseProductEntry : request.getPurchaseProducts()) {
-			Product product = productReadService.findById(purchaseProductEntry.getProductId());
+		for (PurchaseProductEntry purchaseProductEntry : request.purchaseProducts()) {
+			Product product = productReadService.findById(purchaseProductEntry.productId());
 			orderProducts.add(createOrderProduct(order, purchaseProductEntry, product));
-			long amount = purchaseProductEntry.getQuantity() * product.getAmount();
+			long amount = purchaseProductEntry.quantity() * product.getAmount();
 			totalAmount += amount;
-			product.decreaseStock(purchaseProductEntry.getQuantity());
+			product.decreaseStock(purchaseProductEntry.quantity());
 		}
 		updateConsumerBalance(consumer, totalAmount);
 		orderProductJdbcRepository.saveAllBatch(orderProducts);
@@ -139,7 +139,7 @@ public class ConsumerService {
 
 	private OrderProduct createOrderProduct(Order order, PurchaseProductEntry purchaseProductEntry, Product product) {
 		return OrderProduct.builder()
-			.quantity(purchaseProductEntry.getQuantity())
+			.quantity(purchaseProductEntry.quantity())
 			.amount(product.getAmount())
 			.order(order)
 			.product(product)
@@ -164,8 +164,8 @@ public class ConsumerService {
 
 	private void saveConsumer(SignUpRequest request) {
 		consumerRepository.save(Consumer.builder()
-			.email(request.getEmail())
-			.address(request.getAddress())
+			.email(request.email())
+			.address(request.address())
 			.build());
 	}
 
