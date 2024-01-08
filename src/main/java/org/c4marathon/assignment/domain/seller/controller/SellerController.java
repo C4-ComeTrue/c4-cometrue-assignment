@@ -3,7 +3,6 @@ package org.c4marathon.assignment.domain.seller.controller;
 import org.c4marathon.assignment.domain.seller.dto.request.PutProductRequest;
 import org.c4marathon.assignment.domain.seller.service.SellerService;
 import org.c4marathon.assignment.global.auth.SellerThreadLocal;
-import org.c4marathon.assignment.global.response.ResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,8 +22,8 @@ public class SellerController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/products")
-	public ResponseDto<Void> putProduct(@RequestBody @Valid PutProductRequest request) {
+	public String putProduct(@RequestBody @Valid PutProductRequest request) {
 		sellerService.putProduct(request, SellerThreadLocal.get());
-		return ResponseDto.message("success put product");
+		return "success put product";
 	}
 }

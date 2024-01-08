@@ -3,7 +3,6 @@ package org.c4marathon.assignment.domain.consumer.controller;
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductRequest;
 import org.c4marathon.assignment.domain.consumer.service.ConsumerService;
 import org.c4marathon.assignment.global.auth.ConsumerThreadLocal;
-import org.c4marathon.assignment.global.response.ResponseDto;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,20 +22,20 @@ public class ConsumerController {
 	private final ConsumerService consumerService;
 
 	@PostMapping
-	public ResponseDto<Void> purchaseProduct(@RequestBody @Valid PurchaseProductRequest request) {
+	public String purchaseProduct(@RequestBody @Valid PurchaseProductRequest request) {
 		consumerService.purchaseProduct(request, ConsumerThreadLocal.get());
-		return ResponseDto.message("success purchase product");
+		return "success purchase product";
 	}
 
 	@DeleteMapping("/{order_id}")
-	public ResponseDto<Void> refundOrder(@PathVariable("order_id") Long orderId) {
+	public String refundOrder(@PathVariable("order_id") Long orderId) {
 		consumerService.refundOrder(orderId, ConsumerThreadLocal.get());
-		return ResponseDto.message("success refund product");
+		return "success refund product";
 	}
 
 	@PatchMapping("/{order_id}")
-	public ResponseDto<Void> confirmOrder(@PathVariable("order_id") Long orderId) {
+	public String confirmOrder(@PathVariable("order_id") Long orderId) {
 		consumerService.confirmOrder(orderId, ConsumerThreadLocal.get());
-		return ResponseDto.message("success confirm order");
+		return "success confirm order";
 	}
 }
