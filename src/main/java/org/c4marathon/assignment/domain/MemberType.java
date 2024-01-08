@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.domain;
 
-public enum UserType {
+public enum MemberType {
 	ROLE_SELLER,
 	ROLE_CUSTOMER;
 }

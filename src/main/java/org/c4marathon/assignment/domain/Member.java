@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.domain;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import org.hibernate.annotations.ColumnDefault;
 
@@ -12,28 +11,42 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Setter @Getter
+@NoArgsConstructor
 public class Member {
 
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long memberPk;
 
+	@NotBlank
 	private String userId;
 
+	@NotBlank
 	@Enumerated(EnumType.STRING)
-	private UserType userType;
+	private MemberType memberType;
 
+	@NotBlank
 	private String password;
 
+	@NotBlank
 	private String username;
 
+	@NotBlank
 	private String postalCode;
 
+	@NotBlank
 	private String address;
 
+	@NotBlank
 	private String phone;
 
+	@NotBlank
 	private LocalDate registerDate;
 
 	@ColumnDefault("false")
