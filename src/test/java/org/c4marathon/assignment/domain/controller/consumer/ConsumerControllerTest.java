@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.domain.controller.consumer;
 
+import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -11,6 +12,7 @@ import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductEntr
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductRequest;
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.controller.ControllerTestSupport;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,7 +45,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isOk(),
-					jsonPath("$.message").value("success purchase product")
+					content().string("success purchase product")
 				);
 		}
 
@@ -52,13 +54,15 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 		void fail_when_productIdIsNull() throws Exception {
 			PurchaseProductRequest request = createRequest(null, 1);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value("productId is null")
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 
@@ -67,13 +71,15 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 		void fail_when_quantityIsNull() throws Exception {
 			PurchaseProductRequest request = createRequest(1L, null);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value("quantity is null")
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 
@@ -82,13 +88,15 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 		void fail_when_quantityIsLessThan1() throws Exception {
 			PurchaseProductRequest request = createRequest(1L, 0);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value("quantity is less than 1")
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 
@@ -116,7 +124,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 			mockMvc.perform(delete(REQUEST_URL, 1L))
 				.andExpectAll(
 					status().isOk(),
-					jsonPath("$.message").value("success refund product")
+					content().string("success refund product")
 				);
 		}
 
@@ -149,7 +157,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 			mockMvc.perform(patch(REQUEST_URL, 1L))
 				.andExpectAll(
 					status().isOk(),
-					jsonPath("$.message").value("success confirm order")
+					content().string("success confirm order")
 				);
 		}
 

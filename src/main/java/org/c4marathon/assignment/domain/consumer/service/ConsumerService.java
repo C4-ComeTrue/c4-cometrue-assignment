@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.domain.consumer.service;
 
+import static org.c4marathon.assignment.global.constant.DeliveryStatus.*;
+import static org.c4marathon.assignment.global.constant.OrderStatus.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
 import java.time.LocalDateTime;
@@ -24,9 +26,6 @@ import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductJdbc
 import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
-import org.c4marathon.assignment.global.constant.DeliveryStatus;
-import org.c4marathon.assignment.global.constant.OrderStatus;
-import org.c4marathon.assignment.global.error.BaseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,10 +50,10 @@ public class ConsumerService {
 
 	public void signup(SignUpRequest request) {
 		if (request.address() == null) {
-			throw new BaseException(CONSUMER_NEED_ADDRESS);
+			throw CONSUMER_NEED_ADDRESS.baseException();
 		}
 		if (consumerReadService.existsByEmail(request.email())) {
-			throw new BaseException(ALREADY_CONSUMER_EXISTS);
+			throw ALREADY_CONSUMER_EXISTS.baseException("email: %s", request.email());
 		}
 
 		saveConsumer(request);
@@ -69,8 +68,8 @@ public class ConsumerService {
 	public void refundOrder(Long orderId, Consumer consumer) {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
 		validateRefundRequest(consumer, order);
-		order.getDelivery().updateDeliveryStatus(DeliveryStatus.COMPLETE_DELIVERY);
-		order.updateOrderStatus(OrderStatus.REFUND);
+		order.getDelivery().updateDeliveryStatus(COMPLETE_DELIVERY);
+		order.updateOrderStatus(REFUND);
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProduct(order.getId());
 
 		Long totalAmount = calculateTotalAmount(orderProducts);
@@ -82,7 +81,7 @@ public class ConsumerService {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
 		validateConfirmRequest(consumer, order);
 
-		order.updateOrderStatus(OrderStatus.CONFIRM);
+		order.updateOrderStatus(CONFIRM);
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProductAndSeller(orderId);
 
 		orderProducts.forEach(orderProduct -> orderProduct.getProduct()
@@ -91,11 +90,11 @@ public class ConsumerService {
 
 	private void validateConfirmRequest(Consumer consumer, Order order) {
 		if (!order.getConsumer().getId().equals(consumer.getId())) {
-			throw new BaseException(NO_PERMISSION);
+			throw NO_PERMISSION.baseException();
 		}
-		if (!order.getOrderStatus().equals(OrderStatus.COMPLETE_PAYMENT)
-			|| !order.getDelivery().getDeliveryStatus().equals(DeliveryStatus.COMPLETE_DELIVERY)) {
-			throw new BaseException(CONFIRM_NOT_AVAILABLE);
+		if (!order.getOrderStatus().equals(COMPLETE_PAYMENT)
+			|| !order.getDelivery().getDeliveryStatus().equals(COMPLETE_DELIVERY)) {
+			throw CONFIRM_NOT_AVAILABLE.baseException("current status: ", order.getOrderStatus());
 		}
 	}
 
@@ -108,10 +107,11 @@ public class ConsumerService {
 
 	private void validateRefundRequest(Consumer consumer, Order order) {
 		if (!Objects.equals(order.getConsumer().getId(), consumer.getId())) {
-			throw new BaseException(NO_PERMISSION);
+			throw NO_PERMISSION.baseException();
 		}
-		if (!Objects.equals(order.getDelivery().getDeliveryStatus(), DeliveryStatus.BEFORE_DELIVERY)) {
-			throw new BaseException(REFUND_NOT_AVAILABLE);
+		if (!Objects.equals(order.getDelivery().getDeliveryStatus(), BEFORE_DELIVERY)) {
+			throw REFUND_NOT_AVAILABLE.baseException("delivery status: %s",
+				order.getDelivery().getDeliveryStatus().toString());
 		}
 	}
 
@@ -131,7 +131,7 @@ public class ConsumerService {
 
 	private void updateConsumerBalance(Consumer consumer, Long totalAmount) {
 		if (consumer.getBalance() < totalAmount) {
-			throw new BaseException(NOT_ENOUGH_BALANCE);
+			throw NOT_ENOUGH_BALANCE.baseException("total amount: %d", totalAmount);
 		}
 		consumer.decreaseBalance(totalAmount);
 		consumerRepository.save(consumer);
@@ -148,7 +148,7 @@ public class ConsumerService {
 
 	private Order saveOrder(Consumer consumer, Delivery delivery) {
 		return orderRepository.save(Order.builder()
-			.orderStatus(OrderStatus.COMPLETE_PAYMENT)
+			.orderStatus(COMPLETE_PAYMENT)
 			.consumer(consumer)
 			.delivery(delivery)
 			.build());

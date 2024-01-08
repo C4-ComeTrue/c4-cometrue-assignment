@@ -11,6 +11,7 @@ import org.c4marathon.assignment.domain.order.service.OrderReadService;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 import org.c4marathon.assignment.global.error.BaseException;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -60,7 +61,8 @@ public class OrderReadServiceTest extends ServiceTestSupport {
 		@DisplayName("id에 해당하는 주문이 존재하지 않으면 예외를 반환한다.")
 		@Test
 		void throwException_when_notExists() {
-			BaseException exception = new BaseException(ORDER_NOT_FOUND);
+			ErrorCode errorCode = ORDER_NOT_FOUND;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 
 			assertThatThrownBy(() -> orderReadService.findByIdJoinFetch(order.getId() + 1))
 				.isInstanceOf(exception.getClass())

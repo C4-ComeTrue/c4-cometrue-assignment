@@ -17,3 +17,7 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
     url: jdbc:mysql://localhost:3306/community?rewriteBatchedStatements=true
+
+logging:
+  level:
+    org.c4marathon.assignment.global.error: debug

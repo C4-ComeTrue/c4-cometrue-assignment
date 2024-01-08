@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.domain.controller.seller;
 
+import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 import org.c4marathon.assignment.domain.controller.ControllerTestSupport;
 import org.c4marathon.assignment.domain.seller.dto.request.PutProductRequest;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,39 +47,43 @@ public class SellerControllerTest extends ControllerTestSupport {
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isCreated(),
-					jsonPath("$.message").value("success put product")
+					content().string("success put product")
 				);
 		}
 
 		@DisplayName("name이 null이거나 100자를 초과하면 실패한다.")
 		@ParameterizedTest
 		@MethodSource("provideNameArguments")
-		void fail_when_nameIsNullOrExceed100(String name, String message) throws Exception {
+		void fail_when_nameIsNullOrExceed100(String name) throws Exception {
 			PutProductRequest request = createRequest(name, "description", 100, 1000L);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value(message)
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 
 		@DisplayName("description이 null이거나 500자를 초과하면 실패한다.")
 		@ParameterizedTest
 		@MethodSource("provideDescriptionArguments")
-		void fail_when_descriptionIsNullOrExceed500(String description, String message) throws Exception {
+		void fail_when_descriptionIsNullOrExceed500(String description) throws Exception {
 			PutProductRequest request = createRequest("name", description, 100, 1000L);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value(message)
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 
@@ -86,13 +92,15 @@ public class SellerControllerTest extends ControllerTestSupport {
 		void fail_when_amountIsNull() throws Exception {
 			PutProductRequest request = createRequest("name", "description", 100, null);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value("amount is null")
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 
@@ -101,13 +109,15 @@ public class SellerControllerTest extends ControllerTestSupport {
 		void fail_when_stockIsNull() throws Exception {
 			PutProductRequest request = createRequest("name", "description", null, 1000L);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value("stock is null")
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 
@@ -117,15 +127,15 @@ public class SellerControllerTest extends ControllerTestSupport {
 
 		private static Stream<Arguments> provideNameArguments() {
 			return Stream.of(
-				Arguments.of(null, "name is null"),
-				Arguments.of("a".repeat(101), "name length exceed 100")
+				null,
+				Arguments.of("a".repeat(101))
 			);
 		}
 
 		private static Stream<Arguments> provideDescriptionArguments() {
 			return Stream.of(
-				Arguments.of(null, "description is null"),
-				Arguments.of("a".repeat(501), "description length exceed 500")
+				null,
+				Arguments.of("a".repeat(501))
 			);
 		}
 	}

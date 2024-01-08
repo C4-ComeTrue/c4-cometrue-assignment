@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.domain.controller.auth;
 
+import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -8,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.controller.ControllerTestSupport;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -50,7 +52,7 @@ public class AuthControllerTest extends ControllerTestSupport {
 					.contentType(MediaType.APPLICATION_JSON))
 				.andExpectAll(
 					status().isCreated(),
-					jsonPath("$.message").value("success signup")
+					content().string("success signup")
 				);
 		}
 
@@ -59,6 +61,7 @@ public class AuthControllerTest extends ControllerTestSupport {
 		void throwException_when_emailIsNull() throws Exception {
 			SignUpRequest request = createRequest(null);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)
 					.param("memberType", "CONSUMER")
 					.content(om.writeValueAsString(request))
@@ -66,7 +69,8 @@ public class AuthControllerTest extends ControllerTestSupport {
 					.contentType(MediaType.APPLICATION_JSON))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value("email is null")
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 

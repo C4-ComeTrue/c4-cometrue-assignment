@@ -17,6 +17,7 @@ import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyS
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
 import org.c4marathon.assignment.global.error.BaseException;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -62,7 +63,8 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 			given(deliveryCompanyReadService.existsByEmail(anyString()))
 				.willReturn(true);
 
-			BaseException exception = new BaseException(ALREADY_DELIVERY_COMPANY_EXISTS);
+			ErrorCode errorCode = ALREADY_DELIVERY_COMPANY_EXISTS;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> deliveryCompanyService.signup(request))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
@@ -111,7 +113,8 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(COMPLETE_DELIVERY);
 			delivery.updateDeliveryStatus(BEFORE_DELIVERY);
 
-			BaseException exception = new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
+			ErrorCode errorCode = INVALID_DELIVERY_STATUS_REQUEST;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> deliveryCompanyService.updateDeliveryStatus(1L, request, deliveryCompany))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
@@ -123,7 +126,8 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(IN_DELIVERY);
 			delivery.updateDeliveryStatus(COMPLETE_DELIVERY);
 
-			BaseException exception = new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
+			ErrorCode errorCode = INVALID_DELIVERY_STATUS_REQUEST;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> deliveryCompanyService.updateDeliveryStatus(1L, request, deliveryCompany))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
@@ -134,7 +138,8 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		void fail_when_statusIsBEFORE_DELIVERY() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(BEFORE_DELIVERY);
 
-			BaseException exception = new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
+			ErrorCode errorCode = INVALID_DELIVERY_STATUS_REQUEST;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> deliveryCompanyService.updateDeliveryStatus(1L, request, deliveryCompany))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
@@ -152,7 +157,8 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 			given(mockDeliveryCompany.getId()).willReturn(2L);
 			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(mockDelivery);
 
-			BaseException exception = new BaseException(NO_PERMISSION);
+			ErrorCode errorCode = NO_PERMISSION;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> deliveryCompanyService.updateDeliveryStatus(1L, request, deliveryCompany))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());

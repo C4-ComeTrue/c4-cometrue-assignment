@@ -14,6 +14,7 @@ import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.domain.seller.service.SellerService;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.error.BaseException;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,7 +53,8 @@ public class SellerServiceTest extends ServiceTestSupport {
 				.email(request.email())
 				.build());
 
-			BaseException exception = new BaseException(ALREADY_SELLER_EXISTS);
+			ErrorCode errorCode = ALREADY_SELLER_EXISTS;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> sellerService.signup(request))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
@@ -82,7 +84,8 @@ public class SellerServiceTest extends ServiceTestSupport {
 			given(productReadService.existsByNameAndSeller(anyString(), any(Seller.class)))
 				.willReturn(true);
 
-			BaseException exception = new BaseException(ALREADY_PRODUCT_NAME_EXISTS);
+			ErrorCode errorCode = ALREADY_PRODUCT_NAME_EXISTS;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> sellerService.putProduct(createRequest(), seller))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());

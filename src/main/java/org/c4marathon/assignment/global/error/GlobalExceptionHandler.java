@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.global.error;
 
-import org.c4marathon.assignment.global.response.ResponseDto;
+import static org.c4marathon.assignment.global.error.ErrorCode.*;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -16,20 +17,34 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(BaseException.class)
-	public ResponseEntity<ResponseDto<Void>> handleRuntimeException(BaseException baseException) {
-
-		ErrorCode errorCode = baseException.getErrorCode();
+	public ResponseEntity<ExceptionResponse> handleRuntimeException(BaseException baseException) {
+		ErrorCode errorCode = valueOf(baseException.getErrorCode());
 		String message = baseException.getMessage();
-		return ResponseEntity.status(errorCode.getStatus()).body(ResponseDto.message(message));
+		log.debug(baseException.getDebugMessage());
+		return new ResponseEntity<>(new ExceptionResponse(errorCode.name(), message), errorCode.getStatus());
 	}
 
 	@ExceptionHandler(BindException.class)
-	public ResponseEntity<ResponseDto<Object>> bindExceptionHandler(BindingResult result) {
+	public ResponseEntity<BindExceptionResponse> handleBindException(BindingResult result) {
 		FieldError fieldError = result.getFieldErrors().get(0);
+		log.debug("field: {}, value: {}, message: {}",
+			fieldError.getField(), fieldError.getRejectedValue(), fieldError.getDefaultMessage());
 		return new ResponseEntity<>(
-			ResponseDto.builder()
-				.message(fieldError.getDefaultMessage())
-				.build(),
-			HttpStatus.BAD_REQUEST);
+			new BindExceptionResponse(BIND_ERROR.name(), BIND_ERROR.getMessage(), fieldError.getField()),
+			HttpStatus.BAD_REQUEST
+		);
+	}
+
+	private record ExceptionResponse(
+		String errorCode,
+		String message
+	) {
+	}
+
+	private record BindExceptionResponse(
+		String errorCode,
+		String message,
+		String field
+	) {
 	}
 }

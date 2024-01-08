@@ -11,7 +11,6 @@ import org.c4marathon.assignment.domain.deliverycompany.dto.request.UpdateDelive
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
 import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
-import org.c4marathon.assignment.global.error.BaseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +27,7 @@ public class DeliveryCompanyService {
 
 	public void signup(SignUpRequest request) {
 		if (deliveryCompanyReadService.existsByEmail(request.email())) {
-			throw new BaseException(ALREADY_DELIVERY_COMPANY_EXISTS);
+			throw ALREADY_DELIVERY_COMPANY_EXISTS.baseException("email: %s", request.email());
 		}
 
 		saveDeliveryCompany(request);
@@ -41,7 +40,7 @@ public class DeliveryCompanyService {
 	) {
 		Delivery delivery = deliveryReadService.findByIdJoinFetch(deliveryId);
 		if (!Objects.equals(delivery.getDeliveryCompany().getId(), deliveryCompany.getId())) {
-			throw new BaseException(NO_PERMISSION);
+			throw NO_PERMISSION.baseException();
 		}
 
 		validateRequest(request, delivery);
@@ -52,7 +51,8 @@ public class DeliveryCompanyService {
 		DeliveryStatus future = request.deliveryStatus();
 		DeliveryStatus current = delivery.getDeliveryStatus();
 		if (isInvalidChangeStatus(future, current)) {
-			throw new BaseException(INVALID_DELIVERY_STATUS_REQUEST);
+			throw INVALID_DELIVERY_STATUS_REQUEST.baseException("current status: %s, future status: %s",
+				delivery.getDeliveryStatus().toString(), request.deliveryStatus().toString());
 		}
 	}
 

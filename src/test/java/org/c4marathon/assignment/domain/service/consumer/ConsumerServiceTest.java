@@ -25,6 +25,7 @@ import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 import org.c4marathon.assignment.global.error.BaseException;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -96,7 +97,8 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		void throwException_when_addressIsNull() {
 			SignUpRequest request = createRequest(null);
 
-			BaseException exception = new BaseException(CONSUMER_NEED_ADDRESS);
+			ErrorCode errorCode = CONSUMER_NEED_ADDRESS;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 
 			assertThatThrownBy(() -> consumerService.signup(request))
 				.isInstanceOf(exception.getClass())
@@ -115,7 +117,8 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			given(consumerReadService.existsByEmail(anyString()))
 				.willReturn(true);
 
-			BaseException exception = new BaseException(ALREADY_CONSUMER_EXISTS);
+			ErrorCode errorCode = ALREADY_CONSUMER_EXISTS;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> consumerService.signup(request))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
@@ -212,7 +215,8 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			given(productReadService.findById(anyLong()))
 				.willReturn(product);
 
-			BaseException exception = new BaseException(NOT_ENOUGH_BALANCE);
+			ErrorCode errorCode = NOT_ENOUGH_BALANCE;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> consumerService.purchaseProduct(request, consumer))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
@@ -251,7 +255,8 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		void fail_when_deliveryStatusIsNotBEFORE_DELIVRY() {
 			delivery.updateDeliveryStatus(DeliveryStatus.IN_DELIVERY);
 
-			BaseException exception = new BaseException(REFUND_NOT_AVAILABLE);
+			ErrorCode errorCode = REFUND_NOT_AVAILABLE;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> consumerService.refundOrder(order.getId(), consumer))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());

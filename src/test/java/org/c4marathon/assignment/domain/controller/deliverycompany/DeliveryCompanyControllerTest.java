@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.domain.controller.deliverycompany;
 
+import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -10,6 +11,7 @@ import org.c4marathon.assignment.domain.controller.ControllerTestSupport;
 import org.c4marathon.assignment.domain.deliverycompany.dto.request.UpdateDeliveryStatusRequest;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,7 +48,7 @@ public class DeliveryCompanyControllerTest extends ControllerTestSupport {
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isOk(),
-					jsonPath("$.message").value("success update delivery status")
+					content().string("success update delivery status")
 				);
 		}
 
@@ -55,13 +57,15 @@ public class DeliveryCompanyControllerTest extends ControllerTestSupport {
 		void fail_when_deliveryStatusIsNull() throws Exception {
 			UpdateDeliveryStatusRequest request = createRequest(null);
 
+			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(patch(REQUEST_URL, 1L)
 					.content(om.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
 					status().isBadRequest(),
-					jsonPath("$.message").value("deliveryStatus is null")
+					jsonPath("$.errorCode").value(errorCode.name()),
+					jsonPath("$.message").value(errorCode.getMessage())
 				);
 		}
 

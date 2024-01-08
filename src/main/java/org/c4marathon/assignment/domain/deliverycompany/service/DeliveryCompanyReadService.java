@@ -4,7 +4,6 @@ import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
 import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
-import org.c4marathon.assignment.global.error.BaseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +22,6 @@ public class DeliveryCompanyReadService {
 
 	public DeliveryCompany findMinimumCountOfDelivery() {
 		return deliveryCompanyRepository.findMinimumCountOfDelivery()
-			.orElseThrow(() -> new BaseException(DELIVERY_COMPANY_NOT_FOUND));
+			.orElseThrow(DELIVERY_COMPANY_NOT_FOUND::baseException);
 	}
 }

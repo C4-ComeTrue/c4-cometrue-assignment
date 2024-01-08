@@ -8,6 +8,7 @@ import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.error.BaseException;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -68,7 +69,8 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 		@Test
 		void throwException_when_notExists() {
 
-			BaseException exception = new BaseException(PRODUCT_NOT_FOUND);
+			ErrorCode errorCode = PRODUCT_NOT_FOUND;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> productReadService.findById(product.getId() + 1))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
