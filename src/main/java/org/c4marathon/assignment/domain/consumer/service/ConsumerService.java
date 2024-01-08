@@ -94,7 +94,7 @@ public class ConsumerService {
 		}
 		if (!order.getOrderStatus().equals(COMPLETE_PAYMENT)
 			|| !order.getDelivery().getDeliveryStatus().equals(COMPLETE_DELIVERY)) {
-			throw CONFIRM_NOT_AVAILABLE.baseException("current status: ", order.getOrderStatus());
+			throw CONFIRM_NOT_AVAILABLE.baseException("current status: %s", order.getOrderStatus());
 		}
 	}
 
