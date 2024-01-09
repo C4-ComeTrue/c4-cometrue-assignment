@@ -13,3 +13,7 @@ spring:
 logging:
   level:
     org.hibernate.type.descriptor.sql: trace
+
+jwt:
+  key: test001
+  max-age: 86400

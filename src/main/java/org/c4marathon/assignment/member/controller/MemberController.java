@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.member.controller;
 
 import org.c4marathon.assignment.member.dto.RequestDto;
+import org.c4marathon.assignment.member.dto.ResponseDto;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,15 @@ public class MemberController {
         RequestDto.JoinDto joinDto
     ) {
         memberService.join(joinDto);
+    }
+
+    @Operation(summary = "로그인")
+    @PostMapping("/login")
+    public ResponseEntity<ResponseDto.LoginDto> login (
+        @Valid
+        @RequestBody
+        RequestDto.LoginDto loginDto
+    ) {
+        return ResponseEntity.ok(memberService.login(loginDto));
     }
 }
