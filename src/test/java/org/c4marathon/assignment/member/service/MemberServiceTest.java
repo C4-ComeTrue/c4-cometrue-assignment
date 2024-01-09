@@ -8,7 +8,7 @@ import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.c4marathon.assignment.util.entity.Status;
 import org.c4marathon.assignment.util.exceptions.BaseException;
-import org.c4marathon.assignment.util.exceptions.BaseResponseStatus;
+import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ public class MemberServiceTest {
 
         // when
         if (existsByEmail(member.getEmail())) {
-            throw new BaseException(BaseResponseStatus.DUPLICATED_EMAIL, HttpStatus.CONFLICT);
+            throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
         }
         memberRepository.save(member);
 
@@ -81,11 +81,11 @@ public class MemberServiceTest {
         // then
         assertThatThrownBy(() -> {
             if (existsByEmail(member1.getEmail())) {
-                throw new BaseException(BaseResponseStatus.DUPLICATED_EMAIL, HttpStatus.CONFLICT);
+                throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
             }
             memberRepository.save(member1);
         }).isInstanceOf(BaseException.class)
-            .hasMessageContaining(BaseResponseStatus.DUPLICATED_EMAIL.getMessage());
+            .hasMessageContaining(HttpStatus.CONFLICT.toString());
     }
 
     @DisplayName("회원 정보를 통한 로그인이 성공한다.")

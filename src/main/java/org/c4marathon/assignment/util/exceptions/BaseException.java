@@ -1,23 +1,35 @@
 package org.c4marathon.assignment.util.exceptions;
 
-import org.springframework.http.HttpStatus;
+import lombok.Getter;
 
+@Getter
 public class BaseException extends RuntimeException {
 
-    private final BaseResponseStatus responseStatus;
-    private final HttpStatus httpStatus;
+    private final String errorCode;
+    private final String message;
+    private final String debugMessage;
 
-    public BaseException(BaseResponseStatus responseStatus, HttpStatus httpStatus) {
-        super(responseStatus.getMessage());
-        this.responseStatus = responseStatus;
-        this.httpStatus = httpStatus;
+    public BaseException(String errorCode, String message) {
+        super(createMessage(errorCode, message, null));
+        this.errorCode = errorCode;
+        this.message = message;
+        this.debugMessage = null;
     }
 
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
+    public BaseException(String errorCode, String message, String debugMessage) {
+        super(createMessage(errorCode, message, debugMessage));
+        this.errorCode = errorCode;
+        this.message = message;
+        this.debugMessage = debugMessage;
     }
 
-    public BaseResponseStatus getResponseStatus() {
-        return responseStatus;
+    private static String createMessage(String errorCode, String message, String debugMessage) {
+        String newMessage = String.format("%s: %s", errorCode, message);
+
+        if (newMessage != null && !newMessage.isEmpty()) {
+            newMessage += ", " + newMessage;
+        }
+
+        return newMessage;
     }
 }
