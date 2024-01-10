@@ -6,22 +6,20 @@ import static org.mockito.BDDMockito.*;
 
 import java.util.Optional;
 
-import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
 import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.global.auth.DeliveryCompanyThreadLocal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 public class DeliveryCompanyInterceptorTest extends InterceptorTestSupport {
 
-	private final DeliveryCompanyInterceptor deliveryCompanyInterceptor;
-	private final DeliveryCompanyRepository deliveryCompanyRepository;
-
-	public DeliveryCompanyInterceptorTest() {
-		this.deliveryCompanyRepository = mock(DeliveryCompanyRepository.class);
-		this.deliveryCompanyInterceptor = new DeliveryCompanyInterceptor(deliveryCompanyRepository);
-	}
+	@InjectMocks
+	private DeliveryCompanyInterceptor deliveryCompanyInterceptor;
+	@Mock
+	private DeliveryCompanyRepository deliveryCompanyRepository;
 
 	@DisplayName("preHandle 시")
 	@Nested
@@ -30,11 +28,8 @@ public class DeliveryCompanyInterceptorTest extends InterceptorTestSupport {
 		@DisplayName("Authorization header에 email이 포함돼 있고, email에 해당하는 회원을 조회하면 true를 반환한다.")
 		@Test
 		void returnTrue_when_headerAndEmailIsValid() {
-			given(request.getHeader(anyString()))
-				.willReturn("email");
-			DeliveryCompany deliveryCompany = mock(DeliveryCompany.class);
-			given(deliveryCompanyRepository.findByEmail(anyString()))
-				.willReturn(Optional.of(deliveryCompany));
+			given(request.getHeader(anyString())).willReturn("email");
+			given(deliveryCompanyRepository.findByEmail(anyString())).willReturn(Optional.of(deliveryCompany));
 
 			assertThat(deliveryCompanyInterceptor.preHandle(request, response, handler)).isTrue();
 		}
@@ -42,10 +37,8 @@ public class DeliveryCompanyInterceptorTest extends InterceptorTestSupport {
 		@DisplayName("Authorization header에 email이 포함돼 있지만, email에 해당하는 회원을 조회할 수 없으면 false를 반환한다.")
 		@Test
 		void returnFalse_when_EmailIsValid() {
-			given(request.getHeader(anyString()))
-				.willReturn("email");
-			given(deliveryCompanyRepository.findByEmail(anyString()))
-				.willReturn(Optional.empty());
+			given(request.getHeader(anyString())).willReturn("email");
+			given(deliveryCompanyRepository.findByEmail(anyString())).willReturn(Optional.empty());
 
 			assertThat(deliveryCompanyInterceptor.preHandle(request, response, handler)).isFalse();
 		}
@@ -53,8 +46,7 @@ public class DeliveryCompanyInterceptorTest extends InterceptorTestSupport {
 		@DisplayName("Authorization header에 email이 포함돼 있지 않으면 false를 반환한다.")
 		@Test
 		void returnFalse_when_headerNotFound() {
-			given(request.getHeader(anyString()))
-				.willReturn(null);
+			given(request.getHeader(anyString())).willReturn(null);
 
 			assertThat(deliveryCompanyInterceptor.preHandle(request, response, handler)).isFalse();
 		}
@@ -67,7 +59,6 @@ public class DeliveryCompanyInterceptorTest extends InterceptorTestSupport {
 		@DisplayName("DeliveryThreadLocal의 객체가 제거된다.")
 		@Test
 		void removeDeliveryCompanyThreadLocal_when_postHandle() throws Exception {
-			DeliveryCompany deliveryCompany = mock(DeliveryCompany.class);
 			DeliveryCompanyThreadLocal.set(deliveryCompany);
 
 			deliveryCompanyInterceptor.postHandle(request, response, handler, modelAndView);

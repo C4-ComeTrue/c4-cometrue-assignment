@@ -5,10 +5,7 @@ import static org.c4marathon.assignment.global.constant.DeliveryStatus.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 
-import java.util.List;
-
 import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
-import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
 import org.c4marathon.assignment.domain.deliverycompany.dto.request.UpdateDeliveryStatusRequest;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
@@ -24,16 +21,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 
-	@Autowired
+	@InjectMocks
 	private DeliveryCompanyService deliveryCompanyService;
-	@MockBean
+	@Mock
 	private DeliveryCompanyReadService deliveryCompanyReadService;
-	@MockBean
+	@Mock
 	private DeliveryReadService deliveryReadService;
 
 	@DisplayName("회원 가입 시")
@@ -45,14 +42,12 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		void success_when_emailNotExists() {
 			SignUpRequest request = createRequest();
 
-			given(deliveryCompanyReadService.existsByEmail(anyString()))
-				.willReturn(false);
+			given(deliveryCompanyReadService.existsByEmail(anyString())).willReturn(false);
 
-			deliveryCompanyService.signup(request);
-			List<DeliveryCompany> deliveryCompanies = deliveryCompanyRepository.findAll();
-
-			assertThat(deliveryCompanies).hasSize(1);
-			assertThat(deliveryCompanies.get(0).getEmail()).isEqualTo(request.email());
+			assertThatNoException().isThrownBy(() -> deliveryCompanyService.signup(request));
+			then(deliveryCompanyRepository)
+				.should(times(1))
+				.save(any(DeliveryCompany.class));
 		}
 
 		@DisplayName("가입된 email이 존재하면 예외를 반환한다.")
@@ -78,40 +73,32 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 	@DisplayName("배송 상태 변경 시")
 	@Nested
 	class UpdateDeliveryStatus {
-
-		private DeliveryCompany deliveryCompany;
-		private Delivery delivery;
-
 		@BeforeEach
 		void setUp() {
-			deliveryCompany = deliveryCompanyRepository.save(DeliveryCompany.builder()
-				.email("email")
-				.build());
-			delivery = deliveryRepository.save(Delivery.builder()
-				.address("ad")
-				.deliveryCompany(deliveryCompany)
-				.invoiceNumber("in")
-				.build());
 			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(delivery);
+			given(delivery.getDeliveryCompany()).willReturn(deliveryCompany);
+			given(deliveryCompany.getId()).willReturn(1L);
 		}
 
 		@DisplayName("올바른 상태에서 변경 요청은 성공한다.")
 		@ParameterizedTest
 		@CsvSource({"BEFORE_DELIVERY,IN_DELIVERY", "IN_DELIVERY,COMPLETE_DELIVERY"})
 		void successUpdate_when_validStatus(DeliveryStatus before, DeliveryStatus after) {
-			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(after);
-			delivery.updateDeliveryStatus(before);
+			given(delivery.getDeliveryStatus()).willReturn(before);
 
+			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(after);
 			deliveryCompanyService.updateDeliveryStatus(1L, request, deliveryCompany);
 
-			assertThat(delivery.getDeliveryStatus()).isEqualTo(request.deliveryStatus());
+			then(delivery)
+				.should(times(1))
+				.updateDeliveryStatus(any(DeliveryStatus.class));
 		}
 
 		@DisplayName("IN_DELIVERY가 아닌 상태에서 COMPLETE_DELIVERY로 변경하려하면 실패한다.")
 		@Test
 		void fail_when_updateCOMPLETE_DELIVERYWhenBEFORE_DELIVERY() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(COMPLETE_DELIVERY);
-			delivery.updateDeliveryStatus(BEFORE_DELIVERY);
+			given(delivery.getDeliveryStatus()).willReturn(BEFORE_DELIVERY);
 
 			ErrorCode errorCode = INVALID_DELIVERY_STATUS_REQUEST;
 			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
@@ -124,7 +111,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		@Test
 		void fail_when_updateIN_DELIVERYWhenBEFORE_DELIVERY() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(IN_DELIVERY);
-			delivery.updateDeliveryStatus(COMPLETE_DELIVERY);
+			given(delivery.getDeliveryStatus()).willReturn(COMPLETE_DELIVERY);
 
 			ErrorCode errorCode = INVALID_DELIVERY_STATUS_REQUEST;
 			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
@@ -137,6 +124,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		@Test
 		void fail_when_statusIsBEFORE_DELIVERY() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(BEFORE_DELIVERY);
+			given(delivery.getDeliveryStatus()).willReturn(BEFORE_DELIVERY);
 
 			ErrorCode errorCode = INVALID_DELIVERY_STATUS_REQUEST;
 			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
@@ -149,13 +137,9 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 		@Test
 		void fail_when_noPermission() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(BEFORE_DELIVERY);
-
-			Delivery mockDelivery = mock(Delivery.class);
-			DeliveryCompany mockDeliveryCompany = mock(DeliveryCompany.class);
-
-			given(mockDelivery.getDeliveryCompany()).willReturn(mockDeliveryCompany);
-			given(mockDeliveryCompany.getId()).willReturn(2L);
-			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(mockDelivery);
+			DeliveryCompany mock = mock(DeliveryCompany.class);
+			given(delivery.getDeliveryCompany()).willReturn(mock);
+			given(mock.getId()).willReturn(2L);
 
 			ErrorCode errorCode = NO_PERMISSION;
 			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());

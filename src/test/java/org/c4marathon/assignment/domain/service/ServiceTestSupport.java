@@ -1,60 +1,59 @@
 package org.c4marathon.assignment.domain.service;
 
+import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductEntry;
+import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
+import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
+import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
 import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
+import org.c4marathon.assignment.domain.order.entity.Order;
 import org.c4marathon.assignment.domain.order.repository.OrderRepository;
+import org.c4marathon.assignment.domain.orderproduct.entity.OrderProduct;
 import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductRepository;
 import org.c4marathon.assignment.domain.pay.repository.PayRepository;
+import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.repository.ProductRepository;
+import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.domain.seller.repository.SellerRepository;
-import org.c4marathon.assignment.global.auth.ConsumerThreadLocal;
-import org.c4marathon.assignment.global.auth.DeliveryCompanyThreadLocal;
-import org.c4marathon.assignment.global.auth.SellerThreadLocal;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 public abstract class ServiceTestSupport {
 
-	@LocalServerPort
-	public int port;
-	@Autowired
+	@Mock
 	protected ConsumerRepository consumerRepository;
-	@Autowired
+	@Mock
 	protected OrderProductRepository orderProductRepository;
-	@Autowired
+	@Mock
 	protected OrderRepository orderRepository;
-	@Autowired
+	@Mock
 	protected DeliveryRepository deliveryRepository;
-	@Autowired
+	@Mock
 	protected DeliveryCompanyRepository deliveryCompanyRepository;
-	@Autowired
+	@Mock
 	protected ProductRepository productRepository;
-	@Autowired
+	@Mock
 	protected SellerRepository sellerRepository;
-	@Autowired
+	@Mock
 	protected PayRepository payRepository;
 
-	@AfterEach
-	void tearDown() {
-		orderProductRepository.deleteAllInBatch();
-		productRepository.deleteAllInBatch();
-		sellerRepository.deleteAllInBatch();
-		orderRepository.deleteAllInBatch();
-		deliveryRepository.deleteAllInBatch();
-		deliveryCompanyRepository.deleteAllInBatch();
-		payRepository.deleteAllInBatch();
-		consumerRepository.deleteAllInBatch();
-		ConsumerThreadLocal.remove();
-		DeliveryCompanyThreadLocal.remove();
-		SellerThreadLocal.remove();
-	}
+	@Mock
+	protected Order order;
+	@Mock
+	protected Delivery delivery;
+	@Mock
+	protected Consumer consumer;
+	@Mock
+	protected OrderProduct orderProduct;
+	@Mock
+	protected PurchaseProductEntry purchaseProductEntry;
+	@Mock
+	protected DeliveryCompany deliveryCompany;
+	@Mock
+	protected Product product;
+	@Mock
+	protected Seller seller;
 }
