@@ -1,10 +1,8 @@
 package org.c4marathon.assignment.account.service;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
@@ -21,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class AccountServiceTest {
+public class AccountScheduledTest {
 
     @Autowired
     private AccountRepository accountRepository;
@@ -53,28 +51,10 @@ public class AccountServiceTest {
             .build();
     }
 
-    @DisplayName("계좌 생성 요청에 의해 회원의 계좌를 생성한다.")
+    @DisplayName("생성된 모든 메인 계좌를 불러와서 1일 한도를 1000으로 초기화한다.")
     @Test
     @Transactional
-    void createAccountTest() {
-
-        // given
-        Member member = createMember("test@naver.com", "test", "test");
-        memberRepository.save(member);
-        Account account = createAccount(Type.REGULAR_ACCOUNT, member);
-
-        // when
-        accountRepository.save(account);
-
-        // then
-        Optional<Account> findAccount = accountRepository.findById(account.getId());
-        assertThat(findAccount).isPresent();
-        assertThat(findAccount.get().getId()).isEqualTo(account.getId());
-    }
-
-    @DisplayName("생성된 모든 메인 계좌를 불러온다.")
-    @Test
-    void findRegularAccountTest() {
+    void resetDailyLimitTest() {
 
         // given
         Member member1 = createMember("test1@naver.com", "test", "test");
@@ -85,12 +65,16 @@ public class AccountServiceTest {
         Account account2 = createAccount(Type.REGULAR_ACCOUNT, member2);
         Account account3 = createAccount(Type.REGULAR_ACCOUNT, member3);
         accountRepository.saveAll(List.of(account1, account2, account3));
-
-        // when
         List<Account> accountList = accountRepository.findByType(Type.REGULAR_ACCOUNT);
 
+        // when
+        for (int i=0; i<accountList.size(); i++) {
+            accountList.get(i).resetDailyLimit(1000);
+        }
+        accountRepository.saveAll(accountList);
+        List<Account> afterAccountList = accountRepository.findByType(Type.REGULAR_ACCOUNT);
+
         // then
-        assertThat(accountList).isNotNull();
-        assertTrue(accountList.stream().allMatch(account -> account.getType() == Type.REGULAR_ACCOUNT));
-     }
+        assertTrue(afterAccountList.stream().allMatch(account -> account.getDailyLimit() == 1000));
+    }
 }
