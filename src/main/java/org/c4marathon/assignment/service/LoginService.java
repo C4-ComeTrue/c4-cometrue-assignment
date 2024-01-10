@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.service;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AccessDeniedException;
 import java.util.Optional;
 
 import org.c4marathon.assignment.domain.Member;
@@ -49,7 +48,6 @@ public class LoginService {
 	}
 
 	public void logout(HttpServletRequest request) {
-		//sessionManager.expire(request);
 		HttpSession session = request.getSession();
 		session.invalidate();
 	}

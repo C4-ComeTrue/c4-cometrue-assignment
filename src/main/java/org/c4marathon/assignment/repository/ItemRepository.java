@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.c4marathon.assignment.domain.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
