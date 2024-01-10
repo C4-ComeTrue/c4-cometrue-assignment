@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -41,7 +40,7 @@ public class MemberService {
     @Transactional
     public void join(RequestDto.JoinDto joinDto) {
 
-        if(checkEmailExist(joinDto.email())) {
+        if (checkEmailExist(joinDto.email())) {
             throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
         }
 
@@ -60,7 +59,8 @@ public class MemberService {
 
     public ResponseDto.LoginDto login(RequestDto.LoginDto loginDto) {
         Member member = memberRepository.findByEmail(loginDto.email())
-            .orElseThrow(() -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
+            .orElseThrow(
+                () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
 
         if (!passwordEncoder.matches(loginDto.password(), member.getPassword())) {
             throw new BaseException(ErrorCode.LOGIN_FAILED.toString(), HttpStatus.EXPECTATION_FAILED.toString());
@@ -71,5 +71,15 @@ public class MemberService {
         return new ResponseDto.LoginDto(
             jwtToken
         );
+    }
+
+    // 토큰의 유효성을 검사하고 토큰에 적재되어 있는 정보를 추출한다.
+    private String vaildToken(String token) {
+
+        if (!JwtTokenUtil.isExpired(token, secretKey)) {
+            throw new BaseException(ErrorCode.INVALID_TOKEN.toString(), HttpStatus.UNAUTHORIZED.toString());
+        }
+
+        return JwtTokenUtil.getMemberEmail(token, secretKey);
     }
 }

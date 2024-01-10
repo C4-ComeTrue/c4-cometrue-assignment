@@ -1,8 +1,7 @@
 package org.c4marathon.assignment.util.exceptions;
 
-import org.springframework.http.HttpStatus;
-
 import static org.springframework.http.HttpStatus.*;
+
 import org.springframework.http.HttpStatus;
 
 import lombok.AllArgsConstructor;
@@ -30,7 +29,8 @@ public enum ErrorCode {
     UNEXPECTED_ERROR(INTERNAL_SERVER_ERROR, "예상치 못한 에러가 발생했습니다."),
 
     // ----- User-related Responses -----
-    DUPLICATED_EMAIL(CONFLICT, "이미 사용 중인 이메일입니다.");
+    DUPLICATED_EMAIL(CONFLICT, "이미 사용 중인 이메일입니다."),
+    INVALID_TOKEN(UNAUTHORIZED, "토큰이 유효하지 않습니다.");
 
 
     private final HttpStatus status;
