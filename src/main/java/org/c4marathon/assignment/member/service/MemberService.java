@@ -74,7 +74,7 @@ public class MemberService {
     }
 
     // 토큰의 유효성을 검사하고 토큰에 적재되어 있는 정보를 추출한다.
-    private String vaildToken(String token) {
+    public String vaildToken(String token) {
 
         if (!JwtTokenUtil.isExpired(token, secretKey)) {
             throw new BaseException(ErrorCode.INVALID_TOKEN.toString(), HttpStatus.UNAUTHORIZED.toString());
