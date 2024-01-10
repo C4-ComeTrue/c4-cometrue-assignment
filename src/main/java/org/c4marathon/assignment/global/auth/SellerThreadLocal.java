@@ -2,6 +2,10 @@ package org.c4marathon.assignment.global.auth;
 
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SellerThreadLocal {
 
 	private static final ThreadLocal<Seller> SELLER_THREAD_LOCAL;

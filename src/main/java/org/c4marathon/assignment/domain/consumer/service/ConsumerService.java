@@ -72,6 +72,7 @@ public class ConsumerService {
 		order.updateOrderStatus(REFUND);
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProduct(order.getId());
 
+		addProductStock(orderProducts);
 		Long totalAmount = calculateTotalAmount(orderProducts);
 		consumer.addBalance(totalAmount);
 		consumerRepository.save(consumer);
@@ -88,6 +89,10 @@ public class ConsumerService {
 			.getSeller().addBalance((long)(orderProduct.getAmount() * orderProduct.getQuantity() * (1 - FEE))));
 	}
 
+	private void addProductStock(List<OrderProduct> orderProducts) {
+		orderProducts.forEach(orderProduct -> orderProduct.getProduct().addStock(orderProduct.getQuantity()));
+	}
+
 	private void validateConfirmRequest(Consumer consumer, Order order) {
 		if (!order.getConsumer().getId().equals(consumer.getId())) {
 			throw NO_PERMISSION.baseException();
@@ -100,7 +105,6 @@ public class ConsumerService {
 
 	private Long calculateTotalAmount(List<OrderProduct> orderProducts) {
 		return orderProducts.stream()
-			.peek(orderProduct -> orderProduct.getProduct().addStock(orderProduct.getQuantity()))
 			.mapToLong(orderProduct -> orderProduct.getAmount() * orderProduct.getQuantity())
 			.sum();
 	}
