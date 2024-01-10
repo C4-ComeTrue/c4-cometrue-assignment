@@ -54,4 +54,8 @@ public class Account extends BaseEntity {
         this.type = type;
         this.member = member;
     }
+
+    public void resetDailyLimit(Integer dailyLimit){
+        this.dailyLimit = dailyLimit;
+    }
 }
