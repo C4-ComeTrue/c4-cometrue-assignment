@@ -2,7 +2,6 @@ package org.c4marathon.assignment.account.entity;
 
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.util.entity.BaseEntity;
-import org.c4marathon.assignment.util.entity.Status;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,6 +34,9 @@ public class Account extends BaseEntity {
 
     @Column(name = "balance", nullable = false)
     private Integer balance;
+
+    @Column(name = "limit")
+    private Integer limit;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
