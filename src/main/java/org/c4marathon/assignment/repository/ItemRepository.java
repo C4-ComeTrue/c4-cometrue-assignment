@@ -1,11 +1,20 @@
 package org.c4marathon.assignment.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.c4marathon.assignment.domain.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
+
+	@Query("select i from Item i where i.seller.memberPk = :memberId")
+	List<Item> findAllByMemberId(@Param("memberId") Long memberId);
+
+	@Query("select i from Item i join fetch OrderItem o where i.seller.memberPk = :memberId")
+	List<Item> findAllByMemberIdForOrderItems(@Param("memberId") Long memberId);
 }
