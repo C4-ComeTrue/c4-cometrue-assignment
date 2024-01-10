@@ -2,7 +2,6 @@ package org.c4marathon.assignment.exception;
 
 import io.micrometer.common.util.StringUtils;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 public class ServiceException extends RuntimeException {

@@ -12,7 +12,8 @@ public enum ErrorCd {
 	NOT_FOUND(HttpStatus.NOT_FOUND, "HTTP not found"),
 	NO_PERMISSION(HttpStatus.FORBIDDEN, "No Permission"),
 	NOT_EXIST_USER(HttpStatus.NOT_FOUND, "User Not Found"),
-	NO_SUCH_ITEM(HttpStatus.NOT_FOUND, "Item Not Found");
+	NO_SUCH_ITEM(HttpStatus.NOT_FOUND, "Item Not Found"),
+	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error");
 
 	private final HttpStatus httpStatus;
 	private final String message;
