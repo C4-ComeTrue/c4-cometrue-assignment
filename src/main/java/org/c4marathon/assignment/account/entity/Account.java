@@ -35,8 +35,8 @@ public class Account extends BaseEntity {
     @Column(name = "balance", nullable = false)
     private Integer balance;
 
-    @Column(name = "limit")
-    private Integer limit;
+    @Column(name = "daily_limit", nullable = false)
+    private Integer dailyLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
@@ -47,9 +47,11 @@ public class Account extends BaseEntity {
     private Member member;
 
     @Builder
-    public Account(Type type) {
+    public Account(Type type, Member member) {
 
         this.balance = 0;
+        this.dailyLimit = 0;
         this.type = type;
+        this.member = member;
     }
 }
