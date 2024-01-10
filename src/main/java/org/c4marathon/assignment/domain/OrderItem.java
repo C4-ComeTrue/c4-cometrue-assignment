@@ -1,8 +1,5 @@
 package org.c4marathon.assignment.domain;
 
-import org.hibernate.annotations.ColumnDefault;
-
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

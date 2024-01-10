@@ -2,7 +2,6 @@ package org.c4marathon.assignment.domain;
 
 import java.util.List;
 
-import org.c4marathon.assignment.exception.ErrorCd;
 import org.hibernate.annotations.ColumnDefault;
 
 import jakarta.persistence.Column;
