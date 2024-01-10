@@ -34,11 +34,10 @@ public class OrderItem {
 	private int count;
 
 	@Enumerated(EnumType.STRING)
-	private OrderStatus orderStatus;
+	private ShipmentStatus shipmentStatus;
 
-	@ColumnDefault("false")
-	@Column(columnDefinition = "TINYINT(1)")
-	private boolean isProceeded; // 이 주문 내역의 승인여부를 표시합니다.
+	@Enumerated(EnumType.STRING)
+	private OrderStatus orderStatus;
 
 	public int getTotalPrice(){
 		return this.price * this.count;

@@ -45,4 +45,11 @@ public class Order {
 	@OneToOne
 	private Shipment shipment;
 
+	@Enumerated(EnumType.STRING)
+	private ShipmentStatus shipmentStatus;
+
+	@ColumnDefault("false")
+	@Column(columnDefinition = "TINYINT(1)")
+	private boolean isRefundable; // 이 주문 내역의 승인여부를 표시합니다.
+
 }

@@ -11,23 +11,27 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Setter @Getter
+@Setter
+@Getter
 @NoArgsConstructor
 public class Member {
 
+	@Column
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long memberPk;
 
 	@NotBlank
-	private String userId;
+	private String userId; // 아이디, 비밀번호 중 아이디에 해당함.
 
-	@NotBlank
+	@NotNull
 	@Enumerated(EnumType.STRING)
 	private MemberType memberType;
 
@@ -46,8 +50,11 @@ public class Member {
 	@NotBlank
 	private String phone;
 
-	@NotBlank
+	@NotNull
 	private LocalDate registerDate;
+
+	@OneToOne
+	private ShoppingCart shoppingCart;
 
 	@ColumnDefault("false")
 	@Column(columnDefinition = "TINYINT(1)")

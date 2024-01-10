@@ -11,9 +11,11 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class ShoppingCart {
 
@@ -22,7 +24,7 @@ public class ShoppingCart {
 	private Long shoppingCartId;
 
 	@OneToMany
-	private List<Item> itemList;
+	private List<OrderItem> itemList;
 
 	@OneToOne
 	private Member member;
@@ -32,7 +34,7 @@ public class ShoppingCart {
 		this.member = member;
 	}
 
-	public void addItemToCart(Item item) {
+	public void addItemToCart(OrderItem item) {
 		this.itemList.add(item);
 	}
 }
