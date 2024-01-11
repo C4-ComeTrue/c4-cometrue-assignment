@@ -24,15 +24,10 @@ public class ShoppingCart {
 	private Long shoppingCartId;
 
 	@OneToMany
-	private List<OrderItem> itemList;
+	private List<OrderItem> itemList = new ArrayList<>();
 
 	@OneToOne
 	private Member member;
-
-	public ShoppingCart(Member member) {
-		this.itemList = new ArrayList<>();
-		this.member = member;
-	}
 
 	public void addItemToCart(OrderItem item) {
 		this.itemList.add(item);

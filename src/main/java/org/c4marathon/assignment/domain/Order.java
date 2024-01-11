@@ -34,6 +34,9 @@ public class Order {
 	@ManyToOne
 	private Member customer;
 
+	@ManyToOne
+	private Member seller;
+
 	@OneToMany
 	private List<OrderItem> orderItems = new ArrayList<>();
 
@@ -48,8 +51,15 @@ public class Order {
 	@Enumerated(EnumType.STRING)
 	private ShipmentStatus shipmentStatus;
 
+	@Enumerated(EnumType.STRING)
+	private OrderStatus orderStatus;
+
 	@ColumnDefault("false")
 	@Column(columnDefinition = "TINYINT(1)")
 	private boolean isRefundable; // 이 주문 내역의 승인여부를 표시합니다.
+
+	@ColumnDefault("false")
+	@Column(columnDefinition = "TINYINT(1)")
+	private boolean isRefunded; // 이 주문 내역의 승인여부를 표시합니다.
 
 }
