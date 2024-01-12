@@ -1,12 +1,12 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url : jdbc:mysql://localhost:3306/Accelerated To-Do?serverTimezone=Asia/Seoul
+    url : jdbc:mysql://localhost:3306/Accelerated_To_Do?serverTimezone=Asia/Seoul
     username: root
     password: hyhy
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     properties:
       hibernate:
         show-sql: true
