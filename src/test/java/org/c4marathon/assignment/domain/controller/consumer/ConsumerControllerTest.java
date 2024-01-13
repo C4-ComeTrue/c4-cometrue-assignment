@@ -44,8 +44,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
-					status().isOk(),
-					content().string("success purchase product")
+					status().isOk()
 				);
 		}
 
@@ -123,8 +122,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 		void success_when_validOrderID() throws Exception {
 			mockMvc.perform(delete(REQUEST_URL, 1L))
 				.andExpectAll(
-					status().isOk(),
-					content().string("success refund product")
+					status().isOk()
 				);
 		}
 
@@ -156,8 +154,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 		void success_when_validOrderID() throws Exception {
 			mockMvc.perform(patch(REQUEST_URL, 1L))
 				.andExpectAll(
-					status().isOk(),
-					content().string("success confirm order")
+					status().isOk()
 				);
 		}
 

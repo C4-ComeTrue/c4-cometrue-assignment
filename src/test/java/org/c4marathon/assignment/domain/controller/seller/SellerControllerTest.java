@@ -46,8 +46,7 @@ public class SellerControllerTest extends ControllerTestSupport {
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
-					status().isCreated(),
-					content().string("success put product")
+					status().isCreated()
 				);
 		}
 

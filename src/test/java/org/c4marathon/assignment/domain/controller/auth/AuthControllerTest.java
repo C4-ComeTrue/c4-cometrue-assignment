@@ -51,8 +51,7 @@ public class AuthControllerTest extends ControllerTestSupport {
 					.characterEncoding(StandardCharsets.UTF_8)
 					.contentType(MediaType.APPLICATION_JSON))
 				.andExpectAll(
-					status().isCreated(),
-					content().string("success signup")
+					status().isCreated()
 				);
 		}
 

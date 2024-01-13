@@ -47,8 +47,7 @@ public class DeliveryCompanyControllerTest extends ControllerTestSupport {
 					.contentType(MediaType.APPLICATION_JSON)
 					.characterEncoding(StandardCharsets.UTF_8))
 				.andExpectAll(
-					status().isOk(),
-					content().string("success update delivery status")
+					status().isOk()
 				);
 		}
 

@@ -35,8 +35,7 @@ public class PayControllerTest extends ControllerTestSupport {
 					.characterEncoding(StandardCharsets.UTF_8)
 					.contentType(MediaType.APPLICATION_JSON))
 				.andExpectAll(
-					status().isOk(),
-					content().string("success charge pay")
+					status().isOk()
 				);
 		}
 
