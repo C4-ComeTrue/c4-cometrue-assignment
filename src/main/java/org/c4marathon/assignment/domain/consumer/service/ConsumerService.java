@@ -172,10 +172,7 @@ public class ConsumerService {
 	}
 
 	private void saveConsumer(SignUpRequest request) {
-		consumerRepository.save(Consumer.builder()
-			.email(request.email())
-			.address(request.address())
-			.build());
+		consumerRepository.save(new Consumer(request.email(), request.address()));
 	}
 
 	private String createInvoiceNumber(Consumer consumer) {

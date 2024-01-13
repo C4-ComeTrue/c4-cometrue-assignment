@@ -25,9 +25,6 @@ public class PayService {
 	}
 
 	private void savePay(ChargePayRequest request, Consumer consumer) {
-		payRepository.save(Pay.builder()
-			.consumer(consumer)
-			.amount(request.amount())
-			.build());
+		payRepository.save(new Pay(request.amount(), consumer));
 	}
 }

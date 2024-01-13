@@ -63,8 +63,6 @@ public class DeliveryCompanyService {
 	}
 
 	private void saveDeliveryCompany(SignUpRequest request) {
-		deliveryCompanyRepository.save(DeliveryCompany.builder()
-			.email(request.email())
-			.build());
+		deliveryCompanyRepository.save(new DeliveryCompany(request.email()));
 	}
 }

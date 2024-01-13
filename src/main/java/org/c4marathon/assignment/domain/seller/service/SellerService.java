@@ -30,9 +30,7 @@ public class SellerService {
 	}
 
 	private void saveSeller(SignUpRequest request) {
-		sellerRepository.save(Seller.builder()
-			.email(request.email())
-			.build());
+		sellerRepository.save(new Seller(request.email()));
 	}
 
 	@Transactional

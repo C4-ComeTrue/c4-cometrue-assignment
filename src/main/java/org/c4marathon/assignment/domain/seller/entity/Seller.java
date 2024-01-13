@@ -11,7 +11,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -43,7 +42,6 @@ public class Seller extends BaseEntity {
 	@Column(name = "balance", columnDefinition = "BIGINT")
 	private Long balance;
 
-	@Builder
 	public Seller(String email) {
 		this.email = email;
 		this.isDeleted = false;

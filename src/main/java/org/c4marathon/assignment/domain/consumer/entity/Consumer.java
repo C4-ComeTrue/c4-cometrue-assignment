@@ -11,7 +11,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -47,7 +46,6 @@ public class Consumer extends BaseEntity {
 	@Column(name = "is_deleted", columnDefinition = "BIT DEFAULT 0")
 	private Boolean isDeleted;
 
-	@Builder
 	public Consumer(String email, String address) {
 		this.email = email;
 		this.address = address;

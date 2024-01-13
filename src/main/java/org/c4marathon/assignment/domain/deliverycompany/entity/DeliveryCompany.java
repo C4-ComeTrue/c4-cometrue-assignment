@@ -11,7 +11,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,7 +35,6 @@ public class DeliveryCompany extends BaseEntity {
 	@Column(name = "email", columnDefinition = "VARCHAR(50)")
 	private String email;
 
-	@Builder
 	public DeliveryCompany(String email) {
 		this.email = email;
 	}

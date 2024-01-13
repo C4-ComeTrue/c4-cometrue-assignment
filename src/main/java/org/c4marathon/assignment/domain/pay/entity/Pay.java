@@ -14,7 +14,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -37,7 +36,6 @@ public class Pay extends BaseEntity {
 	@JoinColumn(name = "consumer_id", nullable = false)
 	private Consumer consumer;
 
-	@Builder
 	public Pay(Long amount, Consumer consumer) {
 		this.amount = amount;
 		this.consumer = consumer;
