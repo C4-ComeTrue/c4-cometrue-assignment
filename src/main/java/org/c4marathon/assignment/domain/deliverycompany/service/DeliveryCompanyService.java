@@ -26,7 +26,7 @@ public class DeliveryCompanyService {
 
 	@Transactional
 	public void signup(SignUpRequest request) {
-		if (deliveryCompanyReadService.existsByEmail(request.email())) {
+		if (Boolean.TRUE.equals(deliveryCompanyReadService.existsByEmail(request.email()))) {
 			throw ALREADY_DELIVERY_COMPANY_EXISTS.baseException("email: %s", request.email());
 		}
 		saveDeliveryCompany(request);

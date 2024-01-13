@@ -23,7 +23,7 @@ public class SellerService {
 
 	@Transactional
 	public void signup(SignUpRequest request) {
-		if (sellerRepository.existsByEmail(request.email())) {
+		if (Boolean.TRUE.equals(sellerRepository.existsByEmail(request.email()))) {
 			throw ErrorCode.ALREADY_SELLER_EXISTS.baseException("email: %s", request.email());
 		}
 		saveSeller(request);
@@ -37,7 +37,7 @@ public class SellerService {
 
 	@Transactional
 	public void putProduct(PutProductRequest request, Seller seller) {
-		if (productReadService.existsByNameAndSeller(request.name(), seller)) {
+		if (Boolean.TRUE.equals(productReadService.existsByNameAndSeller(request.name(), seller))) {
 			throw ErrorCode.ALREADY_PRODUCT_NAME_EXISTS
 				.baseException("seller id: %d, product name: %s", seller.getId(), request.name());
 		}

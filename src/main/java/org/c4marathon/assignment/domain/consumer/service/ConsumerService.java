@@ -88,7 +88,7 @@ public class ConsumerService {
 	}
 
 	private void processSignup(SignUpRequest request) {
-		if (consumerReadService.existsByEmail(request.email())) {
+		if (Boolean.TRUE.equals(consumerReadService.existsByEmail(request.email()))) {
 			throw ALREADY_CONSUMER_EXISTS.baseException("email: %s", request.email());
 		}
 		saveConsumer(request);
