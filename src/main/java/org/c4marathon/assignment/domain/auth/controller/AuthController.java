@@ -28,12 +28,10 @@ public class AuthController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/signup")
 	public String signup(@RequestBody @Valid SignUpRequest request, @RequestParam MemberType memberType) {
-		if (memberType.equals(MemberType.CONSUMER)) {
-			consumerService.signup(request);
-		} else if (memberType.equals(MemberType.SELLER)) {
-			sellerService.signup(request);
-		} else {
-			deliveryCompanyService.signup(request);
+		switch (memberType) {
+			case CONSUMER -> consumerService.signup(request);
+			case SELLER -> sellerService.signup(request);
+			case DELIVERY_COMPANY -> deliveryCompanyService.signup(request);
 		}
 		return "success signup";
 	}
