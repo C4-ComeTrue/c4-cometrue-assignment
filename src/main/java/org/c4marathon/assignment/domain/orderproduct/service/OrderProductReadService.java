@@ -9,17 +9,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
-@Transactional
 @Service
 @RequiredArgsConstructor
 public class OrderProductReadService {
 
 	private final OrderProductRepository orderProductRepository;
 
+	@Transactional(readOnly = true)
 	public List<OrderProduct> findByOrderJoinFetchProduct(Long orderId) {
 		return orderProductRepository.findByOrderJoinFetchProduct(orderId);
 	}
 
+	@Transactional(readOnly = true)
 	public List<OrderProduct> findByOrderJoinFetchProductAndSeller(Long orderId) {
 		return orderProductRepository.findByOrderJoinFetchProductAndSeller(orderId);
 	}

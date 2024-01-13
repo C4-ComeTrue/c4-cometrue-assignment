@@ -6,13 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
-@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class ConsumerReadService {
 
 	private final ConsumerRepository consumerRepository;
 
+	@Transactional(readOnly = true)
 	public Boolean existsByEmail(String email) {
 		return consumerRepository.existsByEmail(email);
 	}

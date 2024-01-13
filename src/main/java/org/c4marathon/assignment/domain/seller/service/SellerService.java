@@ -15,18 +15,17 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
 public class SellerService {
 
 	private final SellerRepository sellerRepository;
 	private final ProductRepository productRepository;
 	private final ProductReadService productReadService;
 
+	@Transactional
 	public void signup(SignUpRequest request) {
 		if (sellerRepository.existsByEmail(request.email())) {
 			throw ErrorCode.ALREADY_SELLER_EXISTS.baseException("email: %s", request.email());
 		}
-
 		saveSeller(request);
 	}
 
@@ -36,6 +35,7 @@ public class SellerService {
 			.build());
 	}
 
+	@Transactional
 	public void putProduct(PutProductRequest request, Seller seller) {
 		if (productReadService.existsByNameAndSeller(request.name(), seller)) {
 			throw ErrorCode.ALREADY_PRODUCT_NAME_EXISTS

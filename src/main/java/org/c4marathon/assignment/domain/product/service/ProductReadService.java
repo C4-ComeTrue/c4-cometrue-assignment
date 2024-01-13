@@ -11,15 +11,16 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ProductReadService {
 
 	private final ProductRepository productRepository;
 
+	@Transactional(readOnly = true)
 	public Boolean existsByNameAndSeller(String name, Seller seller) {
 		return productRepository.existsByNameAndSeller(name, seller);
 	}
 
+	@Transactional(readOnly = true)
 	public Product findById(Long id) {
 		return productRepository.findByIdJoinFetch(id)
 			.orElseThrow(() -> ErrorCode.PRODUCT_NOT_FOUND.baseException("id: %d", id));

@@ -10,11 +10,11 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-@Transactional(readOnly = true)
 public class DeliveryReadService {
 
 	private final DeliveryRepository deliveryRepository;
 
+	@Transactional(readOnly = true)
 	public Delivery findByIdJoinFetch(Long id) {
 		return deliveryRepository.findByIdJoinFetch(id)
 			.orElseThrow(() -> ErrorCode.DELIVERY_NOT_FOUND.baseException("id: %d", id));

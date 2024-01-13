@@ -8,13 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
-@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class OrderReadService {
 
 	private final OrderRepository orderRepository;
 
+	@Transactional(readOnly = true)
 	public Order findByIdJoinFetch(Long id) {
 		return orderRepository.findByIdJoinFetch(id)
 			.orElseThrow(() -> ErrorCode.ORDER_NOT_FOUND.baseException("id: %d", id));

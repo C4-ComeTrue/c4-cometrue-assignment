@@ -18,21 +18,21 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
 public class DeliveryCompanyService {
 
 	private final DeliveryCompanyRepository deliveryCompanyRepository;
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
 	private final DeliveryReadService deliveryReadService;
 
+	@Transactional
 	public void signup(SignUpRequest request) {
 		if (deliveryCompanyReadService.existsByEmail(request.email())) {
 			throw ALREADY_DELIVERY_COMPANY_EXISTS.baseException("email: %s", request.email());
 		}
-
 		saveDeliveryCompany(request);
 	}
 
+	@Transactional
 	public void updateDeliveryStatus(
 		Long deliveryId,
 		UpdateDeliveryStatusRequest request,

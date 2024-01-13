@@ -12,18 +12,22 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
 public class PayService {
 
 	private final PayRepository payRepository;
 	private final ConsumerRepository consumerRepository;
 
+	@Transactional
 	public void chargePay(ChargePayRequest request, Consumer consumer) {
+		savePay(request, consumer);
+		consumer.addBalance(request.amount());
+		consumerRepository.save(consumer);
+	}
+
+	private void savePay(ChargePayRequest request, Consumer consumer) {
 		payRepository.save(Pay.builder()
 			.consumer(consumer)
 			.amount(request.amount())
 			.build());
-		consumer.addBalance(request.amount());
-		consumerRepository.save(consumer);
 	}
 }

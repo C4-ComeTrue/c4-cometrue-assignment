@@ -33,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ConsumerService {
 
 	public static final double FEE = 0.05;
@@ -52,19 +51,17 @@ public class ConsumerService {
 		if (request.address() == null) {
 			throw CONSUMER_NEED_ADDRESS.baseException();
 		}
-		if (consumerReadService.existsByEmail(request.email())) {
-			throw ALREADY_CONSUMER_EXISTS.baseException("email: %s", request.email());
-		}
-
-		saveConsumer(request);
+		processSignup(request);
 	}
 
+	@Transactional
 	public void purchaseProduct(PurchaseProductRequest request, Consumer consumer) {
 		Delivery delivery = saveDelivery(consumer);
 		Order order = saveOrder(consumer, delivery);
 		saveOrderProduct(request, order, consumer);
 	}
 
+	@Transactional
 	public void refundOrder(Long orderId, Consumer consumer) {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
 		validateRefundRequest(consumer, order);
@@ -78,6 +75,7 @@ public class ConsumerService {
 		consumerRepository.save(consumer);
 	}
 
+	@Transactional
 	public void confirmOrder(Long orderId, Consumer consumer) {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
 		validateConfirmRequest(consumer, order);
@@ -87,6 +85,13 @@ public class ConsumerService {
 
 		orderProducts.forEach(orderProduct -> orderProduct.getProduct()
 			.getSeller().addBalance((long)(orderProduct.getAmount() * orderProduct.getQuantity() * (1 - FEE))));
+	}
+
+	private void processSignup(SignUpRequest request) {
+		if (consumerReadService.existsByEmail(request.email())) {
+			throw ALREADY_CONSUMER_EXISTS.baseException("email: %s", request.email());
+		}
+		saveConsumer(request);
 	}
 
 	private void addProductStock(List<OrderProduct> orderProducts) {

@@ -11,15 +11,16 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-@Transactional(readOnly = true)
 public class DeliveryCompanyReadService {
 
 	private final DeliveryCompanyRepository deliveryCompanyRepository;
 
+	@Transactional(readOnly = true)
 	public Boolean existsByEmail(String email) {
 		return deliveryCompanyRepository.existsByEmail(email);
 	}
 
+	@Transactional(readOnly = true)
 	public DeliveryCompany findMinimumCountOfDelivery() {
 		return deliveryCompanyRepository.findMinimumCountOfDelivery()
 			.orElseThrow(DELIVERY_COMPANY_NOT_FOUND::baseException);
