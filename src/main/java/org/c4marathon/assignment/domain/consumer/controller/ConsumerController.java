@@ -22,20 +22,17 @@ public class ConsumerController {
 	private final ConsumerService consumerService;
 
 	@PostMapping
-	public String purchaseProduct(@RequestBody @Valid PurchaseProductRequest request) {
+	public void purchaseProduct(@RequestBody @Valid PurchaseProductRequest request) {
 		consumerService.purchaseProduct(request, ConsumerThreadLocal.get());
-		return "success purchase product";
 	}
 
 	@DeleteMapping("/{order_id}")
-	public String refundOrder(@PathVariable("order_id") Long orderId) {
+	public void refundOrder(@PathVariable("order_id") Long orderId) {
 		consumerService.refundOrder(orderId, ConsumerThreadLocal.get());
-		return "success refund product";
 	}
 
 	@PatchMapping("/{order_id}")
-	public String confirmOrder(@PathVariable("order_id") Long orderId) {
+	public void confirmOrder(@PathVariable("order_id") Long orderId) {
 		consumerService.confirmOrder(orderId, ConsumerThreadLocal.get());
-		return "success confirm order";
 	}
 }

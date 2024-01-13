@@ -22,8 +22,7 @@ public class SellerController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/products")
-	public String putProduct(@RequestBody @Valid PutProductRequest request) {
+	public void putProduct(@RequestBody @Valid PutProductRequest request) {
 		sellerService.putProduct(request, SellerThreadLocal.get());
-		return "success put product";
 	}
 }

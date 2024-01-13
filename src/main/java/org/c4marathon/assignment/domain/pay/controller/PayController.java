@@ -19,8 +19,7 @@ public class PayController {
 	private final PayService payService;
 
 	@PostMapping
-	public String chargePay(@RequestBody @Valid ChargePayRequest request) {
+	public void chargePay(@RequestBody @Valid ChargePayRequest request) {
 		payService.chargePay(request, ConsumerThreadLocal.get());
-		return "success charge pay";
 	}
 }

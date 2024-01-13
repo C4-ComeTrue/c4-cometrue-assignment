@@ -27,12 +27,11 @@ public class AuthController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/signup")
-	public String signup(@RequestBody @Valid SignUpRequest request, @RequestParam MemberType memberType) {
+	public void signup(@RequestBody @Valid SignUpRequest request, @RequestParam MemberType memberType) {
 		switch (memberType) {
 			case CONSUMER -> consumerService.signup(request);
 			case SELLER -> sellerService.signup(request);
 			case DELIVERY_COMPANY -> deliveryCompanyService.signup(request);
 		}
-		return "success signup";
 	}
 }

@@ -20,11 +20,10 @@ public class DeliveryCompanyController {
 	private final DeliveryCompanyService deliveryCompanyService;
 
 	@PatchMapping("/{delivery_id}/status")
-	public String updateDeliveryStatus(
+	public void updateDeliveryStatus(
 		@PathVariable("delivery_id") Long deliveryId,
 		@RequestBody @Valid UpdateDeliveryStatusRequest request
 	) {
 		deliveryCompanyService.updateDeliveryStatus(deliveryId, request, DeliveryCompanyThreadLocal.get());
-		return "success update delivery status";
 	}
 }
