@@ -5,7 +5,6 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 public record PurchaseProductRequest(
-	@Valid
-	List<PurchaseProductEntry> purchaseProducts
+	List<@Valid PurchaseProductEntry> purchaseProducts
 ) {
 }
