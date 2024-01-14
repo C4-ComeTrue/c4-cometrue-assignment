@@ -72,14 +72,4 @@ public class MemberService {
             jwtToken
         );
     }
-
-    // 토큰의 유효성을 검사하고 토큰에 적재되어 있는 정보를 추출한다.
-    public String vaildToken(String token) {
-
-        if (!JwtTokenUtil.isExpired(token, secretKey)) {
-            throw new BaseException(ErrorCode.INVALID_TOKEN.toString(), HttpStatus.UNAUTHORIZED.toString());
-        }
-
-        return JwtTokenUtil.getMemberEmail(token, secretKey);
-    }
 }
