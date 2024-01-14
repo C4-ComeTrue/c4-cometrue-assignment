@@ -33,9 +33,9 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     
     // 계좌 생성
     @Transactional
-    public void saveAccount(RequestDto.AccountDto accountDto){
+    public void saveAccount(RequestDto.AccountDto accountDto, String token){
 
-        String memberEmail = JwtTokenUtil.getMemberEmail(accountDto.token(), secretKey);
+        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
         Account account = createAccount(accountDto.type(), memberService.getMemberByEmail(memberEmail));
 
         accountRepository.save(account);
@@ -52,13 +52,12 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
     @Override
     public void onApplicationEvent(MemberJoinedEvent event) {
+
         // 이벤트로부터 회원 이메일 가져오기
         String memberEmail = event.getMemberEmail();
-        log.info("event: " + memberEmail);
         // 토큰 생성
         String token = JwtTokenUtil.createToken(memberEmail, secretKey, expireTimeMs);
-        log.info("account token: " + token);
         //계좌 생성
-        saveAccount(new RequestDto.AccountDto(Type.REGULAR_ACCOUNT, token));
+        saveAccount(new RequestDto.AccountDto(Type.REGULAR_ACCOUNT), token);
     }
 }
