@@ -14,4 +14,7 @@ public interface OrderProductRepository extends JpaRepository<OrderProduct, Long
 
 	@Query("select op from OrderProduct op join fetch op.product join fetch op.product.seller where op.order.id = :id")
 	List<OrderProduct> findByOrderJoinFetchProductAndSeller(@Param("id") Long orderId);
+
+	@Query("select sum(op.amount) from OrderProduct op where op.order.id = :id")
+	Long findTotalAmountByOrderId(@Param("id") Long orderId);
 }
