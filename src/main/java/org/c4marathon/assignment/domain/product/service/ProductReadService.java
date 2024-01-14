@@ -15,11 +15,17 @@ public class ProductReadService {
 
 	private final ProductRepository productRepository;
 
+	/**
+	 * Seller와 product.name으로 Product 존재 여부 확인
+	 */
 	@Transactional(readOnly = true)
 	public Boolean existsByNameAndSeller(String name, Seller seller) {
 		return productRepository.existsByNameAndSeller(name, seller);
 	}
 
+	/**
+	 * Seller와 조인한 Product를 id로 조회
+	 */
 	@Transactional(readOnly = true)
 	public Product findById(Long id) {
 		return productRepository.findByIdJoinFetch(id)

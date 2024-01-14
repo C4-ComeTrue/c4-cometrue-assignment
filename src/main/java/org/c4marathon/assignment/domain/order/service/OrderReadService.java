@@ -14,6 +14,9 @@ public class OrderReadService {
 
 	private final OrderRepository orderRepository;
 
+	/**
+	 * Consumer와 Delivery와 조인한 Order를 조회
+	 */
 	@Transactional(readOnly = true)
 	public Order findByIdJoinFetch(Long id) {
 		return orderRepository.findByIdJoinFetch(id)

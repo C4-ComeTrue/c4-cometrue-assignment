@@ -15,11 +15,17 @@ public class DeliveryCompanyReadService {
 
 	private final DeliveryCompanyRepository deliveryCompanyRepository;
 
+	/**
+	 * email로 DeliveryCompany 존재 여부 확인
+	 */
 	@Transactional(readOnly = true)
 	public Boolean existsByEmail(String email) {
 		return deliveryCompanyRepository.existsByEmail(email);
 	}
 
+	/**
+	 * @return: 가장 적은 배송을 담당하고있는 DeliveryCompany
+	 */
 	@Transactional(readOnly = true)
 	public DeliveryCompany findMinimumCountOfDelivery() {
 		return deliveryCompanyRepository.findMinimumCountOfDelivery()

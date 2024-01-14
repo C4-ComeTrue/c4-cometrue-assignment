@@ -183,9 +183,6 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			given(order.getDelivery()).willReturn(delivery);
 			given(order.getConsumer()).willReturn(consumer);
 			given(consumer.getId()).willReturn(1L);
-			given(orderProductReadService.findByOrderJoinFetchProduct(anyLong())).willReturn(List.of(orderProduct));
-			given(orderProduct.getProduct()).willReturn(product);
-			given(orderProduct.getAmount()).willReturn(1000L);
 
 			consumerService.refundOrder(order.getId(), consumer);
 
@@ -213,7 +210,6 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			given(delivery.getDeliveryStatus()).willReturn(COMPLETE_DELIVERY);
 			given(orderProduct.getProduct()).willReturn(product);
 			given(product.getSeller()).willReturn(seller);
-			given(orderProduct.getQuantity()).willReturn(1);
 			given(orderProduct.getAmount()).willReturn(1000L);
 			given(orderProductReadService.findByOrderJoinFetchProductAndSeller(anyLong()))
 				.willReturn(List.of(orderProduct));

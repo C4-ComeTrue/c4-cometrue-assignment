@@ -21,6 +21,9 @@ public class SellerService {
 	private final ProductRepository productRepository;
 	private final ProductReadService productReadService;
 
+	/**
+	 * Seller 회원가입
+	 */
 	@Transactional
 	public void signup(SignUpRequest request) {
 		if (Boolean.TRUE.equals(sellerRepository.existsByEmail(request.email()))) {
@@ -29,10 +32,10 @@ public class SellerService {
 		saveSeller(request);
 	}
 
-	private void saveSeller(SignUpRequest request) {
-		sellerRepository.save(new Seller(request.email()));
-	}
-
+	/**
+	 * 상품 업로드
+	 * 같은 판매자가 같은 상품의 이름을 올리면 예외처리
+	 */
 	@Transactional
 	public void putProduct(PutProductRequest request, Seller seller) {
 		if (Boolean.TRUE.equals(productReadService.existsByNameAndSeller(request.name(), seller))) {
@@ -42,6 +45,16 @@ public class SellerService {
 		saveProduct(request, seller);
 	}
 
+	/**
+	 * Seller 저장
+	 */
+	private void saveSeller(SignUpRequest request) {
+		sellerRepository.save(new Seller(request.email()));
+	}
+
+	/**
+	 * Product 저장
+	 */
 	private void saveProduct(PutProductRequest request, Seller seller) {
 		productRepository.save(Product.builder()
 			.name(request.name())

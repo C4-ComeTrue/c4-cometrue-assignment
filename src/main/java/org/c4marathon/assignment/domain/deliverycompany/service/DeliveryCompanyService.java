@@ -2,8 +2,6 @@ package org.c4marathon.assignment.domain.deliverycompany.service;
 
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
-import java.util.Objects;
-
 import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
@@ -24,6 +22,9 @@ public class DeliveryCompanyService {
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
 	private final DeliveryReadService deliveryReadService;
 
+	/**
+	 * 회원 가입
+	 */
 	@Transactional
 	public void signup(SignUpRequest request) {
 		if (Boolean.TRUE.equals(deliveryCompanyReadService.existsByEmail(request.email()))) {
@@ -32,6 +33,9 @@ public class DeliveryCompanyService {
 		saveDeliveryCompany(request);
 	}
 
+	/**
+	 * 배송 상태 변경
+	 */
 	@Transactional
 	public void updateDeliveryStatus(
 		Long deliveryId,
@@ -39,7 +43,7 @@ public class DeliveryCompanyService {
 		DeliveryCompany deliveryCompany
 	) {
 		Delivery delivery = deliveryReadService.findByIdJoinFetch(deliveryId);
-		if (!Objects.equals(delivery.getDeliveryCompany().getId(), deliveryCompany.getId())) {
+		if (!delivery.getDeliveryCompany().getId().equals(deliveryCompany.getId())) {
 			throw NO_PERMISSION.baseException();
 		}
 
@@ -47,6 +51,10 @@ public class DeliveryCompanyService {
 		delivery.updateDeliveryStatus(request.deliveryStatus());
 	}
 
+	/**
+	 * current: 현재 배송 상태
+	 * future: 변경할 배송 상태
+	 */
 	private void validateRequest(UpdateDeliveryStatusRequest request, Delivery delivery) {
 		DeliveryStatus future = request.deliveryStatus();
 		DeliveryStatus current = delivery.getDeliveryStatus();
@@ -56,12 +64,18 @@ public class DeliveryCompanyService {
 		}
 	}
 
+	/**
+	 * 변경할 상태가 BEFORE_DELIVERY 이거나, 상태를 두 단계 이상 건너뛰어 변경하려 한다면 실패
+	 */
 	private boolean isInvalidChangeStatus(DeliveryStatus future, DeliveryStatus current) {
 		return future.equals(DeliveryStatus.BEFORE_DELIVERY)
 			|| (future.equals(DeliveryStatus.IN_DELIVERY) && !current.equals(DeliveryStatus.BEFORE_DELIVERY))
 			|| (future.equals(DeliveryStatus.COMPLETE_DELIVERY) && !current.equals(DeliveryStatus.IN_DELIVERY));
 	}
 
+	/**
+	 * DeliveryCompany 저장
+	 */
 	private void saveDeliveryCompany(SignUpRequest request) {
 		deliveryCompanyRepository.save(new DeliveryCompany(request.email()));
 	}

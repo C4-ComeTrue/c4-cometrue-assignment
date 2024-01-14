@@ -17,6 +17,9 @@ public class PayService {
 	private final PayRepository payRepository;
 	private final ConsumerRepository consumerRepository;
 
+	/**
+	 * 캐시 충전
+	 */
 	@Transactional
 	public void chargePay(ChargePayRequest request, Consumer consumer) {
 		savePay(request, consumer);
@@ -24,6 +27,9 @@ public class PayService {
 		consumerRepository.save(consumer);
 	}
 
+	/**
+	 * Pay 저장
+	 */
 	private void savePay(ChargePayRequest request, Consumer consumer) {
 		payRepository.save(new Pay(request.amount(), consumer));
 	}

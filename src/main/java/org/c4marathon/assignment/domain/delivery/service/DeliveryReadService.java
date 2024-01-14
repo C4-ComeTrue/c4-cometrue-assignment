@@ -14,6 +14,9 @@ public class DeliveryReadService {
 
 	private final DeliveryRepository deliveryRepository;
 
+	/**
+	 * id로 DeliveryCompany와 조인한 Delivery 조회
+	 */
 	@Transactional(readOnly = true)
 	public Delivery findByIdJoinFetch(Long id) {
 		return deliveryRepository.findByIdJoinFetch(id)

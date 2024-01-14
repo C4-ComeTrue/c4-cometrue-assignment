@@ -12,6 +12,9 @@ public class ConsumerReadService {
 
 	private final ConsumerRepository consumerRepository;
 
+	/**
+	 * email로 Consumer 존재 여부 확인
+	 */
 	@Transactional(readOnly = true)
 	public Boolean existsByEmail(String email) {
 		return consumerRepository.existsByEmail(email);
