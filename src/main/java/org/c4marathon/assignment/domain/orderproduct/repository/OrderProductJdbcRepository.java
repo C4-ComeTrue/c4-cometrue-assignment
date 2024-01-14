@@ -20,10 +20,10 @@ public class OrderProductJdbcRepository {
 
 	@Transactional
 	public void saveAllBatch(List<OrderProduct> orderProducts) {
-		String sql =
-			"insert into order_product_tbl "
-				+ "(quantity, order_id, product_id, amount, created_at, updated_at) "
-				+ "values (?, ?, ?, ?, ?, ?)";
+		String sql = """
+			insert into order_product_tbl (quantity, order_id, product_id, amount, created_at, updated_at)
+			values (?, ?, ?, ?, ?, ?)
+			""";
 
 		jdbcTemplate.batchUpdate(
 			sql,
