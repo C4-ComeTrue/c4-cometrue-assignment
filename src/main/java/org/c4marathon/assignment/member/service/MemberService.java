@@ -5,9 +5,11 @@ import org.c4marathon.assignment.member.dto.RequestDto;
 import org.c4marathon.assignment.member.dto.ResponseDto;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
+import org.c4marathon.assignment.util.event.MemberJoinedEvent;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,8 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${jwt.key}")
     private String secretKey;
@@ -51,6 +55,10 @@ public class MemberService {
             .build();
 
         memberRepository.save(member);
+
+        // 회원 가입 완료 이벤트 발행
+        log.info("join: " + joinDto.email());
+        eventPublisher.publishEvent(new MemberJoinedEvent(this, joinDto.email()));
     }
 
     public boolean checkEmailExist(String email) {

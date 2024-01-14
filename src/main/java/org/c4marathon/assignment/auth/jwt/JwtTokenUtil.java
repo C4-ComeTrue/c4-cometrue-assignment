@@ -25,7 +25,7 @@ public class JwtTokenUtil {
 
     // Claims에서 memberId 꺼내기
     public static String getMemberEmail(String token, String secretKey) {
-        return extractClaims(token, secretKey).get("memeberEmail").toString();
+        return extractClaims(token, secretKey).get("memberEmail").toString();
     }
 
     // 발급된 Token이 만료 시간이 지났는지 체크

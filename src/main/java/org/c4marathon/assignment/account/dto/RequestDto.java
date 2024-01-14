@@ -9,9 +9,7 @@ public class RequestDto {
     public record AccountDto(
 
         @NotBlank
-        Type type,
-        @NotBlank
-        String token
+        Type type
     ) {
     }
 }
