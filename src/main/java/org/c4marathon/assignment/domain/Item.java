@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,22 +25,25 @@ public class Item {
 	private Long itemPk;
 
 	@ManyToOne
-	@NotBlank
+	@NotNull
 	private Member seller;
+
+	@NotBlank
+	private String name;
 
 	@NotBlank
 	private String description;
 
-	@NotBlank
+	@NotNull
 	private Integer stock;
 
-	@NotBlank
+	@NotNull
 	private Integer price;
 
 	@OneToMany
 	private List<OrderItem> orderItemList;
 
-	@NotBlank
+	@NotNull
 	@ColumnDefault("false")
 	@Column(columnDefinition = "TINYINT(1)")
 	private boolean isDisplayed; // 판매 여부
