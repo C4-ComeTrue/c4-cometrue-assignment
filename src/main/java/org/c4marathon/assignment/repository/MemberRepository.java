@@ -24,10 +24,10 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	@Query("select m from Member m where m.memberType = 'ROLE_FINANCE_ADMIN'")
 	Member findFinancialAdmin();
 
-	@Query("select m from Member m where m.memberType = 'ROLE_CUSTOMER' and m.memberPk = :memberId")
+	@Query("select m from Member m where m.memberType = 'ROLE_CUSTOMER' and m.memberPk = :customerId")
 	Optional<Member> findCustomerById(Long customerId);
 
-	@Query("select m from Member m where m.memberType = 'ROLE_SELLER' and m.memberPk = :memberId")
+	@Query("select m from Member m where m.memberType = 'ROLE_SELLER' and m.memberPk = :sellerId")
 	Optional<Member> findSellerById(Long sellerId);
 
 }

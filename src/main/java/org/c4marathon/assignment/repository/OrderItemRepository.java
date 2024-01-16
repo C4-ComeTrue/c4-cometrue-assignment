@@ -11,6 +11,4 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
 	List<OrderItem> findOrderItemsByItemSeller(Member seller);
 
-	List<OrderItem> findOrderItemsByItemSellerAndOrderStatus(Member seller, OrderStatus orderStatus);
-
 }
