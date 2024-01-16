@@ -22,6 +22,7 @@ public class LoginService {
 
 	private final MemberRepository memberRepository;
 
+	// 모든 사용자는 아이디와 패스워드를 통해 로그인 할 수 있다.
 	public void login(String userId, String password, HttpServletRequest request) {
 
 		// TO-DO 패스워드 암/복호화
@@ -47,6 +48,7 @@ public class LoginService {
 
 	}
 
+	// 로그아웃하는 경우 세션 쿠키를 expire하는 식으로 종료한다.
 	public void logout(HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		session.invalidate();

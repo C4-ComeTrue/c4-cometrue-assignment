@@ -1,11 +1,14 @@
 package org.c4marathon.assignment.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
+import org.c4marathon.assignment.domain.Order;
 import org.c4marathon.assignment.domain.Refund;
+import org.c4marathon.assignment.domain.RefundStatus;
 import org.c4marathon.assignment.exception.ErrorCd;
 import org.c4marathon.assignment.repository.RefundRepository;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class RefundService {
 
@@ -22,7 +24,15 @@ public class RefundService {
 
 	private final RefundRepository refundRepository;
 
-	public Refund save(Refund refund){
+	@Transactional
+	public Refund save(Order order){
+		Refund refund = new Refund();
+		refund.setOrder(order);
+		refund.setRefundStatus(RefundStatus.PENDING);
+		refund.setCustomer(order.getCustomer());
+		refund.setSeller(order.getSeller());
+		refund.setRefundRequestedDate(LocalDateTime.now());
+
 		if (refund.getSeller().getMemberType() != MemberType.ROLE_SELLER){
 			throw ErrorCd.INTERNAL_SERVER_ERROR.serviceException("반품 요청 대상 판매자가 유효하지 않습니다.");
 		}
@@ -34,6 +44,7 @@ public class RefundService {
 		return refundRepository.save(refund);
 	}
 
+	@Transactional(readOnly = true)
 	public Refund findById(Long refundId){
 		Optional<Refund> optionalRefund = refundRepository.findById(refundId);
 
@@ -44,6 +55,7 @@ public class RefundService {
 		return optionalRefund.get();
 	}
 
+	@Transactional(readOnly = true)
 	public List<Refund> findBySeller(Member seller){
 		List<Refund> refundBySeller = refundRepository.findRefundBySeller(seller);
 

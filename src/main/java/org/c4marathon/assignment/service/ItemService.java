@@ -15,11 +15,12 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ItemService {
 	private final MemberService memberService;
 	private final ItemRepository itemRepository;
 
+	// 판매자는 판매할 상품을 등록할 수 있다.
+	@Transactional
 	public Item saveItem(Item item, Long memberId) {
 		Member member = memberService.findCustomerId(memberId);
 		if (!member.getMemberType().equals(MemberType.ROLE_SELLER)) {
@@ -31,6 +32,8 @@ public class ItemService {
 		return itemRepository.save(item);
 	}
 
+	// 판매자는 등록한 상품을 수정할 수 있다.
+	@Transactional
 	public Item updateItem(Item item, Long itemId, Long memberId) {
 		Member member = memberService.findCustomerId(memberId);
 		if (!item.getSeller().equals(member)) { // 수정 전, 사용자 검증
@@ -53,7 +56,8 @@ public class ItemService {
 		return target;
 	}
 
-	// 제품 아이디를 통한 제품 검색
+	@Transactional(readOnly = true)
+	// 제품의 기본키를 이용하여 특정 제품을 조회한다.
 	public Item findById(Long id) {
 		Optional<Item> item = itemRepository.findById(id);
 		if (item.isEmpty()) {
@@ -63,7 +67,8 @@ public class ItemService {
 		return item.get();
 	}
 
-	// 제품 판매자 아이디를 통한 전체 제품 조회.
+	@Transactional(readOnly = true)
+	// 특정 판매자를 통해 해당 판매자가 판매하고 있는 모든 상품을 조회한다.
 	public List<Item> findBySeller(Member seller) {
 		if (!seller.getMemberType().equals(MemberType.ROLE_SELLER)) {
 			throw ErrorCd.INVALID_ARGUMENT.serviceException("조회할 수 없습니다",

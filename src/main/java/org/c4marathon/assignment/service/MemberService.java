@@ -21,11 +21,11 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MemberService {
 	private final MemberRepository memberRepository;
 	private final ShoppingCartRepository shoppingCartRepository;
 
+	@Transactional
 	// 회원 가입.
 	public Member register(Member member, MemberType memberType) {
 		if (memberRepository.existsByUserId(member.getUserId())) { // 중복 아이디 검증 로직.
@@ -46,7 +46,8 @@ public class MemberService {
 		return savedMember;
 	}
 
-	// 아이디 번호를 기준으로 회원 조회.
+	@Transactional(readOnly = true)
+	// 기본키를 기준으로 소비자 조회.
 	public Member findCustomerId(Long id) {
 		Optional<Member> findById = memberRepository.findCustomerById(id);
 		if (findById.isEmpty()) {
@@ -55,6 +56,8 @@ public class MemberService {
 		return findById.get();
 	}
 
+	@Transactional(readOnly = true)
+	// 기본키를 기준으로 판매자 조회.
 	public Member findSellerId(Long id){
 		Optional<Member> findById = memberRepository.findSellerById(id);
 		if (findById.isEmpty()) {
@@ -63,7 +66,8 @@ public class MemberService {
 		return findById.get();
 	}
 
-	// MemberType (Seller, Consumer) 를 기준으로 멤버 조회.
+	@Transactional(readOnly = true)
+	// MemberType (Seller, Consumer) 을 기준으로 멤버 조회.
 	public List<Member> findByUserType(MemberType memberType) {
 		List<Member> members = memberRepository.findByUserType(memberType);
 		if (members.isEmpty()) {
