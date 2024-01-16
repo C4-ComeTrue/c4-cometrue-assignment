@@ -33,6 +33,7 @@ public class AccountServiceTest {
     void tearDown() {
 
         accountRepository.deleteAllInBatch();
+        memberRepository.deleteAllInBatch();
     }
 
     // 계좌 객체 생성
@@ -93,4 +94,54 @@ public class AccountServiceTest {
         assertThat(accountList).isNotNull();
         assertTrue(accountList.stream().allMatch(account -> account.getType() == Type.REGULAR_ACCOUNT));
      }
+
+     @DisplayName("사용자의 메인 계좌를 불러온다.")
+     @Test
+     @Transactional
+     void findAccountTest() {
+
+         // given
+         Member member1 = createMember("test1@naver.com", "test", "test");
+         memberRepository.save(member1);
+         Account account1 = createAccount(Type.REGULAR_ACCOUNT, member1);
+         accountRepository.save(account1);
+
+         // when
+         Account account = accountRepository.findByAccount(member1.getId(), Type.REGULAR_ACCOUNT);
+
+         // then
+         assertThat(account1.getId()).isEqualTo(account.getId());
+      }
+
+     @DisplayName("사용자의 외부 계좌에서 메인 계좌로 10,000원을 이체한다.")
+     @Test
+     @Transactional
+     void transferToRegularAccountTest() {
+
+         // given
+         Member member1 = createMember("test1@naver.com", "test", "test");
+         memberRepository.save(member1);
+         Account account1 = createAccount(Type.REGULAR_ACCOUNT, member1);
+         accountRepository.save(account1);
+
+         // 계좌 잔액
+         Integer afterBalance = 10000;
+
+         // when
+         Account account = accountRepository.findByAccount(member1.getId(), Type.REGULAR_ACCOUNT);
+         Integer dailyLimit = account.getDailyLimit();
+         Integer balance = account.getBalance();
+         // 하루 충전 금액이 300만원 보다 적어야 함.
+         if (dailyLimit+afterBalance <= 3000000){
+             account.resetDailyLimit(dailyLimit+afterBalance);
+             account.transferBalance(balance+afterBalance);
+         }
+         accountRepository.save(account);
+
+         Account resultAccount = accountRepository.findByAccount(member1.getId(), Type.REGULAR_ACCOUNT);
+
+         // then
+         assertThat(resultAccount.getBalance()).isEqualTo(afterBalance);
+         assertThat(resultAccount.getDailyLimit()).isEqualTo(dailyLimit + afterBalance);
+      }
 }
