@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.c4marathon.assignment.domain.ChargeType;
 import org.c4marathon.assignment.domain.Item;
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.Order;
@@ -12,7 +11,6 @@ import org.c4marathon.assignment.domain.OrderItem;
 import org.c4marathon.assignment.domain.OrderStatus;
 import org.c4marathon.assignment.domain.Payment;
 import org.c4marathon.assignment.domain.Refund;
-import org.c4marathon.assignment.domain.RefundStatus;
 import org.c4marathon.assignment.domain.ShipmentStatus;
 import org.c4marathon.assignment.domain.ShoppingCart;
 import org.c4marathon.assignment.exception.ErrorCd;
@@ -24,19 +22,20 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class OrderService {
 
 	private final MemberService memberService;
 	private final PaymentService paymentService;
 	private final SalesService salesService;
-	private final ShipmentService shipmentService;
 	private final RefundService refundService;
+	private final MonetaryTransactionService monetaryTransactionService;
 
 	private final OrderRepository orderRepository;
 	private final MemberRepository memberRepository;
 
+	@Transactional(readOnly = true)
+	// 복합 주문(Order)의 기본키를 이용하여 특정 복합 주문 건을 조회한다.
 	public Order findById(Long orderId){
 		Optional<Order> order = orderRepository.findById(orderId);
 		if (order.isEmpty()) {
@@ -45,6 +44,8 @@ public class OrderService {
 		return order.get();
 	}
 
+	@Transactional
+	// 소비자는 장바구니 내에 있는 주문에 대해 일괄주문을 진행한다.
 	public void proceed(Long customerId, Long sellerId) {
 		Member customer = memberService.findCustomerId(customerId);
 		Member seller = memberService.findSellerId(sellerId);
@@ -62,28 +63,32 @@ public class OrderService {
 		reducingStockQuantity(itemList);
 
 		// 2. 고객의 지출을 기록, 기업의 매입을 기록합니다.
-		Payment payment = monetaryTransactionsForSelling(itemList, customer);
+		Payment payment = monetaryTransactionService.transactionsForSelling(itemList, customer);
 
 		// 3. 주문을 생성합니다.
-		createOrder(itemList, customer, seller, payment);
+		orderRepository.save(createOrder(itemList, customer, seller, payment));
 	}
 
+	@Transactional
+	// 소비자는 특정 (복합)주문건에 대해 반품 요청을 진행한다
 	public void refund(Long memberId, Long orderId){
 		Order order = findById(orderId);
 		Member customer = memberService.findCustomerId(memberId);
 		List<OrderItem> orderItems = order.getOrderItems();
 
 		// 1. 고객의 지출 금액만큼 다시 충전하고 기업의 매입의 환불을 새로 기록합니다.
-		monetaryTransactionsForRefunding(orderItems, customer);
+		Payment payment = monetaryTransactionService.transactionsForRefunding(orderItems, customer);
 
 		// 2. 주문한 제품들의 재고를 다시 복구합니다.
 		addStockQuantity(orderItems);
 
 		// 3. 주문한 상품에 대해 Refund(반품 메타데이터) 엔티티를 생성합니다.
-		Refund refund = refundOrder(order);
+		refundOrder(order);
 	}
 
 
+	@Transactional
+	// 소비자는 배송이 출발한 주문건에 대해 수취확인(구매확정)을 한다.
 	public void orderConfirmation(Long memberId, Long orderId){
 		Member customer = memberService.findCustomerId(memberId);
 		Order order = findById(orderId);
@@ -91,13 +96,15 @@ public class OrderService {
 
 		for (OrderItem orderItem : orderItems) {
 			// 1. 주문 내에 있는 아이템들에 대해 순차적으로 수수료 지급 절차 진행.
-			salesService.commissionProcedure(orderId, orderItem.getOrderItemPk(),
+			monetaryTransactionService.commissionProcedure(orderItem,
 				customer, orderItem.getItem().getSeller());
 		}
+
+		// 2. 지급 절차가 끝나면 제품 상태를 CUSTOMER_ACCEPTED(구매 확정)으로 변경함.
 		order.setOrderStatus(OrderStatus.CUSTOMER_ACCEPTED);
 	}
 
-	private void createOrder(List<OrderItem> itemList, Member customer,  Member seller, Payment payment) {
+	private Order createOrder(List<OrderItem> itemList, Member customer,  Member seller, Payment payment) {
 		Order order = new Order();
 		order.setCustomer(customer);
 		order.setSeller(seller);
@@ -109,11 +116,15 @@ public class OrderService {
 		order.setOrderStatus(OrderStatus.ORDERED_PENDING);
 		order.setRefundable(true);
 		order.setRefunded(false);
-		orderRepository.save(order);
+		return order;
 	}
 
-
-	// Order 상태 변경 및 반품 엔티티 생성
+	/*
+	반품 요청시 반품 사항에 대한 메타데이터를 별도로 생성한다.
+	일반적인 쇼핑몰의 경우,
+	반품기록을 포함한 모든 판매데이터는 유지되며
+	삭제되지 않기 때문에 Delete를 구현하지 않았다.
+	*/
 	private Refund refundOrder(Order order) {
 		// 1. Order의 상태를 사용자가 요청한 반품 대기로 변경합니다.
 		order.setOrderStatus(OrderStatus.REFUND_REQUESTED_BY_CUSTOMER);
@@ -125,13 +136,7 @@ public class OrderService {
 		order.setRefundable(false);
 
 		// 4. 반품 건 엔티티 생성.
-		Refund refund = new Refund();
-		refund.setOrder(order);
-		refund.setRefundStatus(RefundStatus.PENDING);
-		refund.setCustomer(order.getCustomer());
-		refund.setSeller(order.getSeller());
-		refund.setRefundRequestedDate(LocalDateTime.now());
-		return refundService.save(refund);
+		return refundService.save(order);
 	}
 
 	// 제품 재고를 orderItem에 기재된 count를 기준으로 감소시킴(구매).
@@ -150,34 +155,4 @@ public class OrderService {
 		}
 	}
 
-	// 제품 판매시 금액 이동
-	private Payment monetaryTransactionsForSelling(List<OrderItem> orderItems, Member customer) {
-		int itemsTotalPrice = 0;
-
-		// FinancialAdmin은 단 하나만 존재하며 모든 구매 반품 흐름은 이 admin을 통해 확인함.
-		Member admin = memberRepository.findFinancialAdmin();
-
-		for (OrderItem orderItem : orderItems) {
-			itemsTotalPrice += orderItem.getTotalPrice();
-			// 기업 잔액 변동 적용 (매출) - 제품별로 구매를 각각 기록함.
-			salesService.addSales(orderItem, customer, admin, orderItem.getTotalPrice(), ChargeType.CHARGE);
-		}
-
-		// 고객의 잔고에서 구매합계 금액을 출금처리함.
-		return paymentService.discharge(itemsTotalPrice, customer);
-	}
-
-	// 제품 반품시 금액 이동, 이전 메서드와 차감 -> 충전을 제외하고 로직 동일.
-	private Payment monetaryTransactionsForRefunding(List<OrderItem> orderItems, Member customer) {
-		int itemsTotalPrice = 0;
-		Member admin = memberRepository.findFinancialAdmin();
-
-		for (OrderItem orderItem : orderItems) {
-			itemsTotalPrice += orderItem.getTotalPrice();
-			// 기업 잔액 변동 적용 (매출)
-			salesService.addSales(orderItem, admin, customer, orderItem.getTotalPrice(), ChargeType.REFUND);
-		}
-
-		return paymentService.charge(itemsTotalPrice, customer);
-	}
 }
