@@ -5,11 +5,9 @@ import java.util.List;
 import org.c4marathon.assignment.domain.ChargeType;
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
-import org.c4marathon.assignment.domain.Order;
 import org.c4marathon.assignment.domain.OrderItem;
 import org.c4marathon.assignment.domain.Sales;
 import org.c4marathon.assignment.exception.ErrorCd;
-import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.SalesRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +30,7 @@ public class SalesService {
 	}
 
 	@Transactional
-	// 제품 구입이 이뤄지는 경우 제품 가액만큼 회사 계좌로 입금됨.
+	// Sales에는 기록이 추가만 될뿐, 삭제는 되지 않음(결제 환불한다고 결제 기록이 날아가지 않는 원리)
 	public void addSales(OrderItem item, Member from, Member to, int value, ChargeType chargeType) {
 		Sales sales = new Sales();
 		sales.setCustomer(from);

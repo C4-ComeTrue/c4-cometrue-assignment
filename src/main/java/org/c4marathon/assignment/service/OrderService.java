@@ -14,7 +14,6 @@ import org.c4marathon.assignment.domain.Refund;
 import org.c4marathon.assignment.domain.ShipmentStatus;
 import org.c4marathon.assignment.domain.ShoppingCart;
 import org.c4marathon.assignment.exception.ErrorCd;
-import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +25,10 @@ import lombok.RequiredArgsConstructor;
 public class OrderService {
 
 	private final MemberService memberService;
-	private final PaymentService paymentService;
-	private final SalesService salesService;
 	private final RefundService refundService;
 	private final MonetaryTransactionService monetaryTransactionService;
 
 	private final OrderRepository orderRepository;
-	private final MemberRepository memberRepository;
 
 	@Transactional(readOnly = true)
 	// 복합 주문(Order)의 기본키를 이용하여 특정 복합 주문 건을 조회한다.
@@ -77,7 +73,7 @@ public class OrderService {
 		List<OrderItem> orderItems = order.getOrderItems();
 
 		// 1. 고객의 지출 금액만큼 다시 충전하고 기업의 매입의 환불을 새로 기록합니다.
-		Payment payment = monetaryTransactionService.transactionsForRefunding(orderItems, customer);
+		monetaryTransactionService.transactionsForRefunding(orderItems, customer);
 
 		// 2. 주문한 제품들의 재고를 다시 복구합니다.
 		addStockQuantity(orderItems);

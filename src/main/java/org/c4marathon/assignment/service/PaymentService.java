@@ -1,14 +1,10 @@
 package org.c4marathon.assignment.service;
 
-import java.util.List;
-
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
-import org.c4marathon.assignment.domain.OrderItem;
 import org.c4marathon.assignment.domain.Payment;
 import org.c4marathon.assignment.domain.ChargeType;
 import org.c4marathon.assignment.exception.ErrorCd;
-import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,9 +1,6 @@
 package org.c4marathon.assignment.domain;
 
 import java.time.LocalDateTime;
-
-import org.springframework.cglib.core.Local;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,6 +30,9 @@ public class Refund {
 
 	@OneToOne
 	private Member seller;
+
+	@OneToOne
+	private Payment payment;
 
 	@Enumerated(EnumType.STRING)
 	private RefundStatus refundStatus;
