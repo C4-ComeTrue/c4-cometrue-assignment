@@ -76,7 +76,7 @@ public class SellerService {
 
 	// 접근한 계정이 판매자 계정인지 검증.
 	private Member sellerTypeValidation(Long memberId) {
-		Member seller = memberService.findCustomerId(memberId);
+		Member seller = memberService.findCustomerById(memberId);
 
 		if (seller.getMemberType() != MemberType.ROLE_SELLER){
 			throw ErrorCd.NO_PERMISSION.serviceException("판매자만 접근할 수 있습니다");

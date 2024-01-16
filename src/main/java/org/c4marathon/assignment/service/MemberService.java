@@ -48,7 +48,7 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	// 기본키를 기준으로 소비자 조회.
-	public Member findCustomerId(Long id) {
+	public Member findCustomerById(Long id) {
 		Optional<Member> findById = memberRepository.findCustomerById(id);
 		if (findById.isEmpty()) {
 			throw ErrorCd.NOT_EXIST_USER.serviceException("사용자를 찾을 수 없습니다", "ID에 해당하는 사용자가 존재하지 않음");
@@ -58,7 +58,7 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	// 기본키를 기준으로 판매자 조회.
-	public Member findSellerId(Long id){
+	public Member findSellerById(Long id){
 		Optional<Member> findById = memberRepository.findSellerById(id);
 		if (findById.isEmpty()) {
 			throw ErrorCd.NOT_EXIST_USER.serviceException("사용자를 찾을 수 없습니다", "ID에 해당하는 사용자가 존재하지 않음");

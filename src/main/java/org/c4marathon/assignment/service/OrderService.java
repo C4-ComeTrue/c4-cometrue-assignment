@@ -43,8 +43,8 @@ public class OrderService {
 	@Transactional
 	// 소비자는 장바구니 내에 있는 주문에 대해 일괄주문을 진행한다.
 	public void proceed(Long customerId, Long sellerId) {
-		Member customer = memberService.findCustomerId(customerId);
-		Member seller = memberService.findSellerId(sellerId);
+		Member customer = memberService.findCustomerById(customerId);
+		Member seller = memberService.findSellerById(sellerId);
 
 		// 주문은 장바구니 내에서만 가능합니다.
 		ShoppingCart shoppingCart = customer.getShoppingCart();
@@ -69,7 +69,7 @@ public class OrderService {
 	// 소비자는 특정 (복합)주문건에 대해 반품 요청을 진행한다
 	public void refund(Long memberId, Long orderId){
 		Order order = findById(orderId);
-		Member customer = memberService.findCustomerId(memberId);
+		Member customer = memberService.findCustomerById(memberId);
 		List<OrderItem> orderItems = order.getOrderItems();
 
 		// 1. 고객의 지출 금액만큼 다시 충전하고 기업의 매입의 환불을 새로 기록합니다.
@@ -86,7 +86,7 @@ public class OrderService {
 	@Transactional
 	// 소비자는 배송이 출발한 주문건에 대해 수취확인(구매확정)을 한다.
 	public void orderConfirmation(Long memberId, Long orderId){
-		Member customer = memberService.findCustomerId(memberId);
+		Member customer = memberService.findCustomerById(memberId);
 		Order order = findById(orderId);
 		List<OrderItem> orderItems = order.getOrderItems();
 

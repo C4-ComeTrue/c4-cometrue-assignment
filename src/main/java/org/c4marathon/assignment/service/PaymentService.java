@@ -95,7 +95,7 @@ public class PaymentService {
 
 	// 특정 사용자의 잔고 금액을 조회한다.
 	private int getBalance(Long memberId) {
-		Member member = memberService.findCustomerId(memberId);
+		Member member = memberService.findCustomerById(memberId);
 		return paymentRepository.currentBalance(member);
 	}
 
