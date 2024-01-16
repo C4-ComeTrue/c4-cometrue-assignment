@@ -31,7 +31,8 @@ public class MonetaryTransactionService {
 		salesService.addSales(orderItem, customer, admin, orderItem.getTotalPrice(), ChargeType.DISCHARGE);
 
 		// 2. SalesRepository에 수수료 금액을 추가함.
-		salesService.addSales(orderItem, customer, admin, orderItem.getTotalPrice() - commissionCalculation(orderItem), ChargeType.COMMISSION);
+		salesService.addSales(orderItem, customer, admin,
+			orderItem.getTotalPrice() - commissionCalculation(orderItem), ChargeType.COMMISSION);
 
 		// 3. Seller의 계좌로 물품가액이 입금됨.
 		paymentService.sellerCharge(commissionCalculation(orderItem), orderItem.getItem().getSeller());
@@ -43,7 +44,7 @@ public class MonetaryTransactionService {
 		salesService.addSales(orderItem, admin, seller, commissionCalculation(orderItem), ChargeType.DISCHARGE);
 	}
 
-	private int commissionCalculation(OrderItem orderItem){
+	private int commissionCalculation(OrderItem orderItem) {
 		int totalPrice = orderItem.getTotalPrice();
 		return (int) (totalPrice - (totalPrice * 0.05));
 	}

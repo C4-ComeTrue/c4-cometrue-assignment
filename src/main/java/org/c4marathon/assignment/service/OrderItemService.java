@@ -20,7 +20,7 @@ public class OrderItemService {
 	// 제품별 주문 건을 orderItem의 기본키를 이용하여 조회한다.
 	public OrderItem findOrderItemById(Long orderItemId) {
 		Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
-		if(optionalOrderItem.isEmpty()){
+		if (optionalOrderItem.isEmpty()) {
 			throw ErrorCd.NO_SUCH_ITEM.serviceException("주문 내역이 없습니다");
 		}
 

@@ -52,7 +52,7 @@ public class Item {
 		this.stock += quantity;
 	}
 
-	public void removeStock(int quantity){
+	public void removeStock(int quantity) {
 		this.stock -= quantity;
 	}
 

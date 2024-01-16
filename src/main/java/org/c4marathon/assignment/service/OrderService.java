@@ -32,7 +32,7 @@ public class OrderService {
 
 	@Transactional(readOnly = true)
 	// 복합 주문(Order)의 기본키를 이용하여 특정 복합 주문 건을 조회한다.
-	public Order findById(Long orderId){
+	public Order findById(Long orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
 		if (order.isEmpty()) {
 			throw ErrorCd.NO_SUCH_ITEM.serviceException("주문을 찾을 수 없습니다");
@@ -67,7 +67,7 @@ public class OrderService {
 
 	@Transactional
 	// 소비자는 특정 (복합)주문건에 대해 반품 요청을 진행한다
-	public void refund(Long memberId, Long orderId){
+	public void refund(Long memberId, Long orderId) {
 		Order order = findById(orderId);
 		Member customer = memberService.findCustomerById(memberId);
 		List<OrderItem> orderItems = order.getOrderItems();
@@ -85,7 +85,7 @@ public class OrderService {
 
 	@Transactional
 	// 소비자는 배송이 출발한 주문건에 대해 수취확인(구매확정)을 한다.
-	public void orderConfirmation(Long memberId, Long orderId){
+	public void orderConfirmation(Long memberId, Long orderId) {
 		Member customer = memberService.findCustomerById(memberId);
 		Order order = findById(orderId);
 		List<OrderItem> orderItems = order.getOrderItems();

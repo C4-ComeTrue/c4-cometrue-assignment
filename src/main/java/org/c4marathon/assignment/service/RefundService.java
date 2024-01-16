@@ -25,7 +25,7 @@ public class RefundService {
 	private final RefundRepository refundRepository;
 
 	@Transactional
-	public Refund save(Order order){
+	public Refund save(Order order) {
 		Refund refund = new Refund();
 		refund.setOrder(order);
 		refund.setRefundStatus(RefundStatus.PENDING);
@@ -33,7 +33,7 @@ public class RefundService {
 		refund.setSeller(order.getSeller());
 		refund.setRefundRequestedDate(LocalDateTime.now());
 
-		if (refund.getSeller().getMemberType() != MemberType.ROLE_SELLER){
+		if (refund.getSeller().getMemberType() != MemberType.ROLE_SELLER) {
 			throw ErrorCd.INTERNAL_SERVER_ERROR.serviceException("반품 요청 대상 판매자가 유효하지 않습니다.");
 		}
 
@@ -45,10 +45,10 @@ public class RefundService {
 	}
 
 	@Transactional(readOnly = true)
-	public Refund findById(Long refundId){
+	public Refund findById(Long refundId) {
 		Optional<Refund> optionalRefund = refundRepository.findById(refundId);
 
-		if (optionalRefund.isEmpty()){
+		if (optionalRefund.isEmpty()) {
 			throw ErrorCd.NO_SUCH_ITEM.serviceException("반품 건을 조회할 수 없습니다");
 		}
 
@@ -56,10 +56,10 @@ public class RefundService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Refund> findBySeller(Member seller){
+	public List<Refund> findBySeller(Member seller) {
 		List<Refund> refundBySeller = refundRepository.findRefundBySeller(seller);
 
-		if (refundBySeller.isEmpty()){
+		if (refundBySeller.isEmpty()) {
 			throw ErrorCd.NO_SUCH_ITEM.serviceException("판매자에게서 조회되는 반품건이 없습니다.");
 		}
 		return refundBySeller;

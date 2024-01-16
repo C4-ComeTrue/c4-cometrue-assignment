@@ -46,7 +46,7 @@ public class SellerService {
 
 	// 사업장 내 특정 OrderStatus에 대한 주문 목록을 표시
 	@Transactional(readOnly = true)
-	public Order findOrderByOrderStatus(Long memberId, OrderStatus orderStatus){
+	public Order findOrderByOrderStatus(Long memberId, OrderStatus orderStatus) {
 		Member seller = sellerTypeValidation(memberId);
 		return orderRepository.findOrderBySellerAndOrderStatus(seller, orderStatus);
 	}
@@ -54,7 +54,7 @@ public class SellerService {
 
 	// 판매자는 들어온 특정 주문에 대해 승인.
 	@Transactional
-	public Order acceptOrder(Long orderId, Long memberId){
+	public Order acceptOrder(Long orderId, Long memberId) {
 		sellerTypeValidation(memberId);
 
 		Order order = orderService.findById(orderId);
@@ -69,7 +69,7 @@ public class SellerService {
 	}
 
 	// 특정 주문에 대해 송장번호를 포함하여 배송 완료처리.
-	public void shipmentCompleted(Long orderId, Long memberId){
+	public void shipmentCompleted(Long orderId, Long memberId) {
 		sellerTypeValidation(memberId);
 		shipmentService.completion(orderId);
 	}
@@ -78,7 +78,7 @@ public class SellerService {
 	private Member sellerTypeValidation(Long memberId) {
 		Member seller = memberService.findCustomerById(memberId);
 
-		if (seller.getMemberType() != MemberType.ROLE_SELLER){
+		if (seller.getMemberType() != MemberType.ROLE_SELLER) {
 			throw ErrorCd.NO_PERMISSION.serviceException("판매자만 접근할 수 있습니다");
 		}
 		return seller;

@@ -21,7 +21,7 @@ public class ShipmentService {
 	private final ShipmentRepository shipmentRepository;
 	private final OrderService orderService;
 
-	protected void issueTracker(Long orderId, String trackingNumber){
+	protected void issueTracker(Long orderId, String trackingNumber) {
 		Order order = orderService.findById(orderId);
 		order.setRefundable(false);
 		Shipment shipment = new Shipment();
@@ -34,11 +34,11 @@ public class ShipmentService {
 		order.setShipmentStatus(ShipmentStatus.DISPATCHED);
 	}
 
-	protected void completion(Long orderId){
+	protected void completion(Long orderId) {
 		Order order = orderService.findById(orderId);
 		Optional<Shipment> optionalShipment = shipmentRepository.findByOrder(order);
 
-		if(optionalShipment.isEmpty()){
+		if (optionalShipment.isEmpty()) {
 			throw ErrorCd.NO_SUCH_ITEM.serviceException("배송 조회를 할 수 없음, 송장 번호를 다시 조회");
 		}
 

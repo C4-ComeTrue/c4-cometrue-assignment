@@ -1,9 +1,9 @@
 package org.c4marathon.assignment.service;
 
+import org.c4marathon.assignment.domain.ChargeType;
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
 import org.c4marathon.assignment.domain.Payment;
-import org.c4marathon.assignment.domain.ChargeType;
 import org.c4marathon.assignment.exception.ErrorCd;
 import org.c4marathon.assignment.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class PaymentService {
 	// 소비자(Member)의 계좌에 value 금액을 충전한다.
 	public Payment charge(int value, Member member) {
 
-		if (value <= 0){
+		if (value <= 0) {
 			throw ErrorCd.INVALID_ARGUMENT.serviceException("충전 금액을 확인하세요",
 				"잘못된 충전 금액 (입력값) : ", value);
 		}
@@ -39,7 +39,7 @@ public class PaymentService {
 
 	@Transactional
 	// 소비자(Member)의 계좌에 value 금액을 소진한다.
-	public Payment discharge(int value, Member member){
+	public Payment discharge(int value, Member member) {
 
 		if (value <= 0) {
 			throw ErrorCd.INTERNAL_SERVER_ERROR.serviceException("결제 시도 금액 이상", value);
