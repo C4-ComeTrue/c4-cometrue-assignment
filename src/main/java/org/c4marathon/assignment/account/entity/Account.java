@@ -58,4 +58,8 @@ public class Account extends BaseEntity {
     public void resetDailyLimit(Integer dailyLimit){
         this.dailyLimit = dailyLimit;
     }
+
+    public void transferBalance(Integer balance){
+        this.balance = balance;
+    }
 }
