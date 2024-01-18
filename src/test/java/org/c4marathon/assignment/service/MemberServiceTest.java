@@ -174,7 +174,7 @@ class MemberServiceTest {
 		member1.setAddress("서울특별시 광진구 자양대로");
 		member1.setPhone("010-4832-2000");
 		member1.setUsername("김윤식");
-		Member registeredMember1 = memberService.register(member1, MemberType.ROLE_CUSTOMER);
+		memberService.register(member1, MemberType.ROLE_CUSTOMER);
 
 		Member member2 = new Member();
 		member2.setUserId("noogler02");
