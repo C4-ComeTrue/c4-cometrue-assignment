@@ -28,7 +28,9 @@ public class OrderItem {
 
 	private int count;
 
-	public int getTotalPrice() {
+	private int totalPrice;
+
+	public int generateTotalPrice() {
 		return this.price * this.count;
 	}
 
