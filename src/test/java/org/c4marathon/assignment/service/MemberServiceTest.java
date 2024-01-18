@@ -12,9 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 @SpringBootTest
 @Transactional
 @Rollback
@@ -41,7 +38,7 @@ class MemberServiceTest {
 		Member findMember = memberService.findCustomerById(member.getMemberPk());
 
 		// Then
-		org.assertj.core.api.Assertions.assertThat(findMember).isEqualTo(registeredMember);
+		Assertions.assertEquals(findMember, registeredMember);
 	}
 
 	@Test
@@ -66,8 +63,10 @@ class MemberServiceTest {
 		member2.setPhone("010-4822-2020");
 		member2.setUsername("홍길동");
 
-		Assertions.assertThrows(RuntimeException.class,
-			()-> memberService.register(member2, MemberType.ROLE_CUSTOMER));
+		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
+			() -> memberService.register(member2, MemberType.ROLE_CUSTOMER));
+		Assertions.assertEquals(runtimeException.getMessage(),
+			"INVALID_ARGUMENT : Invalid Argument - 동일한 아이디의 사용자가 있습니다");
 	}
 
 	@Test
@@ -86,7 +85,7 @@ class MemberServiceTest {
 
 
 		Member customer = memberService.findCustomerById(memberPk);
-		org.assertj.core.api.Assertions.assertThat(customer).isEqualTo(registeredMember1);
+		Assertions.assertEquals(customer, registeredMember1);
 	}
 
 	@Test
@@ -123,7 +122,28 @@ class MemberServiceTest {
 
 
 		Member seller = memberService.findSellerById(memberPk);
-		org.assertj.core.api.Assertions.assertThat(seller).isEqualTo(registeredMember1);
+		Assertions.assertEquals(seller, registeredMember1);
+	}
+
+	@Test
+	@DisplayName("조회가 불가능한 경우 예외를 반환한다.")
+	void findBySellerIdNotFound() {
+		Member member1 = new Member();
+		member1.setUserId("noogler0258");
+		member1.setPostalCode("129-01");
+		member1.setValid(true);
+		member1.setPassword("test1");
+		member1.setAddress("서울특별시 광진구 자양대로");
+		member1.setPhone("010-4832-2000");
+		member1.setUsername("김윤식");
+		Member registeredMember1 = memberService.register(member1, MemberType.ROLE_CUSTOMER);
+		Long memberPk = registeredMember1.getMemberPk();
+
+		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
+			() -> memberService.findSellerById(memberPk));
+		Assertions.assertEquals(runtimeException.getMessage()
+			,"NOT_EXIST_USER : User Not Found - 사용자를 찾을 수 없습니다");
+
 	}
 
 	@Test
@@ -179,7 +199,7 @@ class MemberServiceTest {
 		List<Member> customers = memberService.findByUserType(MemberType.ROLE_CUSTOMER);
 		List<Member> sellers = memberService.findByUserType(MemberType.ROLE_SELLER);
 
-		org.assertj.core.api.Assertions.assertThat(customers).hasSize(1);
-		org.assertj.core.api.Assertions.assertThat(sellers).hasSize(2);
+		Assertions.assertEquals(customers.size(), 1);
+		Assertions.assertEquals(sellers.size(), 2);
 	}
 }

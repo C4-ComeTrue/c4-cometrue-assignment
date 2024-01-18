@@ -3,11 +3,11 @@ package org.c4marathon.assignment.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.assertj.core.api.Assertions;
 import org.c4marathon.assignment.domain.Item;
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
 import org.c4marathon.assignment.repository.ItemRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -92,7 +92,7 @@ class ItemServiceTest {
 
 		Optional<Item> optionalItem = itemRepository.findById(savedItem.getItemPk());
 
-		Assertions.assertThat(optionalItem).contains(savedItem);
+		Assertions.assertEquals(optionalItem.get(), savedItem);
 	}
 
 	@Test
@@ -104,7 +104,7 @@ class ItemServiceTest {
 		item.setStock(20);
 		item.setPrice(20000);
 
-		org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
+		Assertions.assertThrows(RuntimeException.class,
 			() -> itemService.saveItem(item, customerId));
 	}
 
@@ -122,7 +122,8 @@ class ItemServiceTest {
 		Item findItem = itemService.findById(savedItem.getItemPk());
 		findItem.setDescription("테스트 설명 변경");
 
-		itemService.updateItem(findItem, savedItem.getItemPk(), sellerId1);
+		Item updatedItem = itemService.updateItem(findItem, savedItem.getItemPk(), sellerId1);
+		Assertions.assertEquals(updatedItem, findItem);
 	}
 
 	@Test
@@ -141,7 +142,7 @@ class ItemServiceTest {
 
 		RuntimeException runtimeException = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
 			() -> itemService.updateItem(findItem, savedItem.getItemPk(), sellerId2));
-		Assertions.assertThat(runtimeException.getMessage()).isEqualTo("NO_PERMISSION : No Permission - 잘못된 접근입니다");
+		Assertions.assertEquals(runtimeException.getMessage(), "NO_PERMISSION : No Permission - 잘못된 접근입니다");
 	}
 
 	@Test
@@ -156,7 +157,7 @@ class ItemServiceTest {
 		Item savedItem = itemService.saveItem(item, sellerId1);
 
 		Item findItem = itemService.findById(savedItem.getItemPk());
-		Assertions.assertThat(findItem).isEqualTo(savedItem);
+		Assertions.assertEquals(findItem, savedItem);
 	}
 
 	@Test
@@ -165,8 +166,8 @@ class ItemServiceTest {
 		RuntimeException runtimeException = org.junit.jupiter.api.Assertions.assertThrows(
 			RuntimeException.class, () -> itemService.findById(9999999L)
 		);
-		Assertions.assertThat(runtimeException.getMessage())
-			.isEqualTo("NO_SUCH_ITEM : Item Not Found - 상품을 찾을 수 없습니다");
+		Assertions.assertEquals(runtimeException.getMessage()
+			, "NO_SUCH_ITEM : Item Not Found - 상품을 찾을 수 없습니다");
 	}
 
 	@Test
@@ -182,7 +183,7 @@ class ItemServiceTest {
 
 		Member seller = memberService.findSellerById(sellerId1);
 		List<Item> items = itemService.findBySeller(seller);
-		Assertions.assertThat(items).hasSize(1);
+		Assertions.assertEquals(items.size(), 1);
 	}
 
 	@Test
@@ -190,7 +191,7 @@ class ItemServiceTest {
 	void findBySellerEmpty() {
 		Member seller = memberService.findSellerById(sellerId1);
 		List<Item> items = org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> itemService.findBySeller(seller));
-		Assertions.assertThat(items).hasSize(0);
+		Assertions.assertEquals(items.size(), 0);
 
 	}
 }
