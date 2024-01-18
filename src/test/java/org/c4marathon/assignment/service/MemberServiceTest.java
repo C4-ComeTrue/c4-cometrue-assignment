@@ -16,7 +16,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @SpringBootTest
-@Transactional @Rollback
+@Transactional
+@Rollback
 class MemberServiceTest {
 
 	@Autowired
@@ -45,7 +46,7 @@ class MemberServiceTest {
 
 	@Test
 	@DisplayName("동일한 아이디를 가진 사용자의 경우 예외처리")
-	void duplicatedUserId(){
+	void duplicatedUserId() {
 		Member member1 = new Member();
 		member1.setUserId("noogler0258");
 		member1.setPostalCode("129-01");
@@ -108,7 +109,7 @@ class MemberServiceTest {
 
 	@Test
 	@DisplayName("Seller 의 PK를 통해 조회할 수 있다 (판매자 한정)")
-	void findBySellerId(){
+	void findBySellerId() {
 		Member member1 = new Member();
 		member1.setUserId("noogler0258");
 		member1.setPostalCode("129-01");
@@ -163,7 +164,7 @@ class MemberServiceTest {
 		member2.setAddress("경기도 남양주시 경춘로");
 		member2.setPhone("010-4822-2020");
 		member2.setUsername("홍길동");
-		Member registeredMember2 = memberService.register(member2, MemberType.ROLE_SELLER);
+		memberService.register(member2, MemberType.ROLE_SELLER);
 
 		Member member3 = new Member();
 		member3.setUserId("noogler");
@@ -173,7 +174,7 @@ class MemberServiceTest {
 		member3.setAddress("경기도 남양주시 경춘로");
 		member3.setPhone("010-4822-2020");
 		member3.setUsername("홍길동");
-		Member registeredMember3 = memberService.register(member3, MemberType.ROLE_SELLER);
+		memberService.register(member3, MemberType.ROLE_SELLER);
 
 		List<Member> customers = memberService.findByUserType(MemberType.ROLE_CUSTOMER);
 		List<Member> sellers = memberService.findByUserType(MemberType.ROLE_SELLER);
