@@ -16,7 +16,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	@Query("select m from Member m where m.userId = :userId")
 	Optional<Member> findMemberByUserId(@Param("userId") String userId);
 
-	Boolean existsByUserId(String userId);
+	boolean existsByUserId(String userId);
 
 	@Query("select m from Member m where m.memberType = :memberType")
 	List<Member> findByUserType(@Param(value = "memberType") MemberType memberType);
