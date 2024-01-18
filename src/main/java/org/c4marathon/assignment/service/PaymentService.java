@@ -60,7 +60,7 @@ public class PaymentService {
 
 	@Transactional
 	// 판매자(Seller)의 계좌에 value 금액을 충전한다.
-	public void sellerCharge(int value, Member member) {
+	public Payment sellerCharge(int value, Member member) {
 		if ( member.getMemberType() != MemberType.ROLE_SELLER ) {
 			throw ErrorCd.NO_PERMISSION.serviceException("판매자만 수익을 올릴 수 있습니다.");
 		}
@@ -71,14 +71,15 @@ public class PaymentService {
 			value
 		);
 
-		paymentRepository.save(payment);
+		return paymentRepository.save(payment);
 	}
 
+	/*
 	@Transactional
-	// 판매자(Seller)의 계좌에 value 금액을 소진한다.
-	// 요구 조건 상, 구매 확인 이전까지만 환불이 가능함.
-	// 따라서 구매 확정 전에는 seller 잔고는 변화할 일이 없음.
-	// 그러나, 통상적인 경우 판매 확인 이후에도 반품이 가능하기 때문에 이 메서드를 유지함.
+	판매자(Seller)의 계좌에 value 금액을 소진한다.
+	요구 조건 상, 구매 확인 이전까지만 환불이 가능함.
+	따라서 구매 확정 전에는 seller 잔고는 변화할 일이 없음.
+	그러나, 통상적인 경우 판매 확인 이후에도 반품이 가능하기 때문에 이 메서드를 유지함.
 	public Payment sellerDischarge(int value, Member member) {
 		if ( member.getMemberType() != MemberType.ROLE_SELLER ) {
 			throw ErrorCd.NO_PERMISSION.serviceException("판매자만 반품 지출을 생성할 수 있습니다.");
@@ -92,11 +93,14 @@ public class PaymentService {
 		return paymentRepository.save(payment);
 
 	}
+	*/
 
 	// 특정 사용자의 잔고 금액을 조회한다.
-	private int getBalance(Long memberId) {
-		Member member = memberService.findCustomerById(memberId);
-		return paymentRepository.currentBalance(member);
+	public int getBalance(Long memberId) {
+		Member member = memberService.findById(memberId);
+		int totalCharged = paymentRepository.totalCharged(member);
+		int totalDischarged = (-1) * paymentRepository.totalDischarged(member);
+		return totalCharged + totalDischarged;
 	}
 
 }

@@ -12,7 +12,7 @@ import org.c4marathon.assignment.domain.OrderStatus;
 import org.c4marathon.assignment.domain.Payment;
 import org.c4marathon.assignment.domain.Refund;
 import org.c4marathon.assignment.domain.ShipmentStatus;
-import org.c4marathon.assignment.domain.ShoppingCart;
+import org.c4marathon.assignment.domain.CartItem;
 import org.c4marathon.assignment.exception.ErrorCd;
 import org.c4marathon.assignment.repository.OrderRepository;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,7 @@ public class OrderService {
 	private final MemberService memberService;
 	private final RefundService refundService;
 	private final MonetaryTransactionService monetaryTransactionService;
+	private final OrderItemService orderItemService;
 
 	private final OrderRepository orderRepository;
 
@@ -47,13 +48,14 @@ public class OrderService {
 		Member seller = memberService.findSellerById(sellerId);
 
 		// 주문은 장바구니 내에서만 가능합니다.
-		ShoppingCart shoppingCart = customer.getShoppingCart();
-		List<OrderItem> itemList = shoppingCart.getItemList();
+		List<CartItem> cartItem = customer.getCartItem();
 
 		// 장바구니 내 상품이 없는 경우 결제를 진행할 수 없습니다.
-		if (itemList.isEmpty()) {
+		if (cartItem.isEmpty()) {
 			throw ErrorCd.INVALID_ARGUMENT.serviceException("장바구니가 비어있습니다");
 		}
+
+		List<OrderItem> itemList = orderItemService.createOrderItems(cartItem);
 
 		// 1. 제품 재고를 감소시킵니다.
 		reducingStockQuantity(itemList);
