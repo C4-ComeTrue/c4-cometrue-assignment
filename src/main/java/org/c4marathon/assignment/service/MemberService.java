@@ -2,16 +2,14 @@ package org.c4marathon.assignment.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
-import org.c4marathon.assignment.domain.ShoppingCart;
 import org.c4marathon.assignment.exception.ErrorCd;
 import org.c4marathon.assignment.repository.MemberRepository;
-import org.c4marathon.assignment.repository.ShoppingCartRepository;
+import org.c4marathon.assignment.repository.CartItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MemberService {
 	private final MemberRepository memberRepository;
-	private final ShoppingCartRepository shoppingCartRepository;
 
 	@Transactional
 	// 회원 가입.
@@ -36,14 +33,7 @@ public class MemberService {
 		member.setMemberType(memberType);
 		member.setRegisterDate(LocalDate.now());
 
-		Member savedMember = memberRepository.save(member);
-
-		ShoppingCart shoppingCart = new ShoppingCart();
-		shoppingCart.setMember(member);
-		shoppingCart.setItemList(new ArrayList<>());
-		shoppingCartRepository.save(shoppingCart);
-
-		return savedMember;
+		return memberRepository.save(member);
 	}
 
 	@Transactional(readOnly = true)
@@ -74,6 +64,15 @@ public class MemberService {
 			throw ErrorCd.INVALID_ARGUMENT.serviceException("부적절한 유형의 인수", "검색 유형이 잘못되었음 : ", memberType.toString());
 		}
 		return members;
+	}
+
+	@Transactional(readOnly = true)
+	public Member findById(Long id){
+		Optional<Member> optionalMember = memberRepository.findById(id);
+		if(optionalMember.isEmpty()){
+			throw ErrorCd.NOT_EXIST_USER.serviceException("사용자를 조회할 수 없습니다.");
+		}
+		return optionalMember.get();
 	}
 
 }

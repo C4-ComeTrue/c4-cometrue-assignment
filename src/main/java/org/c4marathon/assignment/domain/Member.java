@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.domain;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.hibernate.annotations.ColumnDefault;
 
@@ -11,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -53,8 +55,8 @@ public class Member {
 	@NotNull
 	private LocalDate registerDate;
 
-	@OneToOne
-	private ShoppingCart shoppingCart;
+	@OneToMany
+	private List<CartItem> cartItem;
 
 	@ColumnDefault("false")
 	@Column(columnDefinition = "TINYINT(1)")

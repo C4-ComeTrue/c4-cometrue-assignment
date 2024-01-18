@@ -17,19 +17,18 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ShoppingCart {
+public class CartItem {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long shoppingCartId;
 
-	@OneToMany
-	private List<OrderItem> itemList = new ArrayList<>();
+	@OneToOne
+	private Item item;
+
+	private int count;
 
 	@OneToOne
 	private Member member;
 
-	public void addItemToCart(OrderItem item) {
-		this.itemList.add(item);
-	}
 }
