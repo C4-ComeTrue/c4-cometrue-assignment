@@ -28,7 +28,8 @@ public class OrderItemService {
 			orderItem.setCount(cartItem.getCount());
 			orderItem.setPrice(cartItem.getItem().getPrice());
 			orderItem.setTotalPrice(orderItem.generateTotalPrice());
-			orderItems.add(orderItem);
+			OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+			orderItems.add(savedOrderItem);
 		}
 		return orderItems;
 	}
