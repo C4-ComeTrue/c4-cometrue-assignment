@@ -35,7 +35,6 @@ public class SalesService {
 		Sales sales = new Sales();
 		sales.setCustomer(from);
 		sales.setSeller(to);
-		sales.setSeller(item.getItem().getSeller());
 		sales.setOrderItem(item);
 		sales.setValue(value);
 		sales.setChargeType(chargeType);
