@@ -27,7 +27,7 @@ public class ShipmentService {
 		Shipment shipment = new Shipment();
 		shipment.setOrder(order);
 		shipment.setCourier("대한통운"); // 일단 통일합니다.
-		shipment.setRegisterDate(LocalDateTime.now());
+		shipment.setRegisteredDate(LocalDateTime.now());
 		shipment.setTrackingNumber(trackingNumber);
 		Shipment save = shipmentRepository.save(shipment);
 		order.setShipment(save);

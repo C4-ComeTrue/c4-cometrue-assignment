@@ -32,7 +32,7 @@ public class CartItemService {
 		CartItem cartItem = new CartItem();
 		cartItem.setItem(item);
 		cartItem.setCount(cartItemDTO.getCount());
-		cartItem.setMember(customer);
+		cartItem.setCustomer(customer);
 		return cartItemRepository.save(cartItem);
 	}
 
