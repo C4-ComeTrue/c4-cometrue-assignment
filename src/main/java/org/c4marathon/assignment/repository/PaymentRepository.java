@@ -14,7 +14,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 	@Query("select p from Payment p where p.member = :member")
 	List<Payment> findByMemberId(Member member);
 
-
 	@Query("select COALESCE(SUM(p.value), 0) from Payment p where p.member = :member "
 		+ "AND (p.valueType = 'CHARGE' OR p.valueType = 'COMMISSION')")
 	Integer totalCharged(Member member);
