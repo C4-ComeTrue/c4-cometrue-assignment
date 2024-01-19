@@ -1,13 +1,13 @@
 package org.c4marathon.assignment.domain;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,14 +21,18 @@ public class CartItem {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "shopping_cart_pk")
 	private Long shoppingCartId;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "item")
 	private Item item;
 
+	@Column(name = "count")
 	private int count;
 
-	@OneToOne
-	private Member member;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "customer")
+	private Member customer;
 
 }
