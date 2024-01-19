@@ -78,14 +78,6 @@ public class RefundService {
 		refund.setPayment(payment);
 		refund.setSeller(order.getSeller());
 
-		if (refund.getSeller().getMemberType() != MemberType.ROLE_SELLER) {
-			throw ErrorCd.INTERNAL_SERVER_ERROR.serviceException("반품 요청 대상 판매자가 유효하지 않습니다.");
-		}
-
-		if (refund.getCustomer().getMemberType() != MemberType.ROLE_CUSTOMER) {
-			throw ErrorCd.INTERNAL_SERVER_ERROR.serviceException("반품을 요청한 사용자 정보가 유효하지 않습니다.");
-		}
-
 		// 4. 반품 건 엔티티 생성.
 		return refundRepository.save(refund);
 	}
