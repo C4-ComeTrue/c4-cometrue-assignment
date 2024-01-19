@@ -10,10 +10,10 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
-	@Query("select c from CartItem c where c.shoppingCartId = :cartItemId and c.member = :customer")
+	@Query("select c from CartItem c where c.shoppingCartId = :cartItemId and c.customer = :customer")
 	Optional<CartItem> findCartItemByIdAndMember(Long cartItemId, Member customer);
 
-	@Query("select c from CartItem c where c.member = :customer")
+	@Query("select c from CartItem c where c.customer = :customer")
 	List<CartItem> findAllByCustomer(Member customer);
 
 }
