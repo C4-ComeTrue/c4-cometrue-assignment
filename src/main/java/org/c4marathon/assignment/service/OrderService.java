@@ -10,7 +10,6 @@ import org.c4marathon.assignment.domain.Order;
 import org.c4marathon.assignment.domain.OrderItem;
 import org.c4marathon.assignment.domain.OrderStatus;
 import org.c4marathon.assignment.domain.Payment;
-import org.c4marathon.assignment.domain.Refund;
 import org.c4marathon.assignment.domain.ShipmentStatus;
 import org.c4marathon.assignment.domain.CartItem;
 import org.c4marathon.assignment.exception.ErrorCd;
@@ -25,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class OrderService {
 
 	private final MemberService memberService;
-	private final RefundService refundService;
 	private final MonetaryTransactionService monetaryTransactionService;
 	private final OrderItemService orderItemService;
 
@@ -43,19 +41,16 @@ public class OrderService {
 
 	@Transactional
 	// 소비자는 장바구니 내에 있는 주문에 대해 일괄주문을 진행한다.
-	public void proceed(Long customerId, Long sellerId) {
+	public Order proceed(List<CartItem> cartItems, Long customerId, Long sellerId) {
 		Member customer = memberService.findCustomerById(customerId);
 		Member seller = memberService.findSellerById(sellerId);
 
-		// 주문은 장바구니 내에서만 가능합니다.
-		List<CartItem> cartItem = customer.getCartItem();
-
 		// 장바구니 내 상품이 없는 경우 결제를 진행할 수 없습니다.
-		if (cartItem.isEmpty()) {
+		if (cartItems.isEmpty()) {
 			throw ErrorCd.INVALID_ARGUMENT.serviceException("장바구니가 비어있습니다");
 		}
 
-		List<OrderItem> itemList = orderItemService.createOrderItems(cartItem);
+		List<OrderItem> itemList = orderItemService.createOrderItems(cartItems);
 
 		// 1. 제품 재고를 감소시킵니다.
 		reducingStockQuantity(itemList);
@@ -64,24 +59,7 @@ public class OrderService {
 		Payment payment = monetaryTransactionService.transactionsForSelling(itemList, customer);
 
 		// 3. 주문을 생성합니다.
-		orderRepository.save(createOrder(itemList, customer, seller, payment));
-	}
-
-	@Transactional
-	// 소비자는 특정 (복합)주문건에 대해 반품 요청을 진행한다
-	public void refund(Long memberId, Long orderId) {
-		Order order = findById(orderId);
-		Member customer = memberService.findCustomerById(memberId);
-		List<OrderItem> orderItems = order.getOrderItems();
-
-		// 1. 고객의 지출 금액만큼 다시 충전하고 기업의 매입의 환불을 새로 기록합니다.
-		monetaryTransactionService.transactionsForRefunding(orderItems, customer);
-
-		// 2. 주문한 제품들의 재고를 다시 복구합니다.
-		addStockQuantity(orderItems);
-
-		// 3. 주문한 상품에 대해 Refund(반품 메타데이터) 엔티티를 생성합니다.
-		refundOrder(order);
+		return orderRepository.save(createOrder(itemList, customer, seller, payment));
 	}
 
 
@@ -117,39 +95,11 @@ public class OrderService {
 		return order;
 	}
 
-	/*
-	반품 요청시 반품 사항에 대한 메타데이터를 별도로 생성한다.
-	일반적인 쇼핑몰의 경우,
-	반품기록을 포함한 모든 판매데이터는 유지되며
-	삭제되지 않기 때문에 Delete를 구현하지 않았다.
-	*/
-	private Refund refundOrder(Order order) {
-		// 1. Order의 상태를 사용자가 요청한 반품 대기로 변경합니다.
-		order.setOrderStatus(OrderStatus.REFUND_REQUESTED_BY_CUSTOMER);
-
-		// 2. 반송 요청에 해당하는 배송 요청을 새로 생성하도록, 상태를 변경합니다.
-		order.setShipmentStatus(ShipmentStatus.REFUND_PENDING);
-
-		// 3. 이미 반품 요청->대기중인 상품은 다시 반품 요청을 할 수 없습니다.
-		order.setRefundable(false);
-
-		// 4. 반품 건 엔티티 생성.
-		return refundService.save(order);
-	}
-
 	// 제품 재고를 orderItem에 기재된 count를 기준으로 감소시킴(구매).
 	private void reducingStockQuantity(List<OrderItem> orderItems) {
 		for (OrderItem orderItem : orderItems) {
 			Item item = orderItem.getItem();
 			item.removeStock(orderItem.getCount());
-		}
-	}
-
-	// 제품 재고를 orderItem에 기재된 count로 기준으로 증가시킴(반품).
-	private void addStockQuantity(List<OrderItem> orderItems) {
-		for (OrderItem orderItem : orderItems) {
-			Item item = orderItem.getItem();
-			item.addStock(orderItem.getCount());
 		}
 	}
 
