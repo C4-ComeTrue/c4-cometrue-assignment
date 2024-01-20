@@ -41,10 +41,6 @@ public class RefundService {
 		Member customer = memberService.findCustomerById(memberId);
 		List<OrderItem> orderItems = order.getOrderItems();
 
-		if(order.getOrderStatus() == OrderStatus.ORDERED_SHIPPED){
-			throw ErrorCd.INVALID_ARGUMENT.serviceException("배송이 이미 시작되어 반품이 어렵습니다");
-		}
-
 		// 1. 고객의 지출 금액만큼 다시 충전하고 기업의 매입의 환불을 새로 기록합니다.
 		Payment payment = monetaryTransactionService.transactionsForRefunding(orderItems, customer);
 
@@ -62,10 +58,10 @@ public class RefundService {
 	삭제되지 않기 때문에 Delete를 구현하지 않았다.
 	*/
 	private Refund refundOrder(Order order, Payment payment) {
-		// 1. Order의 상태를 사용자가 요청한 반품 대기로 변경합니다.
-		order.setOrderStatus(OrderStatus.REFUND_REQUESTED_BY_CUSTOMER);
+		// 1. 판매자는 반품 신청 내역을 확인하여, 해당 주문의 반품을 승인합니다.
+		order.setOrderStatus(OrderStatus.REFUND_ACCEPTED);
 
-		// 2. 반송 요청에 해당하는 배송 요청을 새로 생성하도록, 상태를 변경합니다.
+		// 2. 반품 요청에 해당하는 배송 요청을 새로 생성하도록, 상태를 변경합니다.
 		order.setShipmentStatus(ShipmentStatus.REFUND_PENDING);
 
 		// 3. 이미 반품 요청->대기중인 상품은 다시 반품 요청을 할 수 없습니다.

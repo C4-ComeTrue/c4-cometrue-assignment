@@ -62,6 +62,24 @@ public class OrderService {
 		return orderRepository.save(createOrder(itemList, customer, seller, payment));
 	}
 
+	@Transactional
+	public void requestRefund(Long orderId, Long customerId){
+		Member customer = memberService.findById(customerId);
+		Order order = findById(orderId);
+
+		if (order.getCustomer() != customer) {
+			throw ErrorCd.NO_PERMISSION.serviceException("다른 사용자가 구입한 요청에 대한 반품 요청입니다.");
+		}
+
+		if (order.getOrderStatus() != OrderStatus.ORDERED_PENDING) {
+			throw ErrorCd.INVALID_ARGUMENT.serviceException("배송 대기중인 상태에서만 반품 신청이 가능합니다.");
+		}
+
+		order.setOrderStatus(OrderStatus.REFUND_REQUESTED_BY_CUSTOMER);
+		order.setRefundable(false);
+		order.setShipmentStatus(ShipmentStatus.REFUND_PENDING);
+	}
+
 
 	@Transactional
 	// 소비자는 배송이 출발한 주문건에 대해 수취확인(구매확정)을 한다.

@@ -10,7 +10,9 @@ import org.c4marathon.assignment.domain.Item;
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
 import org.c4marathon.assignment.domain.Order;
+import org.c4marathon.assignment.domain.OrderStatus;
 import org.c4marathon.assignment.domain.Payment;
+import org.c4marathon.assignment.domain.ShipmentStatus;
 import org.c4marathon.assignment.service.dto.CartItemDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -110,6 +112,7 @@ class OrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("복합 주문이 진행되면 단건 주문 구매 정보는 sales 에 종합 주문 금")
 	void proceed() {
 		Member customer = memberService.findCustomerById(customerId);
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
@@ -132,6 +135,62 @@ class OrderServiceTest {
 	}
 
 	@Test
-	void orderConfirmation() {
+	void requestRefund() {
+		Member customer = memberService.findCustomerById(customerId);
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
+		orderService.requestRefund(proceeded.getOrderPk(), customerId);
+
+		assertEquals(OrderStatus.REFUND_REQUESTED_BY_CUSTOMER, proceeded.getOrderStatus());
+		assertFalse(proceeded.isRefundable());
+		assertEquals(ShipmentStatus.REFUND_PENDING, proceeded.getShipmentStatus());
 	}
+
+	@Test
+	void orderConfirmation() {
+		Member customer = memberService.findCustomerById(customerId);
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
+
+		orderService.orderConfirmation(customerId, proceeded.getOrderPk());
+		assertEquals(proceeded.getOrderStatus(), OrderStatus.CUSTOMER_ACCEPTED);
+	}
+
+	@Test
+	void requestRefundNoPermissionException() {
+		Member customer = memberService.findCustomerById(customerId);
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
+
+		Member customer1 = new Member();
+		customer1.setUserId("noog");
+		customer1.setPostalCode("129-03");
+		customer1.setValid(true);
+		customer1.setPassword("test2");
+		customer1.setAddress("경기도 남양주시 경춘로");
+		customer1.setPhone("010-4822-2020");
+		customer1.setUsername("홍길동");
+		Member otherCustomer = memberService.register(customer1, MemberType.ROLE_CUSTOMER);
+
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
+			() -> orderService.requestRefund(proceeded.getOrderPk(), otherCustomer.getMemberPk()));
+
+		assertEquals("NO_PERMISSION : No Permission - 다른 사용자가 구입한 요청에 대한 반품 요청입니다.", runtimeException.getMessage());
+	}
+
+	@Test
+	void requestRefundInvalidArgumentException() {
+		Member customer = memberService.findCustomerById(customerId);
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
+
+		orderService.orderConfirmation(customerId, proceeded.getOrderPk());
+
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
+			() -> orderService.requestRefund(proceeded.getOrderPk(), customerId));
+		assertEquals("INVALID_ARGUMENT : Invalid Argument - 배송 대기중인 상태에서만 반품 신청이 가능합니다.",
+			runtimeException.getMessage());
+	}
+
+
 }
