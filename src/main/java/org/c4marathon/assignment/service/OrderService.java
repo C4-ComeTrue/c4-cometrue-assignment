@@ -29,7 +29,6 @@ public class OrderService {
 
 	private final OrderRepository orderRepository;
 
-	@Transactional(readOnly = true)
 	// 복합 주문(Order)의 기본키를 이용하여 특정 복합 주문 건을 조회한다.
 	public Order findById(Long orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
@@ -84,14 +83,13 @@ public class OrderService {
 	@Transactional
 	// 소비자는 배송이 출발한 주문건에 대해 수취확인(구매확정)을 한다.
 	public void orderConfirmation(Long memberId, Long orderId) {
-		Member customer = memberService.findCustomerById(memberId);
+		memberService.findCustomerById(memberId);
 		Order order = findById(orderId);
 		List<OrderItem> orderItems = order.getOrderItems();
 
 		for (OrderItem orderItem : orderItems) {
 			// 1. 주문 내에 있는 아이템들에 대해 순차적으로 수수료 지급 절차 진행.
-			monetaryTransactionService.commissionProcedure(orderItem,
-				customer, orderItem.getItem().getSeller());
+			monetaryTransactionService.commissionProcedure(orderItem, orderItem.getItem().getSeller());
 		}
 
 		// 2. 지급 절차가 끝나면 제품 상태를 CUSTOMER_ACCEPTED(구매 확정)으로 변경함.

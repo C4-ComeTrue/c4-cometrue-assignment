@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.c4marathon.assignment.domain.Item;
 import org.c4marathon.assignment.domain.Member;
-import org.c4marathon.assignment.domain.MemberType;
 import org.c4marathon.assignment.domain.Order;
 import org.c4marathon.assignment.domain.OrderItem;
 import org.c4marathon.assignment.domain.OrderStatus;
@@ -41,6 +40,10 @@ public class RefundService {
 		Member customer = memberService.findCustomerById(memberId);
 		List<OrderItem> orderItems = order.getOrderItems();
 
+		if(order.getOrderStatus() != OrderStatus.ORDERED_PENDING){
+			throw ErrorCd.INVALID_ARGUMENT.serviceException("배송이 이미 시작되어 반품이 어렵습니다");
+		}
+
 		// 1. 고객의 지출 금액만큼 다시 충전하고 기업의 매입의 환불을 새로 기록합니다.
 		Payment payment = monetaryTransactionService.transactionsForRefunding(orderItems, customer);
 
@@ -73,6 +76,7 @@ public class RefundService {
 		refund.setRefundRequestedDate(LocalDateTime.now());
 		refund.setPayment(payment);
 		refund.setSeller(order.getSeller());
+		refund.setCustomer(order.getCustomer());
 
 		// 4. 반품 건 엔티티 생성.
 		return refundRepository.save(refund);
