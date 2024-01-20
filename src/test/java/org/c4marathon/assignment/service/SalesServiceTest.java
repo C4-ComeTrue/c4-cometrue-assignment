@@ -5,10 +5,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
 import org.c4marathon.assignment.domain.CartItem;
+import org.c4marathon.assignment.domain.ChargeType;
 import org.c4marathon.assignment.domain.Item;
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
 import org.c4marathon.assignment.domain.Order;
+import org.c4marathon.assignment.domain.OrderItem;
 import org.c4marathon.assignment.domain.Sales;
 import org.c4marathon.assignment.service.dto.CartItemDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +47,7 @@ class SalesServiceTest {
 	private PaymentService paymentService;
 
 	@Autowired
-	private RefundService refundService;
+	private OrderItemService orderItemService;
 
 	@Autowired
 	private SalesService salesService;
@@ -106,14 +108,14 @@ class SalesServiceTest {
 	@Test
 	void getSalesBySeller() {
 		Member seller = memberService.findSellerById(sellerId);
-		List<Sales> salesBySeller = salesService.getSalesBySeller(seller);
+		List<Sales> salesBySeller = salesService.findSalesBySeller(seller);
 
 		assertEquals(0, salesBySeller.size());
 		Member customer = memberService.findCustomerById(customerId);
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
 		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
 		orderService.orderConfirmation(customerId, proceeded.getOrderPk());
-		salesBySeller = salesService.getSalesBySeller(seller);
+		salesBySeller = salesService.findSalesBySeller(seller);
 		for (Sales sales : salesBySeller) {
 			System.out.println("sales.toString() = " + sales.toString());
 		}
@@ -121,14 +123,47 @@ class SalesServiceTest {
 	}
 
 	@Test
+	void getSalesBySellerException() {
+		Member customer = memberService.findCustomerById(customerId);
+
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
+			() -> salesService.findSalesBySeller(customer));
+		assertEquals("NO_PERMISSION : No Permission - 판매자만 접근할 수 있는 기능입니다", runtimeException.getMessage());
+	}
+
+	@Test
 	void addSales() {
 		Member seller = memberService.findSellerById(sellerId);
-		List<Sales> salesBySeller = salesService.getSalesBySeller(seller);
-
-		assertEquals(0, salesBySeller.size());
 		Member customer = memberService.findCustomerById(customerId);
-		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
-		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
 
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		List<OrderItem> orderItems = orderItemService.createOrderItems(allCartItem);
+		OrderItem orderItem = orderItems.get(0);
+
+		salesService.addSales(orderItem, customer, seller, 2000, ChargeType.CHARGE);
+
+		List<Sales> salesList = salesService.findSalesBySeller(seller);
+		Sales sales = salesList.get(0);
+		assertNotNull(sales.getSalesPk());
+		assertEquals(2000, sales.getValue());
+		assertEquals(customer, sales.getSender());
+		assertEquals(seller, sales.getReceiver());
+		assertEquals(orderItem, sales.getOrderItem());
+		assertEquals(ChargeType.CHARGE, sales.getChargeType());
+	}
+
+	@Test
+	void findSalesByOrderItem() {
+		Member seller = memberService.findSellerById(sellerId);
+		Member customer = memberService.findCustomerById(customerId);
+
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		List<OrderItem> orderItems = orderItemService.createOrderItems(allCartItem);
+		OrderItem orderItem = orderItems.get(0);
+
+		salesService.addSales(orderItem, customer, seller, 2000, ChargeType.CHARGE);
+
+		List<Sales> salesByOrderItem = salesService.findSalesByOrderItem(orderItem);
+		assertEquals(1, salesByOrderItem.size());
 	}
 }

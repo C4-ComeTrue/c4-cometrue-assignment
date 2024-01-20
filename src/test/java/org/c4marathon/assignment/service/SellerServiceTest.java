@@ -109,7 +109,7 @@ class SellerServiceTest {
 
 		cartItemService.addCart(cartItemDTO, customer);
 
-		List<Sales> salesBySeller = salesService.getSalesBySeller(seller);
+		List<Sales> salesBySeller = salesService.findSalesBySeller(seller);
 
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
 		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);

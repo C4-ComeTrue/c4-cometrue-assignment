@@ -1,7 +1,5 @@
 package org.c4marathon.assignment.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.List;
 
 import org.c4marathon.assignment.domain.CartItem;

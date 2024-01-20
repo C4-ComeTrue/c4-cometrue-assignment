@@ -111,8 +111,6 @@ class ShipmentServiceTest {
 
 		cartItemService.addCart(cartItemDTO, customer);
 
-		List<Sales> salesBySeller = salesService.getSalesBySeller(seller);
-
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
 		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
 		orderedId = proceeded.getOrderPk();

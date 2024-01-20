@@ -140,6 +140,19 @@ class OrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("장바구니가 비어있는 경우 주문을 진행할 수 없음.")
+	void proceedException() {
+		Member customer = memberService.findCustomerById(customerId);
+		Member seller = memberService.findSellerById(sellerId);
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		allCartItem.clear();
+
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
+			() -> orderService.proceed(allCartItem, customerId, sellerId));
+		assertEquals("INVALID_ARGUMENT : Invalid Argument - 장바구니가 비어있습니다", runtimeException.getMessage());
+	}
+
+	@Test
 	void requestRefund() {
 		Member customer = memberService.findCustomerById(customerId);
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
