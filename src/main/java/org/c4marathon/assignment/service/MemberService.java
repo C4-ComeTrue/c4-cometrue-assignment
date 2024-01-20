@@ -9,7 +9,6 @@ import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
 import org.c4marathon.assignment.exception.ErrorCd;
 import org.c4marathon.assignment.repository.MemberRepository;
-import org.c4marathon.assignment.repository.CartItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
