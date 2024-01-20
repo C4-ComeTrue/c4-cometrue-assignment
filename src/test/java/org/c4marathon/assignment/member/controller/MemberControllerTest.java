@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
 
-	private final String REQUEST_URL = "/api/members";
+	private static final String REQUEST_URL = "/api/members";
 	@Autowired
 	MockMvc mockMvc;
 

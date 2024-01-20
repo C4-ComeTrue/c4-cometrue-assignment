@@ -1,6 +1,10 @@
 # default
 server:
   port: 8000
+  servlet:
+    session:
+      tracking-modes: cookie
+      timeout: 1800
 
 spring:
   # MySQL

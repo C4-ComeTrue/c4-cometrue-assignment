@@ -1,6 +1,9 @@
 package org.c4marathon.assignment.member.service;
 
+import org.c4marathon.assignment.common.session.SessionMemberInfo;
+import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
+import org.c4marathon.assignment.member.dto.response.MemberInfo;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.repository.MemberRepository;
@@ -23,9 +26,38 @@ public class MemberServiceImpl implements MemberService {
 		memberRepository.save(member);
 	}
 
+	@Override
+	public SessionMemberInfo signIn(SignInRequestDto requestDto) {
+		Member member = memberRepository.findMemberByMemberId(requestDto.memberId());
+		if (member == null) {
+			throw MemberErrorCode.USER_NOT_FOUND.memberException("service 계층 signin 메소드 실행 중 존재하지 않는 사용자 아이디 입력 발생");
+		}
+		if (!isValidMember(requestDto.password(), member.getPassword())) {
+			throw MemberErrorCode.INVALID_PASSWORD.memberException("service 계층 signin 메소드 실행 중 비밀번호 불일치 발생");
+		}
+
+		return new SessionMemberInfo(member.getMemberPk(), member.getMemberId());
+	}
+
+	@Override
+	public MemberInfo getMemberInfo(long memberPk) {
+		Member member = memberRepository.findById(memberPk)
+			.orElseThrow(() -> MemberErrorCode.USER_NOT_FOUND.memberException(
+				"service 계층 getMemberInfo 메소드 실행 중 존재하지 않는 사용자 요청 발생"));
+
+		return new MemberInfo(member.getMemberPk(), member.getMemberId(), member.getMemberName());
+	}
+
 	private boolean isValidMember(String memberId) {
 		Member member = memberRepository.findMemberByMemberId(memberId);
 		if (member == null) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isValidMember(String inputPassword, String findPassword) {
+		if (inputPassword.equals(findPassword)) {
 			return true;
 		}
 		return false;
