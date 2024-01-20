@@ -4,9 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.checkerframework.checker.units.qual.C;
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.context.annotation.EnableMBeanExport;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -54,9 +52,9 @@ public class Order {
 	@Column(name = "ord_date")
 	private LocalDateTime orderDate;
 
-	@OneToOne
+	@OneToMany
 	@JoinColumn(name = "shipment")
-	private Shipment shipment;
+	private List<Shipment> shipment = new ArrayList<>();
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "shipment_status")
@@ -73,5 +71,10 @@ public class Order {
 	@ColumnDefault("false")
 	@Column(name = "is_refunded", columnDefinition = "TINYINT(1)")
 	private boolean isRefunded; // 이 주문 내역의 승인여부를 표시합니다.
+
+	public void addShipment(Shipment shipment){
+		this.shipment.add(shipment);
+		shipment.setOrder(this);
+	}
 
 }

@@ -10,7 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,12 +26,12 @@ public class Sales {
 	private Long salesPk;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "customer")
-	private Member customer;
+	@JoinColumn(name = "sender")
+	private Member sender;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "seller")
-	private Member seller;
+	@JoinColumn(name = "receiver")
+	private Member receiver;
 
 	@Column(name = "charge_type")
 	@Enumerated(EnumType.STRING)
@@ -41,15 +40,8 @@ public class Sales {
 	@Column(name = "value")
 	private Integer value;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "order_item")
 	private OrderItem orderItem;
 
-	public Sales(Member customer, Member seller, ChargeType chargeType, Integer value, OrderItem orderItem) {
-		this.customer = customer;
-		this.seller = seller;
-		this.chargeType = chargeType;
-		this.value = value;
-		this.orderItem = orderItem;
-	}
 }

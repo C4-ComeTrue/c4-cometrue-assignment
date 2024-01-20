@@ -3,7 +3,6 @@ package org.c4marathon.assignment.domain;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.checkerframework.checker.units.qual.C;
 import org.hibernate.annotations.ColumnDefault;
 
 import jakarta.persistence.Column;
