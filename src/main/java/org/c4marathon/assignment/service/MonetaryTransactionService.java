@@ -22,24 +22,15 @@ public class MonetaryTransactionService {
 
 
 	// 제품 구매가 확인되는 경우 5%를 제하고 판매자에게 지급됨.
-	public void commissionProcedure(OrderItem orderItem, Member customer, Member seller) {
+	public void commissionProcedure(OrderItem orderItem, Member seller) {
 		Member admin = memberRepository.findFinancialAdmin();
 
-		// 1. SalesRepository에서 전체 금액을 차감함.
-		salesService.addSales(orderItem, customer, admin, orderItem.generateTotalPrice(), ChargeType.DISCHARGE);
-
-		// 2. SalesRepository에 수수료 금액을 추가함.
-		salesService.addSales(orderItem, customer, admin,
-			orderItem.generateTotalPrice() - commissionCalculation(orderItem), ChargeType.COMMISSION);
-
-		// 3. Seller의 계좌로 물품가액이 입금됨.
+		// 2. Seller의 계좌로 물품가액이 입금됨.
 		paymentService.sellerCharge(commissionCalculation(orderItem), orderItem.getItem().getSeller());
 
-		// 4. Seller에 물품가액이 지급된것이 기록됨.
+		// 3. Seller에 물품가액이 지급된것이 기록됨.
 		salesService.addSales(orderItem, admin, seller, commissionCalculation(orderItem), ChargeType.CHARGE);
 
-		// 5. 회사 계좌로부터 Seller에게 지급할 금액이 빠져나간것이 기록됨.
-		salesService.addSales(orderItem, admin, seller, commissionCalculation(orderItem), ChargeType.DISCHARGE);
 	}
 
 	private int commissionCalculation(OrderItem orderItem) {
