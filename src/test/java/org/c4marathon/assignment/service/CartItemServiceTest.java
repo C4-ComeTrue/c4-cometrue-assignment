@@ -81,6 +81,7 @@ class CartItemServiceTest {
 		CartItem cartItem = cartItemService.addCart(cartItemDTO, customer);
 		CartItem findCartItem = cartItemService.findCartItemById(cartItem.getShoppingCartId(), customer);
 		Assertions.assertEquals(cartItem, findCartItem);
+		Assertions.assertEquals(cartItem.getCustomer(), customer);
 	}
 
 	@Test
@@ -94,17 +95,19 @@ class CartItemServiceTest {
 		CartItem cartItem = cartItemService.addCart(cartItemDTO, customer);
 		cartItemService.removeCart(cartItem.getShoppingCartId(), customer);
 
+		Long cartItemId = cartItem.getShoppingCartId();
+
 		RuntimeException runtimeException = assertThrows(RuntimeException.class, ()
-			-> cartItemService.findCartItemById(cartItem.getShoppingCartId(), customer));
-		Assertions.assertEquals(runtimeException.getMessage(),
-			"NO_SUCH_ITEM : Item Not Found - 해당 제품이 장바구니에 없습니다.");
+			-> cartItemService.findCartItemById(cartItemId, customer));
+		Assertions.assertEquals("NO_SUCH_ITEM : Item Not Found - 해당 제품이 장바구니에 없습니다.",
+			runtimeException.getMessage());
 	}
 
 	@Test
 	void getAllCartItem(){
 		Member customer = memberService.findCustomerById(customerId);
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
-		Assertions.assertEquals(allCartItem.size(), 0);
+		Assertions.assertEquals(0, allCartItem.size());
 	}
 
 }

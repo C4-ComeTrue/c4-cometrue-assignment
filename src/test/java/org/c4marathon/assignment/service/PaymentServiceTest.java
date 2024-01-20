@@ -59,8 +59,8 @@ class PaymentServiceTest {
 		Payment charged = paymentService.charge(10000, customer);
 
 		// 1. Payment Table 입력 검증.
-		Assertions.assertEquals(charged.getValue(), 10000);
-		Assertions.assertEquals(charged.getValueType(), ChargeType.CHARGE);
+		Assertions.assertEquals(10000, charged.getValue());
+		Assertions.assertEquals(ChargeType.CHARGE, charged.getValueType());
 		Assertions.assertEquals(charged.getMember(),customer);
 
 		// 2. 잔고 금액 정상 여부 검증
@@ -74,8 +74,8 @@ class PaymentServiceTest {
 		Payment discharged = paymentService.charge(10000, Seller);
 
 		// 1. Payment Table 잔고 충전 정보 입력값 검증.
-		Assertions.assertEquals(discharged.getValue(),10000);
-		Assertions.assertEquals(discharged.getValueType(),ChargeType.CHARGE);
+		Assertions.assertEquals(10000, discharged.getValue());
+		Assertions.assertEquals(ChargeType.CHARGE, discharged.getValueType());
 		Assertions.assertEquals(discharged.getMember(),Seller);
 
 		// 2. 잔고 금액 정상 여부 검증
@@ -90,8 +90,8 @@ class PaymentServiceTest {
 		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
 			() -> paymentService.charge(-10000, customer));
 
-		Assertions.assertEquals(runtimeException.getMessage(),
-			"INVALID_ARGUMENT : Invalid Argument - 충전 금액을 확인하세요");
+		Assertions.assertEquals("INVALID_ARGUMENT : Invalid Argument - 충전 금액을 확인하세요",
+			runtimeException.getMessage());
 	}
 
 	@Test
@@ -101,8 +101,8 @@ class PaymentServiceTest {
 		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
 			() -> paymentService.charge(-1*10000, seller));
 
-		Assertions.assertEquals(runtimeException.getMessage(),
-			"INVALID_ARGUMENT : Invalid Argument - 충전 금액을 확인하세요");
+		Assertions.assertEquals("INVALID_ARGUMENT : Invalid Argument - 충전 금액을 확인하세요",
+			runtimeException.getMessage());
 	}
 
 	@Test
@@ -113,8 +113,8 @@ class PaymentServiceTest {
 		Payment discharged = paymentService.discharge(10000, customer);
 
 		// 1. Payment Table 잔고 소진 정보 입력값 검증.
-		Assertions.assertEquals(discharged.getValue(),10000);
-		Assertions.assertEquals(discharged.getValueType(),ChargeType.DISCHARGE);
+		Assertions.assertEquals(10000, discharged.getValue());
+		Assertions.assertEquals(ChargeType.DISCHARGE, discharged.getValueType());
 		Assertions.assertEquals(discharged.getMember(),customer);
 
 		// 2. 잔고 금액 정상 여부 검증
@@ -132,8 +132,8 @@ class PaymentServiceTest {
 		Payment discharged = paymentService.discharge(10000, seller);
 
 		// 1. Payment Table 잔고 소진 정보 입력값 검증.
-		Assertions.assertEquals(discharged.getValue(),10000);
-		Assertions.assertEquals(discharged.getValueType(),ChargeType.DISCHARGE);
+		Assertions.assertEquals(10000, discharged.getValue());
+		Assertions.assertEquals(ChargeType.DISCHARGE, discharged.getValueType());
 		Assertions.assertEquals(discharged.getMember(),seller);
 
 		// 2. 잔고 금액 정상 여부 검증
@@ -152,8 +152,8 @@ class PaymentServiceTest {
 		// 잔고가 부족한 상태에서 결제 시도시 Exception 발생
 		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
 			() -> paymentService.discharge(10000, customer));
-		Assertions.assertEquals(runtimeException.getMessage(),
-			"INVALID_ARGUMENT : Invalid Argument - 결제 이상");
+		Assertions.assertEquals("INVALID_ARGUMENT : Invalid Argument - 결제 이상",
+			runtimeException.getMessage());
 	}
 
 	@Test
@@ -164,8 +164,8 @@ class PaymentServiceTest {
 		// 잔고가 부족한 상태에서 결제 시도시 Exception 발생
 		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
 			() -> paymentService.discharge(10000, seller));
-		Assertions.assertEquals(runtimeException.getMessage(),
-			"INVALID_ARGUMENT : Invalid Argument - 결제 이상");
+		Assertions.assertEquals("INVALID_ARGUMENT : Invalid Argument - 결제 이상",
+			runtimeException.getMessage());
 	}
 
 	@Test
@@ -211,8 +211,8 @@ class PaymentServiceTest {
 
 		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
 			() -> paymentService.sellerCharge(20000, customer));
-		Assertions.assertEquals(runtimeException.getMessage(),
-			"NO_PERMISSION : No Permission - 판매자만 수익을 올릴 수 있습니다.");
+		Assertions.assertEquals("NO_PERMISSION : No Permission - 판매자만 수익을 올릴 수 있습니다.",
+			runtimeException.getMessage());
 	}
 
 

@@ -115,6 +115,7 @@ class OrderServiceTest {
 	@DisplayName("복합 주문이 진행되면 단건 주문 구매 정보는 sales 에 종합 주문 금")
 	void proceed() {
 		Member customer = memberService.findCustomerById(customerId);
+		Member seller = memberService.findSellerById(sellerId);
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
 		Item previousItem = itemService.findById(itemId);
 		Integer previousStock = previousItem.getStock();
@@ -122,12 +123,16 @@ class OrderServiceTest {
 		Item updatedItem = itemService.findById(itemId);
 		Integer updatedStock = updatedItem.getStock();
 		// 결제 후 재고 변화 확인
-		assertEquals(previousStock - updatedStock, 5);
+		assertEquals(5, previousStock - updatedStock);
+		assertEquals(ShipmentStatus.PENDING, proceeded.getShipmentStatus());
+		assertEquals(OrderStatus.ORDERED_PENDING, proceeded.getOrderStatus());
+		assertEquals(customer, proceeded.getCustomer());
+		assertEquals(proceeded.getSeller(), seller);
 
 		// 결제 금액 산정 값 확인
 		Payment payment = proceeded.getPayment();
 		assertEquals(payment.getValue(), updatedItem.getPrice() * 5);
-		assertEquals(payment.getValueType(), ChargeType.DISCHARGE);
+		assertEquals(ChargeType.DISCHARGE, payment.getValueType());
 
 		// Order 테이블 기입되었는지 확인.
 		Order findOrder = orderService.findById(proceeded.getOrderPk());
@@ -153,7 +158,7 @@ class OrderServiceTest {
 		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
 
 		orderService.orderConfirmation(customerId, proceeded.getOrderPk());
-		assertEquals(proceeded.getOrderStatus(), OrderStatus.CUSTOMER_ACCEPTED);
+		assertEquals(OrderStatus.CUSTOMER_ACCEPTED, proceeded.getOrderStatus());
 	}
 
 	@Test
@@ -172,8 +177,10 @@ class OrderServiceTest {
 		customer1.setUsername("홍길동");
 		Member otherCustomer = memberService.register(customer1, MemberType.ROLE_CUSTOMER);
 
+		Long orderKey = proceeded.getOrderPk();
+		Long otherCustomerKey = otherCustomer.getMemberPk();
 		RuntimeException runtimeException = assertThrows(RuntimeException.class,
-			() -> orderService.requestRefund(proceeded.getOrderPk(), otherCustomer.getMemberPk()));
+			() -> orderService.requestRefund(orderKey, otherCustomerKey));
 
 		assertEquals("NO_PERMISSION : No Permission - 다른 사용자가 구입한 요청에 대한 반품 요청입니다.", runtimeException.getMessage());
 	}
@@ -186,8 +193,10 @@ class OrderServiceTest {
 
 		orderService.orderConfirmation(customerId, proceeded.getOrderPk());
 
+		Long orderedPk = proceeded.getOrderPk();
+
 		RuntimeException runtimeException = assertThrows(RuntimeException.class,
-			() -> orderService.requestRefund(proceeded.getOrderPk(), customerId));
+			() -> orderService.requestRefund(orderedPk, customerId));
 		assertEquals("INVALID_ARGUMENT : Invalid Argument - 배송 대기중인 상태에서만 반품 신청이 가능합니다.",
 			runtimeException.getMessage());
 	}

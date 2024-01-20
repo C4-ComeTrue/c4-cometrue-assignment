@@ -140,9 +140,11 @@ class ItemServiceTest {
 		Item findItem = itemService.findById(savedItem.getItemPk());
 		findItem.setDescription("테스트 설명 변경");
 
+		Long savedItemPk = savedItem.getItemPk();
+
 		RuntimeException runtimeException = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
-			() -> itemService.updateItem(findItem, savedItem.getItemPk(), sellerId2));
-		Assertions.assertEquals(runtimeException.getMessage(), "NO_PERMISSION : No Permission - 잘못된 접근입니다");
+			() -> itemService.updateItem(findItem, savedItemPk, sellerId2));
+		Assertions.assertEquals("NO_PERMISSION : No Permission - 잘못된 접근입니다", runtimeException.getMessage());
 	}
 
 	@Test
@@ -166,8 +168,8 @@ class ItemServiceTest {
 		RuntimeException runtimeException = org.junit.jupiter.api.Assertions.assertThrows(
 			RuntimeException.class, () -> itemService.findById(9999999L)
 		);
-		Assertions.assertEquals(runtimeException.getMessage()
-			, "NO_SUCH_ITEM : Item Not Found - 상품을 찾을 수 없습니다");
+		Assertions.assertEquals("NO_SUCH_ITEM : Item Not Found - 상품을 찾을 수 없습니다"
+			, runtimeException.getMessage());
 	}
 
 	@Test
@@ -183,7 +185,7 @@ class ItemServiceTest {
 
 		Member seller = memberService.findSellerById(sellerId1);
 		List<Item> items = itemService.findBySeller(seller);
-		Assertions.assertEquals(items.size(), 1);
+		Assertions.assertEquals(1, items.size());
 	}
 
 	@Test
@@ -191,7 +193,7 @@ class ItemServiceTest {
 	void findBySellerEmpty() {
 		Member seller = memberService.findSellerById(sellerId1);
 		List<Item> items = org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> itemService.findBySeller(seller));
-		Assertions.assertEquals(items.size(), 0);
+		Assertions.assertEquals(0, items.size());
 
 	}
 }

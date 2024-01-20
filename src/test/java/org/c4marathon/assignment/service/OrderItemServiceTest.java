@@ -79,7 +79,7 @@ class OrderItemServiceTest {
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
 		List<OrderItem> orderItems = orderItemService.createOrderItems(allCartItem);
 
-		Assertions.assertEquals(orderItems.size(), 1);
+		Assertions.assertEquals(1, orderItems.size());
 	}
 
 	@Test

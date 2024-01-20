@@ -13,6 +13,7 @@ import org.c4marathon.assignment.domain.Order;
 import org.c4marathon.assignment.domain.OrderStatus;
 import org.c4marathon.assignment.domain.Payment;
 import org.c4marathon.assignment.domain.Refund;
+import org.c4marathon.assignment.domain.RefundStatus;
 import org.c4marathon.assignment.service.dto.CartItemDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,21 +109,26 @@ class RefundServiceTest {
 	@Test
 	void refund() {
 		Member customer = memberService.findCustomerById(customerId);
+		Member seller = memberService.findSellerById(sellerId);
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
-		Item previousItem = itemService.findById(itemId);
-		Integer previousPurchaseStock = previousItem.getStock();
+		Item item = itemService.findById(itemId);
+		Integer previousPurchaseStock = item.getStock();
 		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
-		Item updatedItem = itemService.findById(itemId);
-
 		Refund refund = refundService.refund(customerId, proceeded.getOrderPk());
+		Integer refundedPurchaseStock = item.getStock();
 
-		Item updatedRefundedItem = itemService.findById(itemId);
-		Integer refundedPurchaseStock = updatedRefundedItem.getStock();
 
 		assertEquals(refundedPurchaseStock, previousPurchaseStock);
 		Payment payment = refund.getPayment();
-		assertEquals(payment.getValue(), updatedItem.getPrice() * 5);
+		assertEquals(proceeded, refund.getOrder());
+		assertEquals(payment.getValue(), item.getPrice() * 5);
 		assertEquals(ChargeType.CHARGE, payment.getValueType()); // 고객에 반품된 내역이 조회됨.
+		assertNull(refund.getShipment());
+		assertNotNull(refund.getRefundRequestedDate());
+		assertNull(refund.getRefundCompletedDate());
+		assertEquals(RefundStatus.PENDING, refund.getRefundStatus());
+		assertEquals(customer, refund.getCustomer());
+		assertEquals(seller, refund.getSeller());
 	}
 
 	@Test
@@ -131,20 +137,53 @@ class RefundServiceTest {
 		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
 		Item previousItem = itemService.findById(itemId);
 		itemService.updateItem(previousItem, previousItem.getItemPk(), sellerId);
-		Integer previousPurchaseStock = previousItem.getStock();
 		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
 		proceeded.setOrderStatus(OrderStatus.ORDERED_SHIPPED);
 
+		Long orderedKey = proceeded.getOrderPk();
+
 		RuntimeException runtimeException = assertThrows(RuntimeException.class,
-			() -> refundService.refund(customerId, proceeded.getOrderPk()));
+			() -> refundService.refund(customerId, orderedKey));
 		Assertions.assertEquals("INVALID_ARGUMENT : Invalid Argument - 배송이 이미 시작되어 반품이 어렵습니다", runtimeException.getMessage());
 	}
 
 	@Test
 	void findById() {
+		Member customer = memberService.findCustomerById(customerId);
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
+		Refund refund = refundService.refund(customerId, proceeded.getOrderPk());
+
+		Refund findRefund = refundService.findById(refund.getRefundPk());
+		assertEquals(findRefund, refund);
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
+			() -> refundService.findById(255555555L));
+		assertEquals("NO_SUCH_ITEM : Item Not Found - 반품 건을 조회할 수 없습니다", runtimeException.getMessage());
 	}
 
 	@Test
 	void findBySeller() {
+		Member customer = memberService.findCustomerById(customerId);
+		List<CartItem> allCartItem = cartItemService.getAllCartItem(customer);
+		Order proceeded = orderService.proceed(allCartItem, customerId, sellerId);
+		Refund refund = refundService.refund(customerId, proceeded.getOrderPk());
+
+		Member seller = memberService.findSellerById(sellerId);
+		List<Refund> findRefund = refundService.findBySeller(seller);
+		assertEquals(1, findRefund.size());
+
+		Member seller1 = new Member();
+		seller1.setUserId("n");
+		seller1.setPostalCode("129-03");
+		seller1.setValid(true);
+		seller1.setPassword("test2");
+		seller1.setAddress("경기도 남양주시 경춘로");
+		seller1.setPhone("010-4822-2020");
+		seller1.setUsername("홍길동");
+		Member anotherSeller = memberService.register(seller1, MemberType.ROLE_SELLER);
+
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
+			() -> refundService.findBySeller(anotherSeller));
+		assertEquals("NO_SUCH_ITEM : Item Not Found - 판매자에게서 조회되는 반품건이 없습니다.", runtimeException.getMessage());
 	}
 }

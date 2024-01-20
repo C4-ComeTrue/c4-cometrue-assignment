@@ -1,10 +1,11 @@
 package org.c4marathon.assignment.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.util.List;
 
 import org.c4marathon.assignment.domain.Member;
 import org.c4marathon.assignment.domain.MemberType;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,14 @@ class MemberServiceTest {
 		Member findMember = memberService.findCustomerById(member.getMemberPk());
 
 		// Then
-		Assertions.assertEquals(findMember, registeredMember);
+		assertEquals(findMember, registeredMember);
+		assertEquals(MemberType.ROLE_CUSTOMER, member.getMemberType());
+		assertNotEquals("test1", member.getPassword()); // 비밀번호는 평문으로 저장되어서는 안됨.
+		assertEquals("서울특별시 광진구 자양대로", member.getAddress());
+		assertEquals("129-01", member.getPostalCode());
+		assertTrue(member.isValid());
+		assertEquals("김윤식", member.getUsername());
+		assertEquals("010-4832-2000", member.getPhone());
 	}
 
 	@Test
@@ -63,10 +71,10 @@ class MemberServiceTest {
 		member2.setPhone("010-4822-2020");
 		member2.setUsername("홍길동");
 
-		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
 			() -> memberService.register(member2, MemberType.ROLE_CUSTOMER));
-		Assertions.assertEquals(runtimeException.getMessage(),
-			"INVALID_ARGUMENT : Invalid Argument - 동일한 아이디의 사용자가 있습니다");
+		assertEquals("INVALID_ARGUMENT : Invalid Argument - 동일한 아이디의 사용자가 있습니다",
+			runtimeException.getMessage());
 	}
 
 	@Test
@@ -85,7 +93,7 @@ class MemberServiceTest {
 
 
 		Member customer = memberService.findCustomerById(memberPk);
-		Assertions.assertEquals(customer, registeredMember1);
+		assertEquals(customer, registeredMember1);
 	}
 
 	@Test
@@ -103,7 +111,7 @@ class MemberServiceTest {
 		Long memberPk = registeredMember1.getMemberPk();
 
 
-		Assertions.assertThrows(RuntimeException.class, () -> memberService.findCustomerById(memberPk));
+		assertThrows(RuntimeException.class, () -> memberService.findCustomerById(memberPk));
 	}
 
 	@Test
@@ -122,7 +130,7 @@ class MemberServiceTest {
 
 
 		Member seller = memberService.findSellerById(memberPk);
-		Assertions.assertEquals(seller, registeredMember1);
+		assertEquals(seller, registeredMember1);
 	}
 
 	@Test
@@ -139,10 +147,10 @@ class MemberServiceTest {
 		Member registeredMember1 = memberService.register(member1, MemberType.ROLE_CUSTOMER);
 		Long memberPk = registeredMember1.getMemberPk();
 
-		RuntimeException runtimeException = Assertions.assertThrows(RuntimeException.class,
+		RuntimeException runtimeException = assertThrows(RuntimeException.class,
 			() -> memberService.findSellerById(memberPk));
-		Assertions.assertEquals(runtimeException.getMessage()
-			,"NOT_EXIST_USER : User Not Found - 사용자를 찾을 수 없습니다");
+		assertEquals("NOT_EXIST_USER : User Not Found - 사용자를 찾을 수 없습니다"
+			, runtimeException.getMessage());
 
 	}
 
@@ -160,7 +168,7 @@ class MemberServiceTest {
 		Member registeredMember1 = memberService.register(member1, MemberType.ROLE_CUSTOMER);
 		Long memberPk = registeredMember1.getMemberPk();
 
-		Assertions.assertThrows(RuntimeException.class, () -> memberService.findSellerById(memberPk));
+		assertThrows(RuntimeException.class, () -> memberService.findSellerById(memberPk));
 	}
 
 	@Test
@@ -199,7 +207,7 @@ class MemberServiceTest {
 		List<Member> customers = memberService.findByUserType(MemberType.ROLE_CUSTOMER);
 		List<Member> sellers = memberService.findByUserType(MemberType.ROLE_SELLER);
 
-		Assertions.assertEquals(customers.size(), 1);
-		Assertions.assertEquals(sellers.size(), 2);
+		assertEquals(1, customers.size());
+		assertEquals(2, sellers.size());
 	}
 }
