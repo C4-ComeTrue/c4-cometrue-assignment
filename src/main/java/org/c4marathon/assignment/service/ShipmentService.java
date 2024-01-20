@@ -21,7 +21,7 @@ public class ShipmentService {
 	private final ShipmentRepository shipmentRepository;
 	private final OrderService orderService;
 
-	protected void issueTracker(Long orderId, String trackingNumber) {
+	protected Shipment issueTracker(Long orderId, String trackingNumber) {
 		Order order = orderService.findById(orderId);
 		order.setRefundable(false);
 		Shipment shipment = new Shipment();
@@ -30,8 +30,9 @@ public class ShipmentService {
 		shipment.setRegisteredDate(LocalDateTime.now());
 		shipment.setTrackingNumber(trackingNumber);
 		Shipment save = shipmentRepository.save(shipment);
-		order.setShipment(save);
+		order.addShipment(save);
 		order.setShipmentStatus(ShipmentStatus.DISPATCHED);
+		return save;
 	}
 
 	protected void completion(Long orderId) {

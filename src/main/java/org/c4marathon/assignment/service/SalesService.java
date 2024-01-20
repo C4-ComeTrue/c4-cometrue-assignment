@@ -33,8 +33,8 @@ public class SalesService {
 	// Sales에는 기록이 추가만 될뿐, 삭제는 되지 않음(결제 환불한다고 결제 기록이 날아가지 않는 원리)
 	public void addSales(OrderItem item, Member from, Member to, int value, ChargeType chargeType) {
 		Sales sales = new Sales();
-		sales.setCustomer(from);
-		sales.setSeller(to);
+		sales.setSender(from);
+		sales.setReceiver(to);
 		sales.setOrderItem(item);
 		sales.setValue(value);
 		sales.setChargeType(chargeType);

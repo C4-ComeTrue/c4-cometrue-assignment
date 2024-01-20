@@ -69,7 +69,7 @@ public class ItemService {
 	@Transactional(readOnly = true)
 	// 특정 판매자를 통해 해당 판매자가 판매하고 있는 모든 상품을 조회한다.
 	public List<Item> findBySeller(Member seller) {
-		return itemRepository.findAllByMemberId(seller.getMemberPk());
+		return itemRepository.findAllByMemberId(seller);
 	}
 
 }

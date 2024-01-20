@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SalesRepository extends JpaRepository<Sales, Long> {
 
+	@Query("select s from Sales s where s.receiver = :seller")
 	List<Sales> findAllBySeller(Member seller);
 
 	@Query("select s from Sales s join fetch OrderItem o where o.item = :item")
