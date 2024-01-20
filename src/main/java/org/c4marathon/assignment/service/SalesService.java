@@ -21,7 +21,12 @@ public class SalesService {
 	private final SalesRepository salesRepository;
 
 	@Transactional(readOnly = true)
-	public List<Sales> getSalesBySeller(Member seller) {
+	public List<Sales> findSalesByOrderItem(OrderItem orderItem){
+		return salesRepository.findAllByOrderItem(orderItem);
+	}
+
+	@Transactional(readOnly = true)
+	public List<Sales> findSalesBySeller(Member seller) {
 		if (seller.getMemberType() != MemberType.ROLE_SELLER) {
 			throw ErrorCd.NO_PERMISSION.serviceException("판매자만 접근할 수 있는 기능입니다");
 		}
