@@ -2,7 +2,12 @@ package org.c4marathon.assignment.member.controller;
 
 import java.nio.charset.StandardCharsets;
 
+import org.c4marathon.assignment.common.exception.CommonErrorCode;
+import org.c4marathon.assignment.common.session.SessionConst;
+import org.c4marathon.assignment.common.session.SessionMemberInfo;
+import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
+import org.c4marathon.assignment.member.dto.response.MemberInfo;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.exception.MemberException;
 import org.c4marathon.assignment.member.service.MemberService;
@@ -14,8 +19,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -23,6 +30,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -31,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
 
-	private static final String REQUEST_URL = "/api/members";
+	private final String REQUEST_URL = "/api/members";
 	@Autowired
 	MockMvc mockMvc;
 
@@ -48,8 +56,7 @@ class MemberControllerTest {
 		@Test
 		@DisplayName("유효한 사용자 정보가 주어지면 정상적으로 회원 가입을 수행한다.")
 		void request_with_a_valid_form() throws Exception {
-			doNothing().when(memberService)
-				.signUp(createRequestDto("seungh1024", "testPass", "seungh", "01012345678"));
+			doNothing().when(memberService).signUp(createRequestDto("seungh1024", "testPass", "seungh", "01012345678"));
 
 			mockMvc.perform(post(REQUEST_URL + "/signup")
 					.contentType(MediaType.APPLICATION_JSON)
@@ -211,6 +218,115 @@ class MemberControllerTest {
 		private SignUpRequestDto createRequestDto(String memberId, String password, String userName,
 			String phoneNumber) {
 			return new SignUpRequestDto(memberId, password, userName, phoneNumber);
+		}
+	}
+
+	@Nested
+	@DisplayName("로그인 테스트")
+	class SignIn {
+		@Test
+		@DisplayName("유효한 아이디와 비밀번호를 입력하면 로그인에 성공한다.")
+		void request_with_valid_id_and_password() throws Exception {
+			// Given
+			SignInRequestDto requestDto = new SignInRequestDto("testId", "password");
+			SessionMemberInfo memberDto = new SessionMemberInfo(1L, "testId");
+			given(memberService.signIn(requestDto)).willReturn(memberDto);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(
+				post(REQUEST_URL + "/signin")
+					.contentType(MediaType.APPLICATION_JSON)
+					.characterEncoding(StandardCharsets.UTF_8)
+					.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions
+				.andExpect(status().isOk())
+				.andExpect(request().sessionAttribute(SessionConst.MEMBER_INFO, memberDto));
+		}
+
+		@Test
+		@DisplayName("아이디가 공백이면 로그인에 실패한다.")
+		void request_with_empty_id() throws Exception {
+			// Given
+			SignInRequestDto requestDto = new SignInRequestDto("", "password");
+			given(memberService.signIn(requestDto)).willReturn(null);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(
+				post(REQUEST_URL + "/signin")
+					.contentType(MediaType.APPLICATION_JSON)
+					.characterEncoding(StandardCharsets.UTF_8)
+					.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions
+				.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		@DisplayName("비밀번호가 공백이면 로그인에 실패한다.")
+		void request_with_empty_password() throws Exception {
+			// Given
+			SignInRequestDto requestDto = new SignInRequestDto("testId", "");
+			given(memberService.signIn(requestDto)).willReturn(null);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(
+				post(REQUEST_URL + "/signin")
+					.contentType(MediaType.APPLICATION_JSON)
+					.characterEncoding(StandardCharsets.UTF_8)
+					.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions
+				.andExpect(status().isBadRequest());
+		}
+	}
+
+	@Nested
+	@DisplayName("사용자 정보 조회 테스트")
+	class GetMyInfo {
+
+		@Test
+		@DisplayName("로그인한 사용자는 자신의 정보를 반환받는다.")
+		void request_with_login_member() throws Exception {
+			// Given
+			SessionMemberInfo sessionMemberInfo = new SessionMemberInfo(1L, "testId");
+			MockHttpSession session = new MockHttpSession();
+			session.setAttribute(SessionConst.MEMBER_INFO, sessionMemberInfo);
+
+			MemberInfo memberInfo = new MemberInfo(1L, "testId", "testName");
+			given(memberService.getMemberInfo(sessionMemberInfo.memberPk()))
+				.willReturn(memberInfo);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/info")
+				.session(session));
+
+			// Then
+			resultActions
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.memberPk").value(memberInfo.memberPk()))
+				.andExpect(jsonPath("$.memberId").value(memberInfo.memberId()))
+				.andExpect(jsonPath("$.memberName").value(memberInfo.memberName()));
+		}
+
+		@Test
+		@DisplayName("로그인하지 않은 사용자는 CommonException(UNAUTHORIZED_USER) 예외를 반환받는다.")
+		void request_with_non_login_member() throws Exception {
+			// Given
+			MockHttpSession session = new MockHttpSession();
+			session.setAttribute(SessionConst.MEMBER_INFO, null);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/info")
+				.session(session));
+
+			// Then
+			resultActions
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.message").value(CommonErrorCode.UNAUTHORIZED_USER.getMessage()));
 		}
 	}
 }

@@ -40,7 +40,6 @@ public class MemberController {
 
 		HttpSession session = request.getSession();
 		session.setAttribute(SessionConst.MEMBER_INFO, memberDto);
-		System.out.println(session.getAttribute(SessionConst.MEMBER_INFO));
 	}
 
 	@ResponseStatus(HttpStatus.OK)
