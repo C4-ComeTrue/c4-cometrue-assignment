@@ -1,0 +1,89 @@
+package org.c4marathon.assignment.bankaccount.controller;
+
+import org.c4marathon.assignment.bankaccount.service.MainAccountService;
+import org.c4marathon.assignment.common.exception.CommonErrorCode;
+import org.c4marathon.assignment.common.session.SessionConst;
+import org.c4marathon.assignment.common.session.SessionMemberInfo;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(MainAccountController.class)
+class MainAccountControllerTest {
+
+	private final String REQUEST_URL = "/api/accounts/main";
+
+	@Autowired
+	MockMvc mockMvc;
+
+	@MockBean
+	private MainAccountService mainAccountService;
+
+	@Autowired
+	private ObjectMapper objectMapper;
+
+	private MockHttpSession session;
+
+	@BeforeEach
+	void initSession() {
+		session = new MockHttpSession();
+		SessionMemberInfo memberInfo = SessionMemberInfo.builder()
+			.memberPk(1L)
+			.memberId("testId")
+			.mainAccountPk(1L)
+			.build();
+		session.setAttribute(SessionConst.MEMBER_INFO, memberInfo);
+	}
+
+	@Nested
+	@DisplayName("메인 계좌 충전 테스트")
+	class Charge {
+		private final int money = 1000;
+		private int baseMoney = 0;
+
+		@Test
+		@DisplayName("유효한 요청이면 정상적으로 메인 계좌에 돈을 충전한다.")
+		void request_with_a_valid_form() throws Exception {
+			// Given
+			SessionMemberInfo memberInfo = (SessionMemberInfo)session.getAttribute(SessionConst.MEMBER_INFO);
+			long mainAccountPk = memberInfo.mainAccountPk();
+
+			given(mainAccountService.chargeMoney(mainAccountPk, money)).willReturn(baseMoney + money);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", money)
+				.session(session));
+
+			// Then
+			resultActions
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString().equals(baseMoney + money);
+		}
+
+		@Test
+		@DisplayName("충전 금액이 음수면 ConstraintViolationException 예외가 발생한다.")
+		void request_with_minus_money() throws Exception {
+			// When
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", -1)
+				.session(session));
+
+			// Then
+			resultActions
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.message").value(CommonErrorCode.INVALID_ARGUMENT_ERROR.getMessage()));
+		}
+	}
+}

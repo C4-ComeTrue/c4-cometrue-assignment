@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,6 +31,12 @@ public class MainAccount extends BaseEntity {
 
 	@Column(name = "money", nullable = false)
 	public int money;
+
+	@Builder
+	public MainAccount(int chargeLimit, int money) {
+		this.chargeLimit = chargeLimit;
+		this.money = money;
+	}
 
 	public void init() {
 		this.chargeLimit = LimitConst.CHARGE_LIMIT;

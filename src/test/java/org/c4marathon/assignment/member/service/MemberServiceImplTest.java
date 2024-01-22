@@ -2,6 +2,10 @@ package org.c4marathon.assignment.member.service;
 
 import java.util.Optional;
 
+import org.c4marathon.assignment.bankaccount.entity.MainAccount;
+import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
+import org.c4marathon.assignment.bankaccount.limit.LimitConst;
+import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
 import org.c4marathon.assignment.member.dto.response.MemberInfo;
@@ -27,24 +31,35 @@ class MemberServiceImplTest {
 	MemberServiceImpl memberService;
 	@Mock
 	MemberRepository memberRepository;
+	@Mock
+	ChargeLimitManager chargeLimitManager;
+	@Mock
+	MainAccountRepository mainAccountRepository;
 
 	@Nested
 	@DisplayName("회원 가입 테스트")
 	class SignUp {
 
 		@Test
-		@DisplayName("중복되는 아이디가가 없으면 회원가입에 성공한다.")
+		@DisplayName("중복되는 아이디가 없으면 회원가입에 성공한다.")
 		void request_with_non_duplicated_id() {
 
 			// Given
 			SignUpRequestDto requestDto = makeRequestForm();
 			given(memberRepository.findMemberByMemberId(requestDto.memberId())).willReturn(null);
+			MainAccount mainAccount = new MainAccount();
+			// mainAccount.init();
+			given(mainAccountRepository.save(any())).willReturn(mainAccount);
+			given(chargeLimitManager.get(mainAccount.accountPk)).willReturn(LimitConst.CHARGE_LIMIT);
 
 			// When
 			memberService.signUp(requestDto);
 
 			// Then
 			then(memberRepository).should(times(1)).findMemberByMemberId(requestDto.memberId());
+			then(mainAccountRepository).should(times(1)).save(any());
+			then(chargeLimitManager).should(times(1)).init(anyLong());
+			assertEquals(chargeLimitManager.get(mainAccount.accountPk), LimitConst.CHARGE_LIMIT);
 		}
 
 		@Test
@@ -134,7 +149,7 @@ class MemberServiceImplTest {
 	}
 
 	@Nested
-	@DisplayName("로그인 서비스")
+	@DisplayName("사용자 정보 테스트")
 	class GetMemberInfo {
 		@Test
 		@DisplayName("로그인한 사용자의 요청에는 사용자의 정보를 반환한다.")

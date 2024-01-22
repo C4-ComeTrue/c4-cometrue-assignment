@@ -33,9 +33,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * 모든 빈을 로드하지 않고 컨트롤러 계층만 테스트하기 위해 @WebMvcTest를 사용했습니다.
- */
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
 
