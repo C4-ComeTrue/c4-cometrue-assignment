@@ -78,7 +78,12 @@ class MemberServiceImplTest {
 		void request_with_valid_user_info() {
 			// Given
 			SignInRequestDto requestDto = new SignInRequestDto("testId", "password");
-			Member member = new Member("testId", "password", "testName", "01012345678");
+			Member member = Member.builder()
+				.memberId("testId")
+				.password("password")
+				.memberName("testName")
+				.phoneNumber("01012345678")
+				.build();
 			given(memberRepository.findMemberByMemberId(requestDto.memberId())).willReturn(member);
 
 			// When
@@ -110,7 +115,12 @@ class MemberServiceImplTest {
 		void request_with_invalid_password() {
 			// Given
 			SignInRequestDto requestDto = new SignInRequestDto("testId", "invalid password");
-			Member member = new Member("testId", "password", "testName", "01012345678");
+			Member member = Member.builder()
+				.memberId("testId")
+				.password("password")
+				.memberName("testName")
+				.phoneNumber("01012345678")
+				.build();
 			given(memberRepository.findMemberByMemberId(requestDto.memberId())).willReturn(member);
 
 			// When
@@ -131,7 +141,12 @@ class MemberServiceImplTest {
 		void request_with_login_member() {
 			// Given
 			long memberPk = 1L;
-			Member member = new Member("testId", "password", "testName", "01012345678");
+			Member member = Member.builder()
+				.memberId("testId")
+				.password("password")
+				.memberName("testName")
+				.phoneNumber("01012345678")
+				.build();
 			given(memberRepository.findById(memberPk)).willReturn(Optional.of(member));
 
 			// When

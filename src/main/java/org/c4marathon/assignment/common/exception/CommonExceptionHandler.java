@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.c4marathon.assignment.common.utils.ExceptionLogHelper.*;
@@ -27,6 +28,15 @@ public class CommonExceptionHandler {
 		ErrorCode errorCode = CommonErrorCode.INVALID_ARGUMENT_ERROR;
 		ErrorResponse errorResponse = ErrorResponse.of(errorCode.getHttpStatus(), errorCode.getMessage(),
 			error.getBindingResult());
+		makeExceptionLog(log, error, errorCode.name());
+
+		return ResponseEntity.status(errorCode.getHttpStatus()).body(errorResponse);
+	}
+
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException error) {
+		ErrorCode errorCode = CommonErrorCode.INVALID_ARGUMENT_ERROR;
+		ErrorResponse errorResponse = ErrorResponse.of(errorCode.getHttpStatus(), errorCode.getMessage());
 		makeExceptionLog(log, error, errorCode.name());
 
 		return ResponseEntity.status(errorCode.getHttpStatus()).body(errorResponse);

@@ -1,5 +1,8 @@
 package org.c4marathon.assignment.member.service;
 
+import org.c4marathon.assignment.bankaccount.entity.MainAccount;
+import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
+import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.common.session.SessionMemberInfo;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
@@ -8,6 +11,7 @@ import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,13 +20,22 @@ import lombok.RequiredArgsConstructor;
 public class MemberServiceImpl implements MemberService {
 
 	private final MemberRepository memberRepository;
+	private final MainAccountRepository mainAccountRepository;
+	private final ChargeLimitManager chargeLimitManager;
 
 	@Override
+	@Transactional
 	public void signUp(SignUpRequestDto requestDto) {
 		if (!isValidMember(requestDto.memberId())) {
 			throw MemberErrorCode.USER_ALREADY_EXIST.memberException("회원가입 도중 중복되는 사용자 에러 발생");
 		}
-		Member member = requestDto.toEntity();
+		MainAccount mainAccount = new MainAccount();
+		mainAccount.init();
+		mainAccountRepository.save(mainAccount);
+
+		chargeLimitManager.init(mainAccount.accountPk);
+
+		Member member = requestDto.toEntity(mainAccount.getAccountPk());
 		memberRepository.save(member);
 	}
 
@@ -36,7 +49,7 @@ public class MemberServiceImpl implements MemberService {
 			throw MemberErrorCode.INVALID_PASSWORD.memberException("service 계층 signin 메소드 실행 중 비밀번호 불일치 발생");
 		}
 
-		return new SessionMemberInfo(member.getMemberPk(), member.getMemberId());
+		return new SessionMemberInfo(member.getMemberPk(), member.getMemberId(), member.getMainAccountPk());
 	}
 
 	@Override

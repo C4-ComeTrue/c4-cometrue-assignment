@@ -17,9 +17,21 @@ spring:
   # JPA
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
         show_sql: true
         use_sql_comments: true
+
+
+logging:
+  level:
+    org:
+      springframework:
+        orm:
+          jpa: DEBUG
+
+        transaction:
+          interceptor:
+

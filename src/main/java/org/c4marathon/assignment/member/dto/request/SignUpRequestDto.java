@@ -33,4 +33,14 @@ public record SignUpRequestDto(
 			.phoneNumber(phoneNumber)
 			.build();
 	}
+
+	public Member toEntity(long mainAccountPk) {
+		return Member.builder()
+			.memberId(memberId)
+			.password(password)
+			.memberName(memberName)
+			.phoneNumber(phoneNumber)
+			.mainAccountPk(mainAccountPk)
+			.build();
+	}
 }

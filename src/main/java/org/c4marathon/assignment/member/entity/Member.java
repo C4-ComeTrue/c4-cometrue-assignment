@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+// TODO index -> memberid
 @Entity
 @NoArgsConstructor
 @Getter
@@ -33,11 +34,16 @@ public class Member extends BaseEntity {
 	@Column(name = "phone_number", length = 11, nullable = false)
 	private String phoneNumber;
 
+	@Column(name = "main_account_pk", nullable = false)
+	private long mainAccountPk;
+
 	@Builder
-	public Member(String memberId, String password, String memberName, String phoneNumber) {
+	public Member(String memberId, String password, String memberName, String phoneNumber, long mainAccountPk) {
 		this.memberId = memberId;
 		this.password = password;
 		this.memberName = memberName;
 		this.phoneNumber = phoneNumber;
+		this.mainAccountPk = mainAccountPk;
 	}
+
 }
