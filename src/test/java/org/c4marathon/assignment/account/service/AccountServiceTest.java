@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.account.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -73,32 +72,29 @@ public class AccountServiceTest {
         assertThat(findAccount.get().getId()).isEqualTo(account.getId());
     }
 
-    @DisplayName("생성된 모든 메인 계좌를 불러온다.")
+    @DisplayName("특정 사용자의 생성된 모든 계좌를 불러온다.")
     @Test
-    void findRegularAccountTest() {
+    void findAccountTest() {
 
         // given
-        Member member1 = createMember("test1@naver.com", "test", "test");
-        Member member2 = createMember("test2@naver.com", "test", "test");
-        Member member3 = createMember("test3@naver.com", "test", "test");
-        memberRepository.saveAll(List.of(member1, member2, member3));
-        Account account1 = createAccount(Type.REGULAR_ACCOUNT, member1);
-        Account account2 = createAccount(Type.REGULAR_ACCOUNT, member2);
-        Account account3 = createAccount(Type.REGULAR_ACCOUNT, member3);
-        accountRepository.saveAll(List.of(account1, account2, account3));
+        Member member = createMember("test1@naver.com", "test", "test");
+        memberRepository.save(member);
+        Account account = createAccount(Type.REGULAR_ACCOUNT, member);
+        accountRepository.save(account);
 
         // when
-        List<Account> accountList = accountRepository.findByType(Type.REGULAR_ACCOUNT);
+        List<Account> accountList = accountRepository.findByMember(member);
 
         // then
         assertThat(accountList).isNotNull();
-        assertTrue(accountList.stream().allMatch(account -> account.getType() == Type.REGULAR_ACCOUNT));
+        assertThat(accountList).hasSize(1);
+        assertThat(accountList.get(0).getMember().getId()).isEqualTo(member.getId());
      }
 
-     @DisplayName("사용자의 메인 계좌를 불러온다.")
+     @DisplayName("사용자의 특정 계좌를 불러온다.")
      @Test
      @Transactional
-     void findAccountTest() {
+     void findMemberAccountTest() {
 
          // given
          Member member1 = createMember("test1@naver.com", "test", "test");
@@ -107,7 +103,7 @@ public class AccountServiceTest {
          accountRepository.save(account1);
 
          // when
-         Account account = accountRepository.findByAccount(member1.getId(), Type.REGULAR_ACCOUNT);
+         Account account = accountRepository.findByAccount(member1.getId(), account1.getId());
 
          // then
          assertThat(account1.getId()).isEqualTo(account.getId());
@@ -128,7 +124,7 @@ public class AccountServiceTest {
          Integer afterBalance = 10000;
 
          // when
-         Account account = accountRepository.findByAccount(member1.getId(), Type.REGULAR_ACCOUNT);
+         Account account = accountRepository.findByAccount(member1.getId(), account1.getId());
          Integer dailyLimit = account.getDailyLimit();
          Integer balance = account.getBalance();
          // 하루 충전 금액이 300만원 보다 적어야 함.
@@ -138,7 +134,7 @@ public class AccountServiceTest {
          }
          accountRepository.save(account);
 
-         Account resultAccount = accountRepository.findByAccount(member1.getId(), Type.REGULAR_ACCOUNT);
+         Account resultAccount = accountRepository.findByAccount(member1.getId(), account.getId());
 
          // then
          assertThat(resultAccount.getBalance()).isEqualTo(afterBalance);

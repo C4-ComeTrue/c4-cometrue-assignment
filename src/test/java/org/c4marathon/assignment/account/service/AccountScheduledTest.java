@@ -65,14 +65,14 @@ public class AccountScheduledTest {
         Account account2 = createAccount(Type.REGULAR_ACCOUNT, member2);
         Account account3 = createAccount(Type.REGULAR_ACCOUNT, member3);
         accountRepository.saveAll(List.of(account1, account2, account3));
-        List<Account> accountList = accountRepository.findByType(Type.REGULAR_ACCOUNT);
+        List<Account> accountList = accountRepository.findAll();
 
         // when
         for (int i=0; i<accountList.size(); i++) {
             accountList.get(i).resetDailyLimit(1000);
         }
         accountRepository.saveAll(accountList);
-        List<Account> afterAccountList = accountRepository.findByType(Type.REGULAR_ACCOUNT);
+        List<Account> afterAccountList = accountRepository.findAll();
 
         // then
         assertTrue(afterAccountList.stream().allMatch(account -> account.getDailyLimit() == 1000));
