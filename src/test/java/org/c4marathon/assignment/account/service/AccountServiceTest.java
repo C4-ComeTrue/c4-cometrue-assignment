@@ -147,7 +147,7 @@ public class AccountServiceTest {
       @DisplayName("메인 계좌에서 적금 계좌로 돈을 이체한다.")
       @Test
       @Transactional
-      void transferFromRegularAccount() {
+      void transferFromRegularAccountTest() {
 
           // given
           // 적금 계좌로 이체하려는 금액
@@ -168,7 +168,7 @@ public class AccountServiceTest {
           // 비관적 락을 걸어두어 행단위 잠금이 되었고, 해당 트랜잭션 안에서만 조회가 가능.
 
           Account afterSavingAccount = accountRepository.findByAccount(member1.getId(), savingAccount.getId());
-          Account afterRegularAccount = accountRepository.findByAccount(member1.getId(), regularAccount.getId());
+          Account afterRegularAccount = accountRepository.findByRegularAccount(member1.getId());
           if (afterRegularAccount.getBalance() < balance) {
               throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
           }
@@ -177,7 +177,7 @@ public class AccountServiceTest {
           accountRepository.saveAll(List.of(afterRegularAccount, afterSavingAccount));
 
           Account resultSavingAccount = accountRepository.findByAccount(member1.getId(), afterSavingAccount.getId());
-          Account resultRegularAccount = accountRepository.findByAccount(member1.getId(), afterRegularAccount.getId());
+          Account resultRegularAccount = accountRepository.findByRegularAccount(member1.getId());
 
           // then
           assertThat(resultRegularAccount.getBalance()).isEqualTo(0);
