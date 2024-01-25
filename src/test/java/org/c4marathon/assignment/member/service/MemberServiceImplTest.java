@@ -48,7 +48,7 @@ class MemberServiceImplTest {
 			SignUpRequestDto requestDto = makeRequestForm();
 			given(memberRepository.findMemberByMemberId(requestDto.memberId())).willReturn(null);
 			MainAccount mainAccount = new MainAccount();
-			// mainAccount.init();
+
 			given(mainAccountRepository.save(any())).willReturn(mainAccount);
 			given(chargeLimitManager.get(mainAccount.accountPk)).willReturn(LimitConst.CHARGE_LIMIT);
 
