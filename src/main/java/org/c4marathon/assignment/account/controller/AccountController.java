@@ -60,4 +60,16 @@ public class AccountController {
     ) {
         accountService.rechargeAccount(rechargeAccountDto, accessToken);
     }
+
+    @Operation(summary = "메인 계좌에서 적금 계좌로 이체")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/saving")
+    public void rechargeAccount(
+        @Valid
+        @RequestBody
+        RequestDto.SavingAccountDto savingAccountDto,
+        @RequestHeader(value = "Authorization") String accessToken
+    ) {
+        accountService.transferFromRegularAccount(savingAccountDto, accessToken);
+    }
 }

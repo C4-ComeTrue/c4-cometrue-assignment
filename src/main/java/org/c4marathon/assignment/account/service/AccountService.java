@@ -107,4 +107,29 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
         accountRepository.save(account);
     }
+
+    // 메인 계좌에서 적금 계좌로 이체
+    // 없는 계좌는 조회가 안 되기에 예외 처리 x
+    @Transactional
+    public void transferFromRegularAccount(RequestDto.SavingAccountDto savingAccountDto, String token) {
+
+        // 회원 정보 조회
+        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
+        Member member = memberService.getMemberByEmail(memberEmail);
+
+        // 메인 계좌 및 적금 계좌 조회
+        Account regularAccount = accountRepository.findByRegularAccount(member.getId());
+        Account savingAccount = accountRepository.findByAccount(member.getId(), savingAccountDto.receiverAccountId());
+
+        // 잔액이 부족하다면 예외 처리
+        if (regularAccount.getBalance() < savingAccountDto.balance()) {
+            throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
+        }
+        
+        // 적금 이체
+        regularAccount.transferBalance(regularAccount.getBalance() - savingAccountDto.balance());
+        savingAccount.transferBalance(savingAccount.getBalance() + savingAccountDto.balance());
+
+        accountRepository.saveAll(List.of(regularAccount, savingAccount));
+    }
 }

@@ -23,4 +23,14 @@ public class RequestDto {
         Integer balance
     ) {
     }
+
+    // 적금 계좌 이체 요청
+    public record SavingAccountDto(
+
+        @NotBlank
+        Integer balance,
+        @NotBlank
+        Long receiverAccountId
+    ) {
+    }
 }
