@@ -70,4 +70,21 @@ class SavingAccountControllerTest {
 		}
 	}
 
+	@Nested
+	@DisplayName("적금 계좌 생성 테스트")
+	class Create {
+		private String productName = "free";
+
+		@Test
+		@DisplayName("로그인한 사용자면 적금 계좌 생성에 성공한다.")
+		void request_with_login_member() throws Exception {
+			// When
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/{productName}", productName)
+				.session(session));
+
+			// Then
+			resultActions
+				.andExpect(status().isOk());
+		}
+	}
 }
