@@ -1,5 +1,8 @@
 package org.c4marathon.assignment.bankaccount.controller;
 
+import java.nio.charset.StandardCharsets;
+
+import org.c4marathon.assignment.bankaccount.dto.request.SendToSavingRequestDto;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
 import org.c4marathon.assignment.common.exception.CommonErrorCode;
 import org.c4marathon.assignment.common.session.SessionConst;
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -84,6 +88,65 @@ class MainAccountControllerTest {
 			resultActions
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.message").value(CommonErrorCode.INVALID_ARGUMENT_ERROR.getMessage()));
+		}
+	}
+
+	@Nested
+	@DisplayName("메인 계좌에서 적금 계좌 이체 테스트")
+	class SendToSavingAccount {
+
+		@Test
+		@DisplayName("존재하는 계좌 정보와 1원 이상의 금액으로 요청하면 이체를 성공한다.")
+		void request_with_valid_account_and_valid_money() throws Exception {
+			// Given
+			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 1000);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving")
+				.session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions
+				.andExpect(status().isOk());
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 계좌 정보(0 이하의 pk)로 요청하면 실패한다.")
+		void request_with_non_valid_account() throws Exception {
+			// Given
+			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(0, 1000);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving")
+				.session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions
+				.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		@DisplayName("이체 금액을 0 이하로 요청하면 실패한다.")
+		void request_with_non_valid_money() throws Exception {
+			// Given
+			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 0);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving")
+				.session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions
+				.andExpect(status().isBadRequest());
 		}
 	}
 }
