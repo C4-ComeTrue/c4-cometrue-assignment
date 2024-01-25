@@ -9,6 +9,7 @@ import org.c4marathon.assignment.common.session.SessionMemberInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,9 +32,9 @@ public class SavingAccountController {
 	}
 
 	@ResponseStatus(HttpStatus.OK)
-	@GetMapping("/{productNumber}")
+	@GetMapping("/{productName}")
 	void create(@Login SessionMemberInfo memberInfo,
-		String productName) {
+		@PathVariable String productName) {
 		savingAccountService.create(memberInfo.memberPk(), productName);
 	}
 

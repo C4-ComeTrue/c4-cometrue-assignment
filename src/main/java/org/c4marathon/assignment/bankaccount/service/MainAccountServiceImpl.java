@@ -1,9 +1,11 @@
 package org.c4marathon.assignment.bankaccount.service;
 
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
+import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
+import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ public class MainAccountServiceImpl implements MainAccountService {
 
 	private final MainAccountRepository mainAccountRepository;
 	private final ChargeLimitManager chargeLimitManager;
+	private final SavingAccountRepository savingAccountRepository;
 
 	/**
 	 *
@@ -41,5 +44,34 @@ public class MainAccountServiceImpl implements MainAccountService {
 		mainAccountRepository.save(mainAccount);
 
 		return mainAccount.getMoney();
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public void sendToSavingAccount(long mainAccountPk, long savingAccountPk, int money) {
+		SavingAccount savingAccount = savingAccountRepository.findByPkForUpdate(savingAccountPk)
+			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
+				"MainAccountServiceImpl에서 sendToSavingAccount 메소드 실행 중 [Main Account NOT_FOUND] 예외 발생."));
+		savingAccount.addMoney(money);
+		savingAccountRepository.save(savingAccount);
+
+		MainAccount mainAccount = mainAccountRepository.findByPkForUpdate(mainAccountPk)
+			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
+				"MainAccountServiceImpl에서 sendToSavingAccount 메소드 실행 중 [Main Account NOT_FOUND] 예외 발생."));
+
+		if (!isSendValid(mainAccount.money, money)) {
+			throw AccountErrorCode.INVALID_MONEY_SEND.accountException(
+				"MainAccountServiceImpl에서 sendToSavingAccount 메소드 실행 중 잔고 부족 예외 발생.");
+		}
+
+		mainAccount.minusMoney(money);
+		mainAccountRepository.save(mainAccount);
+	}
+
+	public boolean isSendValid(int myMoney, int sendMoney) {
+		if (myMoney < sendMoney) {
+			return false;
+		}
+		return true;
 	}
 }

@@ -16,7 +16,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// TODO index -> memberid
 @Entity
 @NoArgsConstructor
 @Getter
@@ -27,6 +26,7 @@ public class Member extends BaseEntity {
 	@Column(name = "member_pk", nullable = false, updatable = false)
 	private long memberPk;
 
+	// 유니크 인덱스 자동 생성 됨. 아이디는 unique해야 하므로 자동 생성 인덱스를 사용해야 함.
 	@Column(name = "member_id", unique = true, length = 50, nullable = false, updatable = false)
 	private String memberId;
 

@@ -49,4 +49,8 @@ public class SavingAccount extends BaseEntity {
 	public void addMember(Member member) {
 		this.member = member;
 	}
+
+	public void addMoney(int money) {
+		this.savingMoney += money;
+	}
 }

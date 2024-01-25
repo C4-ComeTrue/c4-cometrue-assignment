@@ -23,6 +23,7 @@ spring:
         format_sql: true
         show_sql: true
         use_sql_comments: true
+    open-in-view: false
 
 
 logging:
