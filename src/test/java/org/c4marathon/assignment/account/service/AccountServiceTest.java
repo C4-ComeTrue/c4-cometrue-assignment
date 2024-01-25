@@ -10,11 +10,14 @@ import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
+import org.c4marathon.assignment.util.exceptions.BaseException;
+import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,4 +143,44 @@ public class AccountServiceTest {
          assertThat(resultAccount.getBalance()).isEqualTo(afterBalance);
          assertThat(resultAccount.getDailyLimit()).isEqualTo(dailyLimit + afterBalance);
       }
+
+      @DisplayName("메인 계좌에서 적금 계좌로 돈을 이체한다.")
+      @Test
+      @Transactional
+      void transferFromRegularAccount() {
+
+          // given
+          // 적금 계좌로 이체하려는 금액
+          int balance = 10000;
+
+          Member member1 = createMember("test1@naver.com", "test", "test");
+          memberRepository.save(member1);
+          // 메인 계좌
+          Account regularAccount = createAccount(Type.REGULAR_ACCOUNT, member1);
+          // 금액 추가
+          regularAccount.transferBalance(balance);
+          regularAccount.resetDailyLimit(balance);
+          // 적금 계좌
+          Account savingAccount = createAccount(Type.INSTALLMENT_SAVINGS_ACCOUNT, member1);
+          accountRepository.saveAll(List.of(regularAccount, savingAccount));
+
+          // when
+          // 비관적 락을 걸어두어 행단위 잠금이 되었고, 해당 트랜잭션 안에서만 조회가 가능.
+
+          Account afterSavingAccount = accountRepository.findByAccount(member1.getId(), savingAccount.getId());
+          Account afterRegularAccount = accountRepository.findByAccount(member1.getId(), regularAccount.getId());
+          if (afterRegularAccount.getBalance() < balance) {
+              throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
+          }
+          afterRegularAccount.transferBalance(afterRegularAccount.getBalance() - balance);
+          afterSavingAccount.transferBalance(afterSavingAccount.getBalance() + balance);
+          accountRepository.saveAll(List.of(afterRegularAccount, afterSavingAccount));
+
+          Account resultSavingAccount = accountRepository.findByAccount(member1.getId(), afterSavingAccount.getId());
+          Account resultRegularAccount = accountRepository.findByAccount(member1.getId(), afterRegularAccount.getId());
+
+          // then
+          assertThat(resultRegularAccount.getBalance()).isEqualTo(0);
+          assertThat(resultSavingAccount.getBalance()).isEqualTo(10000);
+       }
 }
