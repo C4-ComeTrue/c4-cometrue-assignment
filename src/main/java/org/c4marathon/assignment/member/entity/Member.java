@@ -1,5 +1,9 @@
 package org.c4marathon.assignment.member.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.common.entity.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -7,6 +11,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,6 +41,9 @@ public class Member extends BaseEntity {
 
 	@Column(name = "main_account_pk", nullable = false)
 	private long mainAccountPk;
+
+	@OneToMany(mappedBy = "member")
+	List<SavingAccount> savingAccounts = new ArrayList<>();
 
 	@Builder
 	public Member(String memberId, String password, String memberName, String phoneNumber, long mainAccountPk) {
