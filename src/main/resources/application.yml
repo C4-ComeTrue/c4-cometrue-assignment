@@ -16,4 +16,4 @@ logging:
 
 jwt:
   key: test001
-  max-age: 86400
+  max-age: 3600000

@@ -30,8 +30,11 @@ public enum ErrorCode {
 
     // ----- User-related Responses -----
     DUPLICATED_EMAIL(CONFLICT, "이미 사용 중인 이메일입니다."),
-    INVALID_TOKEN(UNAUTHORIZED, "토큰이 유효하지 않습니다.");
+    INVALID_TOKEN(UNAUTHORIZED, "토큰이 유효하지 않습니다."),
 
+    // ----- Account Response -----
+    EXCEEDED_DAILY_LIMIT(BAD_REQUEST, "하루 충전 한도를 초과하였습니다."),
+    NOT_REGULAR_ACCOUNT(FORBIDDEN, "일반 계좌에서만 송금이 가능합니다.");
 
     private final HttpStatus status;
     private final String message;

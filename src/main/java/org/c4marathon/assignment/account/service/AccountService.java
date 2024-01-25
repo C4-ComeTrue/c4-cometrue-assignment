@@ -1,6 +1,9 @@
 package org.c4marathon.assignment.account.service;
 
+import java.util.List;
+
 import org.c4marathon.assignment.account.dto.RequestDto;
+import org.c4marathon.assignment.account.dto.ResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
@@ -8,8 +11,11 @@ import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.event.MemberJoinedEvent;
+import org.c4marathon.assignment.util.exceptions.BaseException;
+import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +56,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
             .build();
     }
 
+    // 회원가입 시 계좌를 생성하는 이벤트 수신
     @Override
     public void onApplicationEvent(MemberJoinedEvent event) {
 
@@ -57,7 +64,47 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
         String memberEmail = event.getMemberEmail();
         // 토큰 생성
         String token = JwtTokenUtil.createToken(memberEmail, secretKey, expireTimeMs);
-        //계좌 생성
+        // 계좌 생성
         saveAccount(new RequestDto.AccountDto(Type.REGULAR_ACCOUNT), token);
+    }
+
+    // 계좌 전체 조회
+    public List<ResponseDto.AccountDto> findAccount(String token) {
+
+        // 회원 정보 조회
+        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
+        Member member = memberService.getMemberByEmail(memberEmail);
+
+        List<Account> accountList = accountRepository.findByMember(member);
+
+        // 계좌 조회 후 Entity를 Dto로 변환 후 리턴
+        return accountList.stream()
+            .map(ResponseDto.AccountDto::entityToDto)
+            .toList();
+    }
+
+    // 메인 계좌 잔액 충전
+    @Transactional
+    public void rechargeAccount(RequestDto.RechargeAccountDto rechargeAccountDto, String token) {
+
+        // 회원 정보 조회
+        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
+        Member member = memberService.getMemberByEmail(memberEmail);
+
+        // 계좌 정보 조회
+        Account account = accountRepository.findByAccount(member.getId(), rechargeAccountDto.accountId());
+        int dailyLimit = account.getDailyLimit() + rechargeAccountDto.balance();
+        int balance = account.getBalance() + rechargeAccountDto.balance();
+
+        // 충전 한도 확인
+        if (dailyLimit > 3000000) {
+            throw new BaseException(ErrorCode.EXCEEDED_DAILY_LIMIT.toString(), HttpStatus.BAD_REQUEST.toString());
+        }
+
+        // 충전
+        account.resetDailyLimit(dailyLimit);
+        account.transferBalance(balance);
+
+        accountRepository.save(account);
     }
 }
