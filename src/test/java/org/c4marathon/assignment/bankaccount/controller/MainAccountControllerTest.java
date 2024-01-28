@@ -3,6 +3,8 @@ package org.c4marathon.assignment.bankaccount.controller;
 import java.nio.charset.StandardCharsets;
 
 import org.c4marathon.assignment.bankaccount.dto.request.SendToSavingRequestDto;
+import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
+import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
 import org.c4marathon.assignment.common.exception.CommonErrorCode;
 import org.c4marathon.assignment.common.session.SessionConst;
@@ -147,6 +149,36 @@ class MainAccountControllerTest {
 			// Then
 			resultActions
 				.andExpect(status().isBadRequest());
+		}
+	}
+
+	@Nested
+	@DisplayName("메인 계좌 조회 테스트")
+	class GetMainAccountInfo {
+
+		@Test
+		@DisplayName("로그인한 사용자는 메인 계좌 조회에 성공한다")
+		void request_with_login_member() throws Exception {
+			// Given
+			MainAccountResponseDto responseDto = MainAccountResponseDto.builder()
+				.accountPk(1L)
+				.chargeLimit(LimitConst.CHARGE_LIMIT)
+				.money(0)
+				.build();
+			given(mainAccountService.getMainAccountInfo(anyLong())).willReturn(responseDto);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL)
+				.session(session));
+
+			// Then
+			resultActions
+				.andExpectAll(
+					status().isOk(),
+					jsonPath("$.accountPk").value(responseDto.accountPk()),
+					jsonPath("$.chargeLimit").value(responseDto.chargeLimit()),
+					jsonPath("$.money").value(responseDto.money())
+				);
 		}
 	}
 }
