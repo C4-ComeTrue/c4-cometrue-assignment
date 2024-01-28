@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.bankaccount.controller;
 
 import org.c4marathon.assignment.bankaccount.dto.request.SendToSavingRequestDto;
+import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
 import org.c4marathon.assignment.common.annotation.Login;
 import org.c4marathon.assignment.common.session.SessionMemberInfo;
@@ -39,5 +40,11 @@ public class MainAccountController {
 		@Valid @RequestBody SendToSavingRequestDto sendAccountInfo) {
 		mainAccountService.sendToSavingAccount(memberInfo.mainAccountPk(), sendAccountInfo.accountPk(),
 			sendAccountInfo.money());
+	}
+
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping
+	public MainAccountResponseDto getMainAccountInfo(@Login SessionMemberInfo memberInfo) {
+		return mainAccountService.getMainAccountInfo(memberInfo.mainAccountPk());
 	}
 }

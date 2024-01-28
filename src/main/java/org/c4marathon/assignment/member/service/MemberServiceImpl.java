@@ -6,7 +6,7 @@ import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.common.session.SessionMemberInfo;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
-import org.c4marathon.assignment.member.dto.response.MemberInfo;
+import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.repository.MemberRepository;
@@ -53,12 +53,12 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public MemberInfo getMemberInfo(long memberPk) {
+	public MemberInfoResponseDto getMemberInfo(long memberPk) {
 		Member member = memberRepository.findById(memberPk)
 			.orElseThrow(() -> MemberErrorCode.USER_NOT_FOUND.memberException(
 				"service 계층 getMemberInfo 메소드 실행 중 존재하지 않는 사용자 요청 발생"));
 
-		return new MemberInfo(member.getMemberPk(), member.getMemberId(), member.getMemberName());
+		return new MemberInfoResponseDto(member.getMemberPk(), member.getMemberId(), member.getMemberName());
 	}
 
 	private boolean isValidMember(String memberId) {

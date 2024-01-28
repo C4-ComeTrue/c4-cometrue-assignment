@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.bankaccount.service;
 
+import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
@@ -66,6 +67,19 @@ public class MainAccountServiceImpl implements MainAccountService {
 
 		mainAccount.minusMoney(money);
 		mainAccountRepository.save(mainAccount);
+	}
+
+	@Override
+	public MainAccountResponseDto getMainAccountInfo(long mainAccountPk) {
+		MainAccount mainAccount = mainAccountRepository.findById(mainAccountPk)
+			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
+				"MainAccountServiceImpl에서 getMainACcountInfo 메소드 실행 중 [Main Account NOT_FOUND] 예외 발생."));
+
+		return MainAccountResponseDto.builder()
+			.accountPk(mainAccount.getAccountPk())
+			.chargeLimit(mainAccount.getChargeLimit())
+			.money(mainAccount.getMoney())
+			.build();
 	}
 
 	public boolean isSendValid(int myMoney, int sendMoney) {

@@ -5,7 +5,7 @@ import org.c4marathon.assignment.common.session.SessionConst;
 import org.c4marathon.assignment.common.session.SessionMemberInfo;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
-import org.c4marathon.assignment.member.dto.response.MemberInfo;
+import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,7 +44,7 @@ public class MemberController {
 
 	@ResponseStatus(HttpStatus.OK)
 	@GetMapping("/info")
-	public MemberInfo getMyInfo(@Login SessionMemberInfo memberInfo) {
+	public MemberInfoResponseDto getMyInfo(@Login SessionMemberInfo memberInfo) {
 		return memberService.getMemberInfo(memberInfo.memberPk());
 	}
 

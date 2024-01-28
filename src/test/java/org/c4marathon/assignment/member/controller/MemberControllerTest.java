@@ -7,7 +7,7 @@ import org.c4marathon.assignment.common.session.SessionConst;
 import org.c4marathon.assignment.common.session.SessionMemberInfo;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
-import org.c4marathon.assignment.member.dto.response.MemberInfo;
+import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.exception.MemberException;
 import org.c4marathon.assignment.member.service.MemberService;
@@ -301,7 +301,7 @@ class MemberControllerTest {
 			MockHttpSession session = new MockHttpSession();
 			session.setAttribute(SessionConst.MEMBER_INFO, sessionMemberInfo);
 
-			MemberInfo memberInfo = new MemberInfo(1L, "testId", "testName");
+			MemberInfoResponseDto memberInfo = new MemberInfoResponseDto(1L, "testId", "testName");
 			given(memberService.getMemberInfo(sessionMemberInfo.memberPk()))
 				.willReturn(memberInfo);
 

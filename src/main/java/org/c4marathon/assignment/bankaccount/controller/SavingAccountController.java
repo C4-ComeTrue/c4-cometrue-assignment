@@ -31,7 +31,7 @@ public class SavingAccountController {
 		return productManager.getProductInfo();
 	}
 
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.CREATED)
 	@GetMapping("/{productName}")
 	void create(@Login SessionMemberInfo memberInfo,
 		@PathVariable String productName) {

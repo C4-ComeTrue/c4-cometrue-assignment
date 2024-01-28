@@ -8,7 +8,7 @@ import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
-import org.c4marathon.assignment.member.dto.response.MemberInfo;
+import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.exception.MemberException;
@@ -165,7 +165,7 @@ class MemberServiceImplTest {
 			given(memberRepository.findById(memberPk)).willReturn(Optional.of(member));
 
 			// When
-			MemberInfo memberInfo = memberService.getMemberInfo(memberPk);
+			MemberInfoResponseDto memberInfo = memberService.getMemberInfo(memberPk);
 
 			// Then
 			assertEquals(memberInfo.memberPk(), member.getMemberPk());
