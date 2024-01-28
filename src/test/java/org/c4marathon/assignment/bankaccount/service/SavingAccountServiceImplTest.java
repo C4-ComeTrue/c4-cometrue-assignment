@@ -1,5 +1,10 @@
 package org.c4marathon.assignment.bankaccount.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseDto;
+import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.exception.AccountException;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
@@ -69,6 +74,29 @@ class SavingAccountServiceImplTest {
 
 			// Then
 			assertEquals(AccountErrorCode.PRODUCT_NOT_FOUND.name(), accountException.getErrorName());
+		}
+	}
+
+	@Nested
+	@DisplayName("적금 계좌 조회 테스트")
+	class GetSavingAccountInfo {
+
+		@Test
+		@DisplayName("사용자는 빈 리스트나 자신의 적금 계좌 리스트를 반환받는다.")
+		void request_with_any_member() {
+			// Given
+			List<SavingAccount> list = new ArrayList<>();
+			SavingAccount savingAccount = new SavingAccount();
+			savingAccount.init("free", 500);
+			list.add(savingAccount);
+			given(savingAccountRepository.findSavingAccount(anyLong())).willReturn(list);
+
+			// When
+			List<SavingAccountResponseDto> savingAccountInfo = savingAccountService.getSavingAccountInfo(anyLong());
+
+			// Then
+			assertEquals(savingAccountInfo.get(0).productName(), savingAccount.getProductName());
+			assertEquals(savingAccountInfo.get(0).rate(), savingAccount.getRate());
 		}
 	}
 }

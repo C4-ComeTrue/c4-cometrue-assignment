@@ -84,7 +84,27 @@ class SavingAccountControllerTest {
 
 			// Then
 			resultActions
-				.andExpect(status().isOk());
+				.andExpect(status().isCreated());
+		}
+	}
+
+	@Nested
+	@DisplayName("적금 계좌 조회 테스트")
+	class GetSavingAccountInfo {
+
+		@Test
+		@DisplayName("로그인한 사용자면 적금 계좌 조회에 성공한다")
+		void request_with_login_member() throws Exception {
+			// Given
+			given(savingAccountService.getSavingAccountInfo(anyLong())).willReturn(anyList());
+
+			// When
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL).session(session));
+
+			// Then
+			resultActions.andExpectAll(
+				status().isOk()
+			);
 		}
 	}
 }

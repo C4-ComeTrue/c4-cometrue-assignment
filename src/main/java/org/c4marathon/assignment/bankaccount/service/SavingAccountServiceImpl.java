@@ -55,7 +55,7 @@ public class SavingAccountServiceImpl implements SavingAccountService {
 	@Override
 	public List<SavingAccountResponseDto> getSavingAccountInfo(long memberPk) {
 		List<SavingAccount> savingAccount = savingAccountRepository.findSavingAccount(memberPk);
-		
+
 		return savingAccount.stream()
 			.map(account -> SavingAccountResponseDto.builder()
 				.accountPk(account.getAccountPk())
