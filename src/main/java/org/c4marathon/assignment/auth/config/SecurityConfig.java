@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig{
+public class SecurityConfig {
 
     private final MemberService memberService;
 
@@ -41,7 +41,7 @@ public class SecurityConfig{
                     CorsConfiguration config = new CorsConfiguration();
 
                     config.setAllowCredentials(true);
-                    config.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:80"));
+                    config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:80"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setExposedHeaders(List.of("*"));

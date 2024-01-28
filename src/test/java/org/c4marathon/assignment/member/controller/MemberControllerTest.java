@@ -50,7 +50,6 @@ public class MemberControllerTest {
         verify(memberService, times(1)).join(ArgumentMatchers.any(RequestDto.JoinDto.class));
     }
 
-
     @Test
     @DisplayName("회원 정보 입력 후 요청 시 로그인에 성공한다.")
     public void loginTest() throws Exception {

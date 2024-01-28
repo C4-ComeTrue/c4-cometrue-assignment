@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.Query;
 import jakarta.persistence.LockModeType;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
-    
     // 회원의 전체 계좌 조회
     List<Account> findByMember(Member member);
 

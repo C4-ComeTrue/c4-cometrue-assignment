@@ -36,19 +36,12 @@ public class AccountScheduledTest {
     // 계좌 객체 생성
     private Account createAccount(Type type, Member member) {
 
-        return Account.builder()
-            .type(type)
-            .member(member)
-            .build();
+        return Account.builder().type(type).member(member).build();
     }
 
     private Member createMember(String email, String password, String name) {
 
-        return Member.builder()
-            .email(email)
-            .password(password)
-            .name(name)
-            .build();
+        return Member.builder().email(email).password(password).name(name).build();
     }
 
     @DisplayName("생성된 모든 메인 계좌를 불러와서 1일 한도를 1000으로 초기화한다.")
@@ -68,7 +61,7 @@ public class AccountScheduledTest {
         List<Account> accountList = accountRepository.findAll();
 
         // when
-        for (int i=0; i<accountList.size(); i++) {
+        for (int i = 0; i < accountList.size(); i++) {
             accountList.get(i).resetDailyLimit(1000);
         }
         accountRepository.saveAll(accountList);

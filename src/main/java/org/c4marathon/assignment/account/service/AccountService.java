@@ -26,7 +26,6 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 @Log4j2
 public class AccountService implements ApplicationListener<MemberJoinedEvent> {
-    
     private final AccountRepository accountRepository;
 
     private final MemberService memberService;
@@ -36,10 +35,10 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
     @Value("${jwt.max-age}")
     private Long expireTimeMs;
-    
+
     // 계좌 생성
     @Transactional
-    public void saveAccount(RequestDto.AccountDto accountDto, String token){
+    public void saveAccount(RequestDto.AccountDto accountDto, String token) {
 
         String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
         Account account = createAccount(accountDto.type(), memberService.getMemberByEmail(memberEmail));
@@ -125,7 +124,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
         if (regularAccount.getBalance() < savingAccountDto.balance()) {
             throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
         }
-        
+
         // 적금 이체
         regularAccount.transferBalance(regularAccount.getBalance() - savingAccountDto.balance());
         savingAccount.transferBalance(savingAccount.getBalance() + savingAccountDto.balance());

@@ -13,10 +13,11 @@ import lombok.extern.log4j.Log4j2;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ExceptionResponse> handleCustomException(BaseException e) {
-        ErrorCode errorCode = ErrorCode.valueOf(e.getErrorCode());
-        log.debug("DebugMessage: " + e.getDebugMessage(), e);
-        return new ResponseEntity<>(new ExceptionResponse(errorCode.name(), e.getMessage()), errorCode.getStatus());
+    public ResponseEntity<ExceptionResponse> handleCustomException(BaseException baseException) {
+        ErrorCode errorCode = ErrorCode.valueOf(baseException.getErrorCode());
+        log.debug("DebugMessage: " + baseException.getDebugMessage(), baseException);
+        return new ResponseEntity<>(new ExceptionResponse(errorCode.name(), baseException.getMessage()),
+            errorCode.getStatus());
     }
 
     private record ExceptionResponse(

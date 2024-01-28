@@ -25,7 +25,7 @@ public class MemberController {
     @Operation(summary = "회원가입")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("/join")
-    public void join (
+    public void join(
         @Valid
         @RequestBody
         RequestDto.JoinDto joinDto
@@ -35,7 +35,7 @@ public class MemberController {
 
     @Operation(summary = "로그인")
     @PostMapping("/login")
-    public ResponseEntity<ResponseDto.LoginDto> login (
+    public ResponseEntity<ResponseDto.LoginDto> login(
         @Valid
         @RequestBody
         RequestDto.LoginDto loginDto
