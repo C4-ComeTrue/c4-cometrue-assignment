@@ -16,10 +16,6 @@ public enum AccountErrorCode implements ErrorCode {
 	private final HttpStatus httpStatus;
 	private final String message;
 
-	public AccountException accountException() {
-		return new AccountException(getHttpStatus(), name(), getMessage());
-	}
-
 	public AccountException accountException(String debugMessage) {
 		return new AccountException(getHttpStatus(), name(), getMessage(), debugMessage);
 	}

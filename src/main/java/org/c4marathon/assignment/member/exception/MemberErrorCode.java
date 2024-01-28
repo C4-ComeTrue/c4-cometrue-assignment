@@ -15,10 +15,6 @@ public enum MemberErrorCode implements ErrorCode {
 	private final HttpStatus httpStatus;
 	private final String message;
 
-	public MemberException memberException() {
-		return new MemberException(getHttpStatus(), name(), getMessage());
-	}
-
 	public MemberException memberException(String debugMessage) {
 		return new MemberException(getHttpStatus(), name(), getMessage(), debugMessage);
 	}

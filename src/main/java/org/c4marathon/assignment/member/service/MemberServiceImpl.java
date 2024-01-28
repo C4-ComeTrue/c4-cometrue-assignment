@@ -41,17 +41,17 @@ public class MemberServiceImpl implements MemberService {
 		// indexTest();
 	}
 
-	public void indexTest() {
-		for (long i = 2; i < 300; i++) {
-			Member member = Member.builder()
-				.memberId("test" + i)
-				.memberName("test")
-				.phoneNumber("test")
-				.password("tests")
-				.build();
-			memberRepository.save(member);
-		}
-	}
+	// public void indexTest() {
+	// 	for (long i = 2; i < 300; i++) {
+	// 		Member member = Member.builder()
+	// 			.memberId("test" + i)
+	// 			.memberName("test")
+	// 			.phoneNumber("test")
+	// 			.password("tests")
+	// 			.build();
+	// 		memberRepository.save(member);
+	// 	}
+	// }
 
 	@Override
 	public SessionMemberInfo signIn(SignInRequestDto requestDto) {

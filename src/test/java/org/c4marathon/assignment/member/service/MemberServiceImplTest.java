@@ -178,7 +178,8 @@ class MemberServiceImplTest {
 		void request_with_not_exist_memberPk() {
 			// Given
 			long memberPk = 1L;
-			given(memberRepository.findById(memberPk)).willThrow(MemberErrorCode.USER_NOT_FOUND.memberException());
+			given(memberRepository.findById(memberPk)).willThrow(
+				MemberErrorCode.USER_NOT_FOUND.memberException("user not found"));
 
 			// When
 			MemberException memberException = assertThrows(MemberException.class, () -> {
