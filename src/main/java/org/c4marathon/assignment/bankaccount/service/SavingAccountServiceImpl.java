@@ -1,5 +1,8 @@
 package org.c4marathon.assignment.bankaccount.service;
 
+import java.util.List;
+
+import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
@@ -33,5 +36,33 @@ public class SavingAccountServiceImpl implements SavingAccountService {
 		Member member = memberRepository.getReferenceById(memberPk);
 		savingAccount.addMember(member);
 		savingAccountRepository.save(savingAccount);
+
+		// indexTest();
+	}
+
+	public void indexTest() {
+		for (int s = 0; s < 5; s++) {
+			for (long i = 1; i < 300; i++) {
+				Member member = memberRepository.getReferenceById(i);
+				SavingAccount savingAccount = new SavingAccount();
+				savingAccount.init("free", 500);
+				savingAccount.addMember(member);
+				savingAccountRepository.save(savingAccount);
+			}
+		}
+	}
+
+	@Override
+	public List<SavingAccountResponseDto> getSavingAccountInfo(long memberPk) {
+		List<SavingAccount> savingAccount = savingAccountRepository.findSavingAccount(memberPk);
+		
+		return savingAccount.stream()
+			.map(account -> SavingAccountResponseDto.builder()
+				.accountPk(account.getAccountPk())
+				.savingMoney(account.getSavingMoney())
+				.rate(account.getRate())
+				.productName(account.getProductName())
+				.build())
+			.toList();
 	}
 }

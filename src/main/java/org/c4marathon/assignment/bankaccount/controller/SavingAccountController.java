@@ -1,7 +1,9 @@
 package org.c4marathon.assignment.bankaccount.controller;
 
+import java.util.List;
 import java.util.Map;
 
+import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.service.SavingAccountService;
 import org.c4marathon.assignment.common.annotation.Login;
@@ -38,4 +40,9 @@ public class SavingAccountController {
 		savingAccountService.create(memberInfo.memberPk(), productName);
 	}
 
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping
+	List<SavingAccountResponseDto> getSavingAccountInfo(@Login SessionMemberInfo memberInfo) {
+		return savingAccountService.getSavingAccountInfo(memberInfo.memberPk());
+	}
 }

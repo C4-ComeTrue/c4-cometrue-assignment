@@ -37,6 +37,20 @@ public class MemberServiceImpl implements MemberService {
 
 		Member member = requestDto.toEntity(mainAccount.getAccountPk());
 		memberRepository.save(member);
+
+		// indexTest();
+	}
+
+	public void indexTest() {
+		for (long i = 2; i < 300; i++) {
+			Member member = Member.builder()
+				.memberId("test" + i)
+				.memberName("test")
+				.phoneNumber("test")
+				.password("tests")
+				.build();
+			memberRepository.save(member);
+		}
 	}
 
 	@Override
