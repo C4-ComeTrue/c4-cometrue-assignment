@@ -50,7 +50,7 @@ class MemberServiceImplTest {
 			MainAccount mainAccount = new MainAccount();
 
 			given(mainAccountRepository.save(any())).willReturn(mainAccount);
-			given(chargeLimitManager.get(mainAccount.accountPk)).willReturn(LimitConst.CHARGE_LIMIT);
+			given(chargeLimitManager.get(mainAccount.getAccountPk())).willReturn(LimitConst.CHARGE_LIMIT);
 
 			// When
 			memberService.signUp(requestDto);
@@ -59,7 +59,7 @@ class MemberServiceImplTest {
 			then(memberRepository).should(times(1)).findMemberByMemberId(requestDto.memberId());
 			then(mainAccountRepository).should(times(1)).save(any());
 			then(chargeLimitManager).should(times(1)).init(anyLong());
-			assertEquals(chargeLimitManager.get(mainAccount.accountPk), LimitConst.CHARGE_LIMIT);
+			assertEquals(chargeLimitManager.get(mainAccount.getAccountPk()), LimitConst.CHARGE_LIMIT);
 		}
 
 		@Test

@@ -24,13 +24,13 @@ public class MainAccount extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "account_pk", nullable = false, updatable = false)
-	public long accountPk;
+	private long accountPk;
 
 	@Column(name = "charge_limit", nullable = false)
-	public int chargeLimit;
+	private int chargeLimit;
 
 	@Column(name = "money", nullable = false)
-	public int money;
+	private int money;
 
 	@Builder
 	public MainAccount(int chargeLimit, int money) {

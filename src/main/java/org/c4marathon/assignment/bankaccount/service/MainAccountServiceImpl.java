@@ -60,7 +60,7 @@ public class MainAccountServiceImpl implements MainAccountService {
 			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
 				"MainAccountServiceImpl에서 sendToSavingAccount 메소드 실행 중 [Main Account NOT_FOUND] 예외 발생."));
 
-		if (!isSendValid(mainAccount.money, money)) {
+		if (!isSendValid(mainAccount.getMoney(), money)) {
 			throw AccountErrorCode.INVALID_MONEY_SEND.accountException(
 				"MainAccountServiceImpl에서 sendToSavingAccount 메소드 실행 중 잔고 부족 예외 발생.");
 		}

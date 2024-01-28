@@ -33,7 +33,7 @@ public class MemberServiceImpl implements MemberService {
 		mainAccount.init();
 		mainAccountRepository.save(mainAccount);
 
-		chargeLimitManager.init(mainAccount.accountPk);
+		chargeLimitManager.init(mainAccount.getAccountPk());
 
 		Member member = requestDto.toEntity(mainAccount.getAccountPk());
 		memberRepository.save(member);
