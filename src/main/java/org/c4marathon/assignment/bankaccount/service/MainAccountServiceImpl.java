@@ -32,6 +32,7 @@ public class MainAccountServiceImpl implements MainAccountService {
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public int chargeMoney(long mainAccountPk, int money) {
+		System.out.println("charge start");
 		if (!chargeLimitManager.charge(mainAccountPk, money)) {
 			throw AccountErrorCode.CHARGE_LIMIT_EXCESS.accountException(
 				"MainAccountServiceImpl에서 메인 계좌 충전 중 일일 충전 한도 초과 예외 발생");
