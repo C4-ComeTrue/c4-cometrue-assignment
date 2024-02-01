@@ -50,7 +50,7 @@ class MainAccountServiceImplTest {
 			MainAccount mainAccount = MainAccount.builder()
 				.money(accountMoney)
 				.build();
-			given(mainAccountRepository.findByIdForUpdate(mainAccountPk)).willReturn(Optional.of(mainAccount));
+			given(mainAccountRepository.findByPkForUpdate(mainAccountPk)).willReturn(Optional.of(mainAccount));
 			// When
 			int returnValue = mainAccountService.chargeMoney(mainAccountPk, money);
 
@@ -78,7 +78,7 @@ class MainAccountServiceImplTest {
 		void request_with_no_main_account() {
 			// Given
 			given(chargeLimitManager.charge(mainAccountPk, money)).willReturn(true);
-			given(mainAccountRepository.findByIdForUpdate(mainAccountPk)).willReturn(Optional.empty());
+			given(mainAccountRepository.findByPkForUpdate(mainAccountPk)).willReturn(Optional.empty());
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class, () -> {

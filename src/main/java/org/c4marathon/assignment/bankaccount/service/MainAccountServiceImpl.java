@@ -38,7 +38,7 @@ public class MainAccountServiceImpl implements MainAccountService {
 				"MainAccountServiceImpl에서 메인 계좌 충전 중 일일 충전 한도 초과 예외 발생");
 		}
 
-		MainAccount mainAccount = mainAccountRepository.findByIdForUpdate(mainAccountPk)
+		MainAccount mainAccount = mainAccountRepository.findByPkForUpdate(mainAccountPk)
 			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
 				"MainAccountServiceImpl에서 메인 계좌 충전 중 ACCOUNT_NOT_FOUND 예외 발생"));
 

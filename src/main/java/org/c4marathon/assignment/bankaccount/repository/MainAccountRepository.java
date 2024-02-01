@@ -13,9 +13,5 @@ import jakarta.persistence.LockModeType;
 public interface MainAccountRepository extends JpaRepository<MainAccount, Long> {
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select ma from MainAccount ma where ma.accountPk = :accountPk")
-	Optional<MainAccount> findByIdForUpdate(@Param("accountPk") long accountPk);
-
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("select ma from MainAccount ma where ma.accountPk = :accountPk")
 	Optional<MainAccount> findByPkForUpdate(@Param("accountPk") long accountPk);
 }
