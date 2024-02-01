@@ -70,25 +70,24 @@ class MainAccountControllerTest {
 			given(mainAccountService.chargeMoney(mainAccountPk, money)).willReturn(baseMoney + money);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", money)
-				.session(session));
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", money).session(session));
 
 			// Then
-			resultActions
-				.andExpect(status().isOk())
-				.andReturn().getResponse().getContentAsString().equals(baseMoney + money);
+			resultActions.andExpect(status().isOk())
+				.andReturn()
+				.getResponse()
+				.getContentAsString()
+				.equals(baseMoney + money);
 		}
 
 		@Test
 		@DisplayName("충전 금액이 음수면 ConstraintViolationException 예외가 발생한다.")
 		void request_with_minus_money() throws Exception {
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", -1)
-				.session(session));
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", -1).session(session));
 
 			// Then
-			resultActions
-				.andExpect(status().isBadRequest())
+			resultActions.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.message").value(CommonErrorCode.INVALID_ARGUMENT_ERROR.getMessage()));
 		}
 	}
@@ -104,15 +103,13 @@ class MainAccountControllerTest {
 			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 1000);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving")
-				.session(session)
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(StandardCharsets.UTF_8)
 				.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
-			resultActions
-				.andExpect(status().isOk());
+			resultActions.andExpect(status().isOk());
 		}
 
 		@Test
@@ -122,15 +119,13 @@ class MainAccountControllerTest {
 			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(0, 1000);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving")
-				.session(session)
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(StandardCharsets.UTF_8)
 				.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
-			resultActions
-				.andExpect(status().isBadRequest());
+			resultActions.andExpect(status().isBadRequest());
 		}
 
 		@Test
@@ -140,15 +135,13 @@ class MainAccountControllerTest {
 			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 0);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving")
-				.session(session)
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(StandardCharsets.UTF_8)
 				.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
-			resultActions
-				.andExpect(status().isBadRequest());
+			resultActions.andExpect(status().isBadRequest());
 		}
 	}
 
@@ -168,17 +161,12 @@ class MainAccountControllerTest {
 			given(mainAccountService.getMainAccountInfo(anyLong())).willReturn(responseDto);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL)
-				.session(session));
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL).session(session));
 
 			// Then
-			resultActions
-				.andExpectAll(
-					status().isOk(),
-					jsonPath("$.accountPk").value(responseDto.accountPk()),
-					jsonPath("$.chargeLimit").value(responseDto.chargeLimit()),
-					jsonPath("$.money").value(responseDto.money())
-				);
+			resultActions.andExpectAll(status().isOk(), jsonPath("$.accountPk").value(responseDto.accountPk()),
+				jsonPath("$.chargeLimit").value(responseDto.chargeLimit()),
+				jsonPath("$.money").value(responseDto.money()));
 		}
 	}
 }
