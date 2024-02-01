@@ -14,6 +14,7 @@ import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -57,6 +58,11 @@ public class MoneySendConcurrencyTest {
 		@BeforeEach
 		void accountInit() {
 			createAccount();
+		}
+
+		@AfterEach
+		void accountClear() {
+			clearAccount();
 		}
 
 		@Test
@@ -164,5 +170,11 @@ public class MoneySendConcurrencyTest {
 		savingAccountPk = savingAccount.getAccountPk();
 
 		chargeLimitManager.init(mainAccountPk);
+	}
+
+	void clearAccount() {
+		savingAccountRepository.delete(savingAccount);
+		mainAccountRepository.delete(mainAccount);
+		memberRepository.delete(member);
 	}
 }
