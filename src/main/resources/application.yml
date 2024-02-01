@@ -10,9 +10,9 @@ spring:
   # MySQL
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${mysql.devUrl}
-    username: ${mysql.devUsername}
-    password: ${mysql.devPassword}
+    url: jdbc:mysql://localhost:3306/minipay?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: minipay
+    password: minipay
 
   # JPA
   jpa:
