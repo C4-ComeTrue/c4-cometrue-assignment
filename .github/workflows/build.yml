@@ -9,16 +9,6 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: minipay
-          MYSQL_DATABASE: minipay
-          MYSQL_USER: minipay
-          MYSQL_PASSWORD: minipay
-        ports:
-          - 3306:3306
     steps:
       - uses: actions/checkout@v3
         with:
