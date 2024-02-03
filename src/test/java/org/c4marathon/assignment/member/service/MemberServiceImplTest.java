@@ -59,7 +59,7 @@ class MemberServiceImplTest {
 			then(memberRepository).should(times(1)).findMemberByMemberId(requestDto.memberId());
 			then(mainAccountRepository).should(times(1)).save(any());
 			then(chargeLimitManager).should(times(1)).init(anyLong());
-			assertEquals(chargeLimitManager.get(mainAccount.getAccountPk()), LimitConst.CHARGE_LIMIT);
+			assertEquals(LimitConst.CHARGE_LIMIT, chargeLimitManager.get(mainAccount.getAccountPk()));
 		}
 
 		@Test

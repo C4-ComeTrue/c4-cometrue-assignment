@@ -198,7 +198,7 @@ class MainAccountServiceImplTest {
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class,
-				() -> mainAccountService.getMainAccountInfo(anyLong()));
+				() -> mainAccountService.getMainAccountInfo(1L));
 
 			// Then
 			assertEquals(AccountErrorCode.ACCOUNT_NOT_FOUND.name(), accountException.getErrorName());
