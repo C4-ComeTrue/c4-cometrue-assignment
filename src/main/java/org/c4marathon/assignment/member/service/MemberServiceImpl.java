@@ -3,13 +3,13 @@ package org.c4marathon.assignment.member.service;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
-import org.c4marathon.assignment.common.session.SessionMemberInfo;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
 import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.repository.MemberRepository;
+import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,20 +38,7 @@ public class MemberServiceImpl implements MemberService {
 		Member member = requestDto.toEntity(mainAccount.getAccountPk());
 		memberRepository.save(member);
 
-		// indexTest();
 	}
-
-	// public void indexTest() {
-	// 	for (long i = 2; i < 300; i++) {
-	// 		Member member = Member.builder()
-	// 			.memberId("test" + i)
-	// 			.memberName("test")
-	// 			.phoneNumber("test")
-	// 			.password("tests")
-	// 			.build();
-	// 		memberRepository.save(member);
-	// 	}
-	// }
 
 	@Override
 	public SessionMemberInfo signIn(SignInRequestDto requestDto) {
@@ -76,17 +63,10 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	private boolean isValidMember(String memberId) {
-		Member member = memberRepository.findMemberByMemberId(memberId);
-		if (member == null) {
-			return true;
-		}
-		return false;
+		return memberRepository.findMemberByMemberId(memberId) == null;
 	}
 
 	private boolean isValidMember(String inputPassword, String findPassword) {
-		if (inputPassword.equals(findPassword)) {
-			return true;
-		}
-		return false;
+		return inputPassword.equals(findPassword);
 	}
 }

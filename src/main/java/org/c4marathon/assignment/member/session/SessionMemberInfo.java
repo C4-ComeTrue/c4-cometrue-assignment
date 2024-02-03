@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.common.session;
+package org.c4marathon.assignment.member.session;
 
 import lombok.Builder;
 

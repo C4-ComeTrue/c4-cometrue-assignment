@@ -13,9 +13,6 @@ import lombok.Getter;
 
 /**
  *
- * @param httpStatus
- * @param code
- * @param message
  * @param errors validation 검사에서 적발된 예외 List
  */
 @Builder
@@ -43,7 +40,8 @@ public record ErrorResponse(HttpStatus httpStatus, int code, String message, Lis
 
 		private ValidationError(FieldError fieldError) {
 			this.field = fieldError.getField();
-			this.value = fieldError.getRejectedValue() == null ? "" : fieldError.getRejectedValue().toString();
+			Object rejectedValue = fieldError.getRejectedValue();
+			this.value = rejectedValue == null ? "" : rejectedValue.toString();
 			this.message = fieldError.getDefaultMessage();
 		}
 
@@ -52,8 +50,3 @@ public record ErrorResponse(HttpStatus httpStatus, int code, String message, Lis
 		}
 	}
 }
-
-/*
-같은 형식의 에러 응답을 하나의 클래스에서 관리하고자 작성했습니다.
-validationError는 여러 조건들이 만족하지 않을 수 있어서 이를 처리하는 클래스입니다.
- */

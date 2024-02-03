@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class ProductManager {
 	private static final String[] productNames = {"free", "regular"};
-	public static int[] productRates = {500, 300};
+	private static final int[] productRates = {500, 300};
 
 	private Map<String, Integer> productInfo = new HashMap<>();
 

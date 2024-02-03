@@ -194,7 +194,7 @@ class MainAccountServiceImplTest {
 		@DisplayName("메인 계좌 정보 조회 실패 테스트")
 		void request_with_non_valid_mainAccountPk() {
 			// Given
-			given(mainAccountRepository.findById(any())).willReturn(Optional.empty());
+			given(mainAccountRepository.findById(anyLong())).willReturn(Optional.empty());
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class,

@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.service.SavingAccountService;
-import org.c4marathon.assignment.common.session.SessionConst;
-import org.c4marathon.assignment.common.session.SessionMemberInfo;
+import org.c4marathon.assignment.member.session.SessionConst;
+import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

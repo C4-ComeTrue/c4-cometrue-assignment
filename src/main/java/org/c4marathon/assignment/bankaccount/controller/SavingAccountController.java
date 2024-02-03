@@ -7,7 +7,7 @@ import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseD
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.service.SavingAccountService;
 import org.c4marathon.assignment.common.annotation.Login;
-import org.c4marathon.assignment.common.session.SessionMemberInfo;
+import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -2,8 +2,8 @@ package org.c4marathon.assignment.common.argumentresolver;
 
 import org.c4marathon.assignment.common.annotation.Login;
 import org.c4marathon.assignment.common.exception.CommonErrorCode;
-import org.c4marathon.assignment.common.session.SessionConst;
-import org.c4marathon.assignment.common.session.SessionMemberInfo;
+import org.c4marathon.assignment.member.session.SessionConst;
+import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;

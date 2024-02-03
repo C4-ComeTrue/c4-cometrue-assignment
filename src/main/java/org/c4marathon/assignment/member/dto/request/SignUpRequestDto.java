@@ -21,7 +21,7 @@ public record SignUpRequestDto(
 	String memberName,
 
 	@NotBlank
-	@Pattern(regexp = "^01([0|1|6|7|8|9])([0-9]{3,4})([0-9]{4})$", message = "올바른 전화번호 형식을 입력해주세요.")
+	@Pattern(regexp = "^01(?:0|1|[6-9])(\\d{3,4})(\\d{4})$", message = "올바른 전화번호 형식을 입력해주세요.")
 	@Size(min = 11, max = 11, message = "'-'를 제외한 전화번호 11자리를 입력해 주세요.")
 	String phoneNumber
 ) {

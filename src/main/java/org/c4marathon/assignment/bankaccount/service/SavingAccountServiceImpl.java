@@ -36,21 +36,7 @@ public class SavingAccountServiceImpl implements SavingAccountService {
 		Member member = memberRepository.getReferenceById(memberPk);
 		savingAccount.addMember(member);
 		savingAccountRepository.save(savingAccount);
-
-		// indexTest();
 	}
-
-	// public void indexTest() {
-	// 	for (int s = 0; s < 5; s++) {
-	// 		for (long i = 1; i < 300; i++) {
-	// 			Member member = memberRepository.getReferenceById(i);
-	// 			SavingAccount savingAccount = new SavingAccount();
-	// 			savingAccount.init("free", 500);
-	// 			savingAccount.addMember(member);
-	// 			savingAccountRepository.save(savingAccount);
-	// 		}
-	// 	}
-	// }
 
 	@Override
 	public List<SavingAccountResponseDto> getSavingAccountInfo(long memberPk) {

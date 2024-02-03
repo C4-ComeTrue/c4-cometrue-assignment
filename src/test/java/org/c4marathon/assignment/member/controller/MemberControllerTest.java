@@ -3,14 +3,14 @@ package org.c4marathon.assignment.member.controller;
 import java.nio.charset.StandardCharsets;
 
 import org.c4marathon.assignment.common.exception.CommonErrorCode;
-import org.c4marathon.assignment.common.session.SessionConst;
-import org.c4marathon.assignment.common.session.SessionMemberInfo;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
 import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.exception.MemberException;
 import org.c4marathon.assignment.member.service.MemberService;
+import org.c4marathon.assignment.member.session.SessionConst;
+import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,8 @@
-package org.c4marathon.assignment.common.interceptor;
+package org.c4marathon.assignment.member.interceptor;
 
 import org.c4marathon.assignment.common.exception.CommonErrorCode;
-import org.c4marathon.assignment.common.session.SessionConst;
-import org.c4marathon.assignment.common.session.SessionMemberInfo;
+import org.c4marathon.assignment.member.session.SessionConst;
+import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +16,7 @@ public class LoginInterceptor implements HandlerInterceptor {
 
 		HttpSession session = request.getSession();
 		SessionMemberInfo memberInfo = (SessionMemberInfo)session.getAttribute(SessionConst.MEMBER_INFO);
-		if (session == null || memberInfo == null) {
+		if (memberInfo == null) {
 			throw CommonErrorCode.UNAUTHORIZED_USER.commonException(
 				"LoginInterceptor 사용자 세션 처리 중 로그인을 하지 않은 사용자의 요청 발생.");
 		}
