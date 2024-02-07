@@ -16,15 +16,19 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     // 회원의 특정 계좌 조회
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Account a "
-        + " WHERE a.member.id = :memberId"
-        + " AND a.id = :id")
+    @Query("""
+        SELECT a FROM Account a
+        WHERE a.member.id = :memberId
+        AND a.id = :id
+        """)
     Account findByAccount(Long memberId, Long id);
 
     // 회원의 메인 계좌 조회
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Account a "
-        + " WHERE a.member.id = :memberId"
-        + " AND a.type = 'REGULAR_ACCOUNT'")
+    @Query("""
+        SELECT a FROM Account a
+        WHERE a.member.id = :memberId
+        AND a.type = 'REGULAR_ACCOUNT'
+        """)
     Account findByRegularAccount(Long memberId);
 }
