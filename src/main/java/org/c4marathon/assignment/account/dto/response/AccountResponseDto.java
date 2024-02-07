@@ -5,7 +5,7 @@ import org.c4marathon.assignment.account.entity.Type;
 
 public record AccountResponseDto(
     Long id,
-    Integer balance,
+    Long balance,
     Integer dailyLimit,
     Type type
 ) {

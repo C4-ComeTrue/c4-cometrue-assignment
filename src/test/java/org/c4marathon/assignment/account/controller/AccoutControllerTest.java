@@ -103,7 +103,7 @@ public class AccoutControllerTest {
     public void rechargeAccountTest() throws Exception {
 
         String token = createToken();
-        RechargeAccountRequestDto rechargeAccountRequestDto = new RechargeAccountRequestDto(1L, 10000);
+        RechargeAccountRequestDto rechargeAccountRequestDto = new RechargeAccountRequestDto(1L, 10000L);
 
         mockMvc.perform(post("/accounts/recharge")
                 .header("Authorization", token)
@@ -116,7 +116,7 @@ public class AccoutControllerTest {
     @Test
     public void transferFromRegularAccountTest() throws Exception {
         String token = createToken();
-        SavingAccountRequestDto savingAccountRequestDto = new SavingAccountRequestDto(10000, 2L);
+        SavingAccountRequestDto savingAccountRequestDto = new SavingAccountRequestDto(10000L, 2L);
 
         mockMvc.perform(post("/accounts/saving")
                 .header("Authorization", token)

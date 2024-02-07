@@ -94,8 +94,8 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
         // 계좌 정보 조회
         Account account = accountRepository.findByAccount(member.getId(), rechargeAccountRequestDto.accountId());
-        int dailyLimit = account.getDailyLimit() + rechargeAccountRequestDto.balance();
-        int balance = account.getBalance() + rechargeAccountRequestDto.balance();
+        int dailyLimit = account.getDailyLimit() + rechargeAccountRequestDto.balance().intValue();
+        Long balance = account.getBalance() + rechargeAccountRequestDto.balance();
 
         // 충전 한도 확인
         if (dailyLimit > 3000000) {

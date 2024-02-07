@@ -6,6 +6,6 @@ public record RechargeAccountRequestDto(
     @NotNull
     Long accountId,
     @NotNull
-    Integer balance
+    Long balance
 ) {
 }

@@ -124,15 +124,15 @@ public class AccountServiceTest {
         accountRepository.save(account1);
 
         // 계좌 잔액
-        Integer afterBalance = 10000;
+        Long afterBalance = 10000L;
 
         // when
         Account account = accountRepository.findByAccount(member1.getId(), account1.getId());
         Integer dailyLimit = account.getDailyLimit();
-        Integer balance = account.getBalance();
+        Long balance = account.getBalance();
         // 하루 충전 금액이 300만원 보다 적어야 함.
         if (dailyLimit + afterBalance <= 3000000) {
-            account.resetDailyLimit(dailyLimit + afterBalance);
+            account.resetDailyLimit(dailyLimit + afterBalance.intValue());
             account.transferBalance(balance + afterBalance);
         }
         accountRepository.save(account);
@@ -151,7 +151,7 @@ public class AccountServiceTest {
 
         // given
         // 적금 계좌로 이체하려는 금액
-        int balance = 10000;
+        Long balance = 10000L;
 
         Member member1 = createMember("test1@naver.com", "test", "test");
         memberRepository.save(member1);
@@ -159,7 +159,7 @@ public class AccountServiceTest {
         Account regularAccount = createAccount(Type.REGULAR_ACCOUNT, member1);
         // 금액 추가
         regularAccount.transferBalance(balance);
-        regularAccount.resetDailyLimit(balance);
+        regularAccount.resetDailyLimit(balance.intValue());
         // 적금 계좌
         Account savingAccount = createAccount(Type.INSTALLMENT_SAVINGS_ACCOUNT, member1);
         accountRepository.saveAll(List.of(regularAccount, savingAccount));

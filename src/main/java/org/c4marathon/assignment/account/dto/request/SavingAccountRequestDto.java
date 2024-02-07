@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record SavingAccountRequestDto(
     @NotNull
-    Integer balance,
+    Long balance,
     @NotNull
     Long receiverAccountId
 ) {

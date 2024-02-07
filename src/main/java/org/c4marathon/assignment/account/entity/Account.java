@@ -33,7 +33,7 @@ public class Account extends BaseEntity {
     private Long id;
 
     @Column(name = "balance", nullable = false)
-    private Integer balance;
+    private Long balance;
 
     @Column(name = "daily_limit", nullable = false)
     private Integer dailyLimit;
@@ -49,7 +49,7 @@ public class Account extends BaseEntity {
     @Builder
     public Account(Type type, Member member) {
 
-        this.balance = 0;
+        this.balance = 0L;
         this.dailyLimit = 0;
         this.type = type;
         this.member = member;
@@ -59,7 +59,7 @@ public class Account extends BaseEntity {
         this.dailyLimit = dailyLimit;
     }
 
-    public void transferBalance(Integer balance) {
+    public void transferBalance(Long balance) {
         this.balance = balance;
     }
 }
