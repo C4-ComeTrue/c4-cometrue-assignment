@@ -1,8 +1,9 @@
 package org.c4marathon.assignment.member.service;
 
 import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
-import org.c4marathon.assignment.member.dto.RequestDto;
-import org.c4marathon.assignment.member.dto.ResponseDto;
+import org.c4marathon.assignment.member.dto.request.JoinReqeustDto;
+import org.c4marathon.assignment.member.dto.request.LoginRequestDto;
+import org.c4marathon.assignment.member.dto.response.LoginResponseDto;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.c4marathon.assignment.util.event.MemberJoinedEvent;
@@ -42,41 +43,40 @@ public class MemberService {
     }
 
     @Transactional
-    public void join(RequestDto.JoinDto joinDto) {
+    public void join(JoinReqeustDto joinReqeustDto) {
 
-        if (checkEmailExist(joinDto.email())) {
+        if (checkEmailExist(joinReqeustDto.email())) {
             throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
         }
 
         Member member = Member.builder()
-            .email(joinDto.email())
-            .password(passwordEncoder.encode(joinDto.password()))
-            .name(joinDto.name())
+            .email(joinReqeustDto.email())
+            .password(passwordEncoder.encode(joinReqeustDto.password()))
+            .name(joinReqeustDto.name())
             .build();
 
         memberRepository.save(member);
 
         // 회원 가입 완료 이벤트 발행
-        log.info("join: " + joinDto.email());
-        eventPublisher.publishEvent(new MemberJoinedEvent(this, joinDto.email()));
+        eventPublisher.publishEvent(new MemberJoinedEvent(this, joinReqeustDto.email()));
     }
 
     public boolean checkEmailExist(String email) {
         return memberRepository.existsByEmail(email);
     }
 
-    public ResponseDto.LoginDto login(RequestDto.LoginDto loginDto) {
-        Member member = memberRepository.findByEmail(loginDto.email())
+    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+        Member member = memberRepository.findByEmail(loginRequestDto.email())
             .orElseThrow(
                 () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
 
-        if (!passwordEncoder.matches(loginDto.password(), member.getPassword())) {
+        if (!passwordEncoder.matches(loginRequestDto.password(), member.getPassword())) {
             throw new BaseException(ErrorCode.LOGIN_FAILED.toString(), HttpStatus.EXPECTATION_FAILED.toString());
         }
 
         String jwtToken = JwtTokenUtil.createToken(member.getEmail(), secretKey, expireTimeMs);
 
-        return new ResponseDto.LoginDto(
+        return new LoginResponseDto(
             jwtToken
         );
     }

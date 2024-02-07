@@ -2,8 +2,10 @@ package org.c4marathon.assignment.account.controller;
 
 import java.util.List;
 
-import org.c4marathon.assignment.account.dto.RequestDto;
-import org.c4marathon.assignment.account.dto.ResponseDto;
+import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,21 +34,23 @@ public class AccountController {
     public void createAccount(
         @Valid
         @RequestBody
-        RequestDto.AccountDto accountDto,
-        @RequestHeader(value = "Authorization") String accessToken
+        AccountRequestDto accountRequestDto,
+        @RequestHeader(value = "Authorization")
+        String accessToken
     ) {
 
-        accountService.saveAccount(accountDto, accessToken);
+        accountService.saveAccount(accountRequestDto, accessToken);
     }
 
     @Operation(summary = "계좌 전체 조회")
     @GetMapping("")
-    public ResponseEntity<List<ResponseDto.AccountDto>> findAccount(
-        @RequestHeader(value = "Authorization") String accessToken
+    public ResponseEntity<List<AccountResponseDto>> findAccount(
+        @RequestHeader(value = "Authorization")
+        String accessToken
     ) {
 
-        List<ResponseDto.AccountDto> accountDtoList = accountService.findAccount(accessToken);
-        return ResponseEntity.ok(accountDtoList);
+        List<AccountResponseDto> accountResponseDtoList = accountService.findAccount(accessToken);
+        return ResponseEntity.ok(accountResponseDtoList);
     }
 
     @Operation(summary = "메인 계좌 충전")
@@ -55,10 +59,11 @@ public class AccountController {
     public void rechargeAccount(
         @Valid
         @RequestBody
-        RequestDto.RechargeAccountDto rechargeAccountDto,
-        @RequestHeader(value = "Authorization") String accessToken
+        RechargeAccountRequestDto rechargeAccountRequestDto,
+        @RequestHeader(value = "Authorization")
+        String accessToken
     ) {
-        accountService.rechargeAccount(rechargeAccountDto, accessToken);
+        accountService.rechargeAccount(rechargeAccountRequestDto, accessToken);
     }
 
     @Operation(summary = "메인 계좌에서 적금 계좌로 이체")
@@ -67,9 +72,10 @@ public class AccountController {
     public void rechargeAccount(
         @Valid
         @RequestBody
-        RequestDto.SavingAccountDto savingAccountDto,
-        @RequestHeader(value = "Authorization") String accessToken
+        SavingAccountRequestDto savingAccountRequestDto,
+        @RequestHeader(value = "Authorization")
+        String accessToken
     ) {
-        accountService.transferFromRegularAccount(savingAccountDto, accessToken);
+        accountService.transferFromRegularAccount(savingAccountRequestDto, accessToken);
     }
 }

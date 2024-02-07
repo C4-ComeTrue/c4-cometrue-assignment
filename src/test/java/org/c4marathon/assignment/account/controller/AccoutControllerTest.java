@@ -8,7 +8,9 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.c4marathon.assignment.account.dto.RequestDto;
+import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
@@ -77,12 +79,12 @@ public class AccoutControllerTest {
     public void createAccountTest() throws Exception {
 
         String token = createToken();
-        RequestDto.AccountDto accountDto = new RequestDto.AccountDto(Type.ADDITIONAL_ACCOUNT);
+        AccountRequestDto accountRequestDto = new AccountRequestDto(Type.ADDITIONAL_ACCOUNT);
 
         mockMvc.perform(post("/accounts")
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(accountDto)))
+                .content(new ObjectMapper().writeValueAsString(accountRequestDto)))
             .andExpect(status().isNoContent());
     }
 
@@ -101,12 +103,12 @@ public class AccoutControllerTest {
     public void rechargeAccountTest() throws Exception {
 
         String token = createToken();
-        RequestDto.RechargeAccountDto rechargeAccountDto = new RequestDto.RechargeAccountDto(1L, 10000);
+        RechargeAccountRequestDto rechargeAccountRequestDto = new RechargeAccountRequestDto(1L, 10000);
 
         mockMvc.perform(post("/accounts/recharge")
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(rechargeAccountDto)))
+                .content(new ObjectMapper().writeValueAsString(rechargeAccountRequestDto)))
             .andExpect(status().isNoContent());
     }
 
@@ -114,12 +116,12 @@ public class AccoutControllerTest {
     @Test
     public void transferFromRegularAccountTest() throws Exception {
         String token = createToken();
-        RequestDto.SavingAccountDto savingAccountDto = new RequestDto.SavingAccountDto(10000, 2L);
+        SavingAccountRequestDto savingAccountRequestDto = new SavingAccountRequestDto(10000, 2L);
 
         mockMvc.perform(post("/accounts/saving")
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(savingAccountDto)))
+                .content(new ObjectMapper().writeValueAsString(savingAccountRequestDto)))
             .andExpect(status().isNoContent());
     }
 }
