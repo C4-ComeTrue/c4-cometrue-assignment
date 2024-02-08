@@ -22,11 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
-@Log4j2
 public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     private final AccountRepository accountRepository;
 
@@ -37,6 +35,8 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
     @Value("${jwt.max-age}")
     private Long expireTimeMs;
+
+    public static final int DAILY_LIMIT = 3_000_000;
 
     // 계좌 생성
     @Transactional
@@ -98,7 +98,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
         Long balance = account.getBalance() + rechargeAccountRequestDto.balance();
 
         // 충전 한도 확인
-        if (dailyLimit > 3000000) {
+        if (dailyLimit > DAILY_LIMIT) {
             throw new BaseException(ErrorCode.EXCEEDED_DAILY_LIMIT.toString(), HttpStatus.BAD_REQUEST.toString());
         }
 
