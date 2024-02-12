@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.domain;
+package org.c4marathon.assignment.domain.entity;
 
 import java.time.LocalDateTime;
 

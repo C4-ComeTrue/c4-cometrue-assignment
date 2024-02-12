@@ -19,7 +19,7 @@ public class MemberController {
 
 	@PostMapping("/sing-up")
 	@ResponseStatus(HttpStatus.CREATED)
-	public MemberSignUpDto.Response register(MemberSignUpDto.Request req) {
+	public MemberSignUpDto.Res register(MemberSignUpDto.Req req) {
 		return memberService.register(req.email(), req.password());
 	}
 }
