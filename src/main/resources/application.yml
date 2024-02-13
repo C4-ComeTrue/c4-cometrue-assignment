@@ -6,15 +6,21 @@ spring:
     password: hyhy
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         show-sql: true
         format-sql: true
         default_batch_fetch_size: 1000
-  logging:
-    level:
-      org.hibernate:
-        SQL: debug
-        type:
-          descriptor.sql: trace
+logging:
+  level:
+    org:
+      hibernate:
+      SQL: debug
+      type:
+        descriptor.sql: trace
+    root: debug
+
+jwt:
+  secret:
+    key: x!A%D*G-KaPdSgVkYp3s5v8y/B?E(H+M
