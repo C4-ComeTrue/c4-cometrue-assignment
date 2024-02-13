@@ -31,7 +31,6 @@ public class ServiceException extends RuntimeException{
 		this.debugMessage = debugMessage;
 	}
 
-
 	private static String getDetailExceptionMessage(String errorCode, String errorMessage, String debugMessage) {
 		var sb = new StringBuilder()
 			.append(errorCode)

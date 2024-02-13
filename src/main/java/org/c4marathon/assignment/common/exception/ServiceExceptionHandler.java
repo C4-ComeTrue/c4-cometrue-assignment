@@ -14,6 +14,11 @@ import ch.qos.logback.classic.Logger;
 public class ServiceExceptionHandler {
 	private final Logger logger = (Logger)LoggerFactory.getLogger(this.getClass().getSimpleName());
 
+	/**
+	 * ServiceExcpetionHanlder에서, ServiceException이 발생하면, handleServiceException이 실행되면서 해당 exception을 처리한다
+	 * @param exception
+	 * @return
+	 */
 	@ExceptionHandler(value = {ServiceException.class})
 	public ResponseEntity<ErrorResponse> handleServiceException(ServiceException exception) {
 		if (exception.getDebugMessage() != null) {
@@ -24,9 +29,7 @@ public class ServiceExceptionHandler {
 			exception.getErrorCode(),
 			exception.getErrorMessage()
 		);
-
 		var httpStatus = ErrorCode.valueOf(exception.getErrorCode()).getHttpStatus();
-
 		return new ResponseEntity<>(errorResponse, httpStatus);
 	}
 }
