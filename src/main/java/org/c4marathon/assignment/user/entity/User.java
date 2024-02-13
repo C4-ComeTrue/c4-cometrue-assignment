@@ -3,43 +3,43 @@ package org.c4marathon.assignment.user.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Builder;
-import org.c4marathon.assignment.calendar.entity.Calendar;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import org.c4marathon.assignment.calendar.entity.CalendarEntity;
 
 @Getter
 @Entity
-@RequiredArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "user_name", nullable = false)
+	@Column(name = "user_name")
 	private String userName;
 
-	@Column(name = "user_email", nullable = false)
+	@Column(name = "user_email", unique = true)
 	private String userEmail;
 
-	@Column(name = "password", nullable = false)
+	@Column(name = "password")
 	private String password;
 
-	@OneToMany(mappedBy = "user")
-	private List<Calendar> calendars = new ArrayList<>();
+	@OneToMany(mappedBy = "user", fetch= FetchType.LAZY, cascade = CascadeType.ALL)
+	private List<CalendarEntity> calendarEntity = new ArrayList<>();
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	private List<Authority> roles = new ArrayList<>();
 
 	@Builder
 	public User(String userName, String userEmail, String password) {
 		this.userName = userName;
 		this.userEmail = userEmail;
 		this.password = password;
+	}
+
+	public void setRoles(List<Authority> role) {
+		this.roles = role;
+		role.forEach(o -> o.setUser(this));
 	}
 }
