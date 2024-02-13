@@ -44,7 +44,7 @@ public class AccountService {
 	@Transactional   
 	public ChargeAccountDto.Res charge(long accountId, int amount) {
 		// 1. 현재 충전 한도와 잔고가 얼마인지 확인한다.
-		Account account = accountRepository.findByIdWithWriteLock(accountId)   // 비관적 락
+		Account account = accountRepository.findByIdWithWriteLock(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		// 2. 1일 충전 한도를 넘지 않는지 확인한다.

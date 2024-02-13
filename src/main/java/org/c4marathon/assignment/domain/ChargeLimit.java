@@ -18,7 +18,7 @@ public enum ChargeLimit {
 		this.limitAmount = limitAmount;
 	}
 
-	public boolean doesExceed(int totalChargeAmount, int chargeAmount) {  // 어짜피 오토박싱 되므로 기본형으로 계산
+	public boolean doesExceed(int totalChargeAmount, int chargeAmount) {
 		return limitAmount < totalChargeAmount + chargeAmount;
 	}
 }

@@ -59,8 +59,9 @@ public class SavingsAccountService {
 		int withDrawAmount = savingsAccount.getWithdrawAmount();
 		long totalAmount = account.getAmount();
 
-		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다. TODO: 실패된 적금 트랜잭션 관리 (FAILED QUEUE)
-		if (totalAmount < withDrawAmount) {
+		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다.
+		// TODO: 실패된 적금 트랜잭션 관리 (FAILED QUEUE)
+		if (isAmountEnoughToWithdraw(totalAmount, withDrawAmount)) {
 			throw ErrorCode.MAIN_ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
@@ -78,6 +79,7 @@ public class SavingsAccountService {
 		SavingsAccount savingsAccount = savingsAccountRepository.findById(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
+		// 2. 적금 타입을 확인한다.
 		if (isNotFreeSavingsAccount(savingsAccount.getSavingsType())) {
 			throw ErrorCode.INVALID_SAVINGS_TRANSFER.businessException();
 		}
@@ -85,6 +87,10 @@ public class SavingsAccountService {
 		// 2. 계좌에 돈을 충전한다.
 		savingsAccount.charge(amount);
 		return new ChargeSavingsAccountDto.Res(savingsAccount.getAmount());
+	}
+
+	private boolean isAmountEnoughToWithdraw(long totalAmount, int withDrawAmount) {
+		return totalAmount < withDrawAmount;
 	}
 
 	private boolean isNotFreeSavingsAccount(SavingsType savingsType) {
