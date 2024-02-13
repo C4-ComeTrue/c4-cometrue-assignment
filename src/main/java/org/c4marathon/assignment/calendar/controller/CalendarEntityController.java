@@ -14,14 +14,17 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/calendar")
 @RequiredArgsConstructor
-public class CalendarController {
+public class CalendarEntityController {
 
-	private final CalendarService calendarService;
+	private final CalendarService  calendarService;
 
+	/**
+	 * 캘린더 생성 API
+	 * @param dto
+	 */
 	@PostMapping()
 	@ResponseStatus(HttpStatus.CREATED)
 	public void createCalendar(@RequestBody CreateCalendarRequest dto) {
-
 		calendarService.createCalendar(dto.userId(), dto.calendarName());
 	}
 }
