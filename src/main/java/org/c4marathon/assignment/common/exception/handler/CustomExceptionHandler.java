@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomExceptionHandler {
 
 	@ExceptionHandler(BusinessException.class)
-	public ResponseEntity<Object> handle(BusinessException ex) {
+	public ResponseEntity<ErrorResponse> handle(BusinessException ex) {
 		log.error(ex.getMessage(), ex);
 
 		if (!Objects.isNull(ex.getDebugMessage())) {
@@ -26,7 +26,7 @@ public class CustomExceptionHandler {
 		}
 
 		ErrorCode errorCode = ErrorCode.valueOf(ex.getErrorCode());
-		ErrorResponse errorResponse = new ErrorResponse(errorCode.getMessage());
+		ErrorResponse errorResponse = new ErrorResponse(ex.getErrorMessage());
 		return ResponseEntity.status(errorCode.getStatus()).body(errorResponse);
 	}
 
