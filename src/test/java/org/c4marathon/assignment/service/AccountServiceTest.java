@@ -3,7 +3,6 @@ package org.c4marathon.assignment.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import java.math.BigInteger;
 import java.util.Optional;
 
 import org.c4marathon.assignment.common.exception.BusinessException;
@@ -55,13 +54,13 @@ class AccountServiceTest {
 		var accountId = 1L;
 		var chargeAmount = 1000;
 		var accumulatedChargeAmount = 100000;
-		var totalAmount = 1000;
+		var totalAmount = 1000L;
 		var account = mock(Account.class);
 
 		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
 		given(account.getChargeLimit()).willReturn(ChargeLimit.DAY_BASIC_LIMIT);
 		given(account.getAccumulatedChargeAmount()).willReturn(accumulatedChargeAmount);
-		given(account.getAmount()).willReturn(BigInteger.valueOf(totalAmount));
+		given(account.getAmount()).willReturn(totalAmount);
 
 		// when
 		var result = accountService.charge(accountId, chargeAmount);

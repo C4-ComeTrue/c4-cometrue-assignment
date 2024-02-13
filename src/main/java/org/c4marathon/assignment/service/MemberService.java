@@ -28,7 +28,7 @@ public class MemberService {
 			.member(member)
 			.build();
 
-		accountRepository.save(account);
-		return new MemberSignUpDto.Res(memberEntity.getId());
+		Account accountEntity = accountRepository.save(account);
+		return new MemberSignUpDto.Res(memberEntity.getId(), accountEntity.getId());
 	}
 }

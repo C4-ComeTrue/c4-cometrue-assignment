@@ -4,8 +4,6 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.math.BigInteger;
-
 import org.c4marathon.assignment.api.dto.ChargeAccountDto;
 import org.c4marathon.assignment.api.dto.CreateAccountDto;
 import org.c4marathon.assignment.service.AccountService;
@@ -18,7 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest
+@WebMvcTest(AccountController.class)
 class AccountControllerTest {
 
 	@Autowired
@@ -41,7 +39,7 @@ class AccountControllerTest {
 		// when
 		mockMvc.perform(
 				post("/v1/accounts")
-					.contentType(mapper.writeValueAsString(request))
+					.content(mapper.writeValueAsString(request))
 					.contentType(MediaType.APPLICATION_JSON)
 		).andExpectAll(
 			status().isCreated(),
@@ -54,7 +52,7 @@ class AccountControllerTest {
 		// given
 		var accountId = 1L;
 		var amount = 1000;
-		var totalAmount = BigInteger.valueOf(10000);
+		var totalAmount = 10000;
 		var result = new ChargeAccountDto.Res(totalAmount);
 		var request = new ChargeAccountDto.Req(accountId, amount);
 
@@ -63,10 +61,10 @@ class AccountControllerTest {
 		// when
 		mockMvc.perform(
 			post("/v1/accounts/charge")
-				.contentType(mapper.writeValueAsString(request))
+				.content(mapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON)
 		).andExpectAll(
-			status().isCreated(),
+			status().isOk(),
 			jsonPath("$.totalAmount").value(totalAmount)
 		);
 	}

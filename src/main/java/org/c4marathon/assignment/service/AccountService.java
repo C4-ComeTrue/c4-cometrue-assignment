@@ -22,10 +22,6 @@ public class AccountService {
 
 	/**
 	 * 메인 계좌 생성 API
-	 * @param memberId
-	 * @param name
-	 * @param accountNumber
-	 * @return
 	 */
 	@Transactional
 	public CreateAccountDto.Res createAccount(long memberId, String name, String accountNumber) {
@@ -44,9 +40,6 @@ public class AccountService {
 
 	/**
 	 * 메인 계좌 충전 API
-	 * @param accountId
-	 * @param amount
-	 * @return
 	 */
 	@Transactional   
 	public ChargeAccountDto.Res charge(long accountId, int amount) {

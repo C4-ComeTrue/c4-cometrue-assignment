@@ -18,7 +18,9 @@ public enum ErrorCode {
 
 	// account
 	INVALID_ACCOUNT(HttpStatus.NOT_FOUND, "존재하지 않는 계좌입니다."),
-	EXCEED_CHARGE_LIMIT(HttpStatus.BAD_REQUEST, "1일 충전 한도를 넘어 충전이 불가능합니다.");
+	EXCEED_CHARGE_LIMIT(HttpStatus.BAD_REQUEST, "1일 충전 한도를 넘어 충전이 불가능합니다."),
+	MAIN_ACCOUNT_LACK_OF_AMOUNT(HttpStatus.INTERNAL_SERVER_ERROR, "메인 계좌에 돈이 부족해 출금에 실패했습니다."),
+	INVALID_SAVINGS_TRANSFER(HttpStatus.BAD_REQUEST, "자유 적금 계좌에만 입금할 수 있습니다.");
 
 	private final HttpStatus status;
 	private final String message;

@@ -13,7 +13,7 @@ public class CreateAccountDto {
 	}
 
 	public record Res(
-		Long id
+		long id
 	) {
 	}
 }
