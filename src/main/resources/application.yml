@@ -12,14 +12,14 @@ spring:
         show-sql: true
         format-sql: true
         default_batch_fetch_size: 1000
-logging:
-  level:
-    org:
-      hibernate:
-      SQL: debug
-      type:
-        descriptor.sql: trace
-    root: debug
+  logging:
+    level:
+      org:
+        hibernate:
+        SQL: debug
+        type:
+          descriptor.sql: trace
+      root: debug
 
 jwt:
   secret:
