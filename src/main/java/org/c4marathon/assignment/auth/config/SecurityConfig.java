@@ -3,7 +3,6 @@ package org.c4marathon.assignment.auth.config;
 import java.util.List;
 
 import org.c4marathon.assignment.auth.jwt.JwtTokenFilter;
-import org.c4marathon.assignment.member.service.MemberService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    private final MemberService memberService;
 
     @Value("${jwt.key}")
     private String secretKey;
@@ -50,11 +47,11 @@ public class SecurityConfig {
                 }
             }))
             .authorizeHttpRequests(request -> request
-                .requestMatchers("/**").permitAll() // 모든 접근 허용
-                //                        .requestMatchers("/login").permitAll()
+                .requestMatchers("/members/join").permitAll()
+                .requestMatchers("/members/login").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JwtTokenFilter(secretKey), UsernamePasswordAuthenticationFilter.class)
             .formLogin(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)

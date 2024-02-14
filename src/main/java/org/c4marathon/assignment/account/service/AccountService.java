@@ -9,15 +9,15 @@ import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
-import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.event.MemberJoinedEvent;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.c4marathon.assignment.util.exceptions.ErrorCode;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,20 +30,22 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
     private final MemberService memberService;
 
-    @Value("${jwt.key}")
-    private String secretKey;
-
-    @Value("${jwt.max-age}")
-    private Long expireTimeMs;
-
     public static final int DAILY_LIMIT = 3_000_000;
+
+    private Member findMember() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String memberEmail = (String)authentication.getPrincipal();
+
+        return memberService.getMemberByEmail(memberEmail);
+    }
 
     // 계좌 생성
     @Transactional
-    public void saveAccount(AccountRequestDto accountRequestDto, String token) {
+    public void saveAccount(AccountRequestDto accountRequestDto) {
 
-        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
-        Account account = createAccount(accountRequestDto.type(), memberService.getMemberByEmail(memberEmail));
+        Member member = findMember();
+        Account account = createAccount(accountRequestDto.type(), member);
 
         accountRepository.save(account);
     }
@@ -61,20 +63,15 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     @Override
     public void onApplicationEvent(MemberJoinedEvent event) {
 
-        // 이벤트로부터 회원 이메일 가져오기
-        String memberEmail = event.getMemberEmail();
-        // 토큰 생성
-        String token = JwtTokenUtil.createToken(memberEmail, secretKey, expireTimeMs);
         // 계좌 생성
-        saveAccount(new AccountRequestDto(Type.REGULAR_ACCOUNT), token);
+        saveAccount(new AccountRequestDto(Type.REGULAR_ACCOUNT));
     }
 
     // 계좌 전체 조회
-    public List<AccountResponseDto> findAccount(String token) {
+    public List<AccountResponseDto> findAccount() {
 
         // 회원 정보 조회
-        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
-        Member member = memberService.getMemberByEmail(memberEmail);
+        Member member = findMember();
 
         List<Account> accountList = accountRepository.findByMember(member);
 
@@ -86,11 +83,10 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
     // 메인 계좌 잔액 충전
     @Transactional
-    public void rechargeAccount(RechargeAccountRequestDto rechargeAccountRequestDto, String token) {
+    public void rechargeAccount(RechargeAccountRequestDto rechargeAccountRequestDto) {
 
         // 회원 정보 조회
-        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
-        Member member = memberService.getMemberByEmail(memberEmail);
+        Member member = findMember();
 
         // 계좌 정보 조회
         Account account = accountRepository.findByAccount(member.getId(), rechargeAccountRequestDto.accountId());
@@ -112,15 +108,15 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     // 메인 계좌에서 적금 계좌로 이체
     // 없는 계좌는 조회가 안 되기에 예외 처리 x
     @Transactional
-    public void transferFromRegularAccount(SavingAccountRequestDto savingAccountRequestDto, String token) {
+    public void transferFromRegularAccount(SavingAccountRequestDto savingAccountRequestDto) {
 
         // 회원 정보 조회
-        String memberEmail = JwtTokenUtil.getMemberEmail(token, secretKey);
-        Member member = memberService.getMemberByEmail(memberEmail);
+        Member member = findMember();
 
         // 메인 계좌 및 적금 계좌 조회
         Account regularAccount = accountRepository.findByRegularAccount(member.getId());
-        Account savingAccount = accountRepository.findByAccount(member.getId(), savingAccountRequestDto.receiverAccountId());
+        Account savingAccount = accountRepository.findByAccount(member.getId(),
+            savingAccountRequestDto.receiverAccountId());
 
         // 잔액이 부족하다면 예외 처리
         if (regularAccount.getBalance() < savingAccountRequestDto.balance()) {

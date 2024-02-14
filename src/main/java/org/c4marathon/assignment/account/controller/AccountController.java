@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,22 +33,18 @@ public class AccountController {
     public void createAccount(
         @Valid
         @RequestBody
-        AccountRequestDto accountRequestDto,
-        @RequestHeader(value = "Authorization")
-        String accessToken
+        AccountRequestDto accountRequestDto
     ) {
 
-        accountService.saveAccount(accountRequestDto, accessToken);
+        accountService.saveAccount(accountRequestDto);
     }
 
     @Operation(summary = "계좌 전체 조회")
     @GetMapping("")
     public ResponseEntity<List<AccountResponseDto>> findAccount(
-        @RequestHeader(value = "Authorization")
-        String accessToken
     ) {
 
-        List<AccountResponseDto> accountResponseDtoList = accountService.findAccount(accessToken);
+        List<AccountResponseDto> accountResponseDtoList = accountService.findAccount();
         return ResponseEntity.ok(accountResponseDtoList);
     }
 
@@ -59,11 +54,9 @@ public class AccountController {
     public void rechargeAccount(
         @Valid
         @RequestBody
-        RechargeAccountRequestDto rechargeAccountRequestDto,
-        @RequestHeader(value = "Authorization")
-        String accessToken
+        RechargeAccountRequestDto rechargeAccountRequestDto
     ) {
-        accountService.rechargeAccount(rechargeAccountRequestDto, accessToken);
+        accountService.rechargeAccount(rechargeAccountRequestDto);
     }
 
     @Operation(summary = "메인 계좌에서 적금 계좌로 이체")
@@ -72,10 +65,8 @@ public class AccountController {
     public void rechargeAccount(
         @Valid
         @RequestBody
-        SavingAccountRequestDto savingAccountRequestDto,
-        @RequestHeader(value = "Authorization")
-        String accessToken
+        SavingAccountRequestDto savingAccountRequestDto
     ) {
-        accountService.transferFromRegularAccount(savingAccountRequestDto, accessToken);
+        accountService.transferFromRegularAccount(savingAccountRequestDto);
     }
 }
