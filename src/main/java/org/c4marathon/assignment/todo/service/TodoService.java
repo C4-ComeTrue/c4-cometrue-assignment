@@ -68,14 +68,14 @@ public class TodoService {
 		CalendarEntity calendarEntity = getCalendarEntity(userId, calendarId);
 		Todo todo = getTodoEntity(calendarEntity, todoId);
 
-		todo.setTodoName(todoName);
-		todo.setStartDay(startDay);
-		todo.setStartTime(startTime);
-		todo.setEndDay(endDay);
-		todo.setEndTime(endTime);
-		todo.setTodoMemo(todoMemo);
-		todo.setAllDayFlag(allDayFlag);
-		todo.setRepeatFlag(repeatFlag);
+		todo.editTodoName(todoName);
+		todo.editStartDay(startDay);
+		todo.editStartTime(startTime);
+		todo.editEndDay(endDay);
+		todo.editEndTime(endTime);
+		todo.editTodoMemo(todoMemo);
+		todo.editAllDayFlag(allDayFlag);
+		todo.editRepeatFlag(repeatFlag);
 	}
 
 	/**

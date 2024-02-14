@@ -65,35 +65,35 @@ public class Todo {
 	public Todo(String todoName, Date startDay, Time startTime, Date endDay, Time endTime, boolean allDayFlag, String todoMemo, boolean repeatFlag, CalendarEntity calendarEntity) {
 	}
 
-	public void setTodoName(String todoName) {
+	public void editTodoName(String todoName) {
 		this.todoName = todoName;
 	}
 
-	public void setStartDay(Date editStartDay) {
+	public void editStartDay(Date editStartDay) {
 		this.startDay = editStartDay;
 	}
 
-	public void setStartTime(Time editStartTime) {
+	public void editStartTime(Time editStartTime) {
 		this.startTime = editStartTime;
 	}
 
-	public void setEndDay(Date editEndDay) {
+	public void editEndDay(Date editEndDay) {
 		this.endDay = editEndDay;
 	}
 
-	public void setEndTime(Time editEndTime) {
+	public void editEndTime(Time editEndTime) {
 		this.endTime = editEndTime;
 	}
 
-	public void setAllDayFlag(boolean editAllDayFlag) {
+	public void editAllDayFlag(boolean editAllDayFlag) {
 		this.allDayFlag = editAllDayFlag;
 	}
 
-	public void setRepeatFlag(boolean editRepeatFlag) {
+	public void editRepeatFlag(boolean editRepeatFlag) {
 		this.repeatFlag = editRepeatFlag;
 	}
 
-	public void setTodoMemo(String editTodoMemo) {
+	public void editTodoMemo(String editTodoMemo) {
 		this.todoMemo = editTodoMemo;
 	}
 
