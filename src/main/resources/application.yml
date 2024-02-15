@@ -4,11 +4,11 @@ server:
 spring:
   profiles:
     active: dev
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost/pay
-    username: root
-    password: 4015pskc
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
 
 logging:
   level:

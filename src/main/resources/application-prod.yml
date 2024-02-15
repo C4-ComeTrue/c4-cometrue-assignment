@@ -7,12 +7,4 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        show_sql: true
-
-logging:
-  level:
-    org.hibernate.type.descriptor.sql: trace
+      ddl-auto: none
