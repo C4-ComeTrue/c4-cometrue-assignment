@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class EncryptUtils {
 
+	private EncryptUtils() {}
+
 	public static String encrypt(String password) {
 		return BCrypt.hashpw(password, BCrypt.gensalt());
 	}

@@ -28,7 +28,9 @@ public class SavingsAccountService {
 	 * 적금 계좌 생성 API
 	 */
 	@Transactional
-	public CreateSavingsAccountDto.Res createSavingsAccount(long memberId, String name, int withdrawAmount, SavingsType savingsType) {
+	public CreateSavingsAccountDto.Res createSavingsAccount(
+		long memberId, String name, int withdrawAmount, SavingsType savingsType
+	) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(ErrorCode.INVALID_MEMBER::businessException);
 
