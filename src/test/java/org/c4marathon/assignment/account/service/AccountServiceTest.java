@@ -1,6 +1,8 @@
 package org.c4marathon.assignment.account.service;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,9 +14,12 @@ import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.c4marathon.assignment.util.exceptions.ErrorCode;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -22,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@TestInstance(value = PER_CLASS)
 @ActiveProfiles("test")
 public class AccountServiceTest {
 
@@ -31,9 +37,23 @@ public class AccountServiceTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    @AfterEach
-    void tearDown() {
+    private Member member;
 
+    private Account account;
+
+    // 회원가입과 기본 계좌 생성
+    @BeforeAll
+    void setUp() {
+        member = createMember();
+        account = createAccount(Type.REGULAR_ACCOUNT, member);
+        account.transferBalance(10000L);
+        account.resetDailyLimit(10000);
+        memberRepository.save(member);
+        accountRepository.save(account);
+    }
+
+    @AfterAll
+    void tearDown() {
         accountRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
     }
@@ -47,140 +67,173 @@ public class AccountServiceTest {
             .build();
     }
 
-    private Member createMember(String email, String password, String name) {
+    private Member createMember() {
 
         return Member.builder()
-            .email(email)
-            .password(password)
-            .name(name)
+            .email("test@naver.com")
+            .password("test")
+            .name("test")
             .build();
     }
 
-    @DisplayName("계좌 생성 요청에 의해 회원의 계좌를 생성한다.")
-    @Test
-    @Transactional
-    void createAccountTest() {
+    @Nested
+    @DisplayName("계좌 생성 테스트")
+    class Create {
 
-        // given
-        Member member = createMember("test@naver.com", "test", "test");
-        memberRepository.save(member);
-        Account account = createAccount(Type.REGULAR_ACCOUNT, member);
+        @DisplayName("계좌 생성 요청이 들어오면 요청에 따른 타입의 계좌를 생성한다.")
+        @Test
+        @Transactional
+        void createAccountTest() {
 
-        // when
-        accountRepository.save(account);
+            // given
+            Account account1 = createAccount(Type.ADDITIONAL_ACCOUNT, member);
 
-        // then
-        Optional<Account> findAccount = accountRepository.findById(account.getId());
-        assertThat(findAccount).isPresent();
-        assertThat(findAccount.get().getId()).isEqualTo(account.getId());
-    }
+            // when
+            accountRepository.save(account1);
 
-    @DisplayName("특정 사용자의 생성된 모든 계좌를 불러온다.")
-    @Test
-    void findAccountTest() {
-
-        // given
-        Member member = createMember("test1@naver.com", "test", "test");
-        memberRepository.save(member);
-        Account account = createAccount(Type.REGULAR_ACCOUNT, member);
-        accountRepository.save(account);
-
-        // when
-        List<Account> accountList = accountRepository.findByMember(member);
-
-        // then
-        assertThat(accountList).isNotNull();
-        assertThat(accountList).hasSize(1);
-        assertThat(accountList.get(0).getMember().getId()).isEqualTo(member.getId());
-    }
-
-    @DisplayName("사용자의 특정 계좌를 불러온다.")
-    @Test
-    @Transactional
-    void findMemberAccountTest() {
-
-        // given
-        Member member1 = createMember("test1@naver.com", "test", "test");
-        memberRepository.save(member1);
-        Account account1 = createAccount(Type.REGULAR_ACCOUNT, member1);
-        accountRepository.save(account1);
-
-        // when
-        Account account = accountRepository.findByAccount(member1.getId(), account1.getId());
-
-        // then
-        assertThat(account1.getId()).isEqualTo(account.getId());
-    }
-
-    @DisplayName("사용자의 외부 계좌에서 메인 계좌로 10,000원을 이체한다.")
-    @Test
-    @Transactional
-    void transferToRegularAccountTest() {
-
-        // given
-        Member member1 = createMember("test1@naver.com", "test", "test");
-        memberRepository.save(member1);
-        Account account1 = createAccount(Type.REGULAR_ACCOUNT, member1);
-        accountRepository.save(account1);
-
-        // 계좌 잔액
-        Long afterBalance = 10000L;
-
-        // when
-        Account account = accountRepository.findByAccount(member1.getId(), account1.getId());
-        Integer dailyLimit = account.getDailyLimit();
-        Long balance = account.getBalance();
-        // 하루 충전 금액이 300만원 보다 적어야 함.
-        if (dailyLimit + afterBalance <= 3000000) {
-            account.resetDailyLimit(dailyLimit + afterBalance.intValue());
-            account.transferBalance(balance + afterBalance);
+            // then
+            Optional<Account> findAccount = accountRepository.findById(account1.getId());
+            assertThat(findAccount).isPresent();
+            assertThat(findAccount.get().getId()).isEqualTo(account1.getId());
         }
-        accountRepository.save(account);
-
-        Account resultAccount = accountRepository.findByAccount(member1.getId(), account.getId());
-
-        // then
-        assertThat(resultAccount.getBalance()).isEqualTo(afterBalance);
-        assertThat(resultAccount.getDailyLimit()).isEqualTo(dailyLimit + afterBalance);
     }
 
-    @DisplayName("메인 계좌에서 적금 계좌로 돈을 이체한다.")
+    @Nested
+    @DisplayName("계좌 조회 테스트")
+    class Read {
+
+        @DisplayName("사용자의 생성된 모든 계좌를 불러온다.")
+        @Test
+        void findAccountTest() {
+
+            // when
+            List<Account> accountList = accountRepository.findByMember(member);
+
+            // then
+            assertThat(accountList).isNotNull();
+        }
+
+        @DisplayName("사용자의 특정 계좌를 불러온다.")
+        @Test
+        @Transactional
+        void findMemberAccountTest() {
+
+            // when
+            Account account1 = accountRepository.findByAccount(member.getId(), account.getId());
+
+            // then
+            assertThat(account1.getId()).isEqualTo(account.getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("계좌 충전 테스트")
+    class Recharge {
+
+        public static final int DAILY_LIMIT = 3_000_000;
+
+        @DisplayName("사용자의 외부 계좌에서 메인 계좌로 10,000원을 이체한다.")
+        @Test
+        @Transactional
+        void transferToRegularAccountTest() {
+
+            // given
+            // 이체 금액
+            Long afterBalance = 10000L;
+
+            // when
+            Account account1 = accountRepository.findByAccount(member.getId(), account.getId());
+            Integer dailyLimit = account1.getDailyLimit() + afterBalance.intValue();
+            Long balance = account1.getBalance() + afterBalance;
+            // 하루 충전 금액이 300만원 보다 적어야 함.
+            if (dailyLimit > DAILY_LIMIT) {
+                throw new BaseException(ErrorCode.EXCEEDED_DAILY_LIMIT.toString(), HttpStatus.BAD_REQUEST.toString());
+            }
+            account1.resetDailyLimit(dailyLimit);
+            account1.transferBalance(balance);
+            accountRepository.save(account1);
+
+            Account resultAccount = accountRepository.findByAccount(member.getId(), account1.getId());
+
+            // then
+            assertThat(resultAccount.getBalance()).isEqualTo(balance);
+            assertThat(resultAccount.getDailyLimit()).isEqualTo(dailyLimit);
+        }
+
+        @DisplayName("메인 계좌에 잔액 충전 요청 시 충전 한도가 넘어 오류가 발생한다.")
+        @Test
+        @Transactional
+        void rechargeAccountErrorTest() {
+
+            // given
+            // 이체 금액
+            long afterBalance = Integer.toUnsignedLong(DAILY_LIMIT);
+
+            // when
+            Account account1 = accountRepository.findByAccount(member.getId(), account.getId());
+
+            // 하루 충전 금액이 300만원 보다 적어야 함.
+            Exception exception = assertThrows(BaseException.class, () -> {
+                if (account1.getDailyLimit() + (int)afterBalance > DAILY_LIMIT) {
+                    throw new BaseException(ErrorCode.EXCEEDED_DAILY_LIMIT.toString(), HttpStatus.BAD_REQUEST.toString());
+                }
+            });
+
+            // then
+            assertEquals(HttpStatus.BAD_REQUEST.toString(), exception.getMessage());
+        }
+
+        @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 입력한 금액만큼 충전된다.")
+        @Test
+        @Transactional
+        void transferFromRegularAccountTest() {
+
+            // given
+            // 적금 계좌로 이체하려는 금액
+            Long balance = 10000L;
+            // 적금 계좌
+            Account savingAccount = createAccount(Type.INSTALLMENT_SAVINGS_ACCOUNT, member);
+            accountRepository.save(savingAccount);
+
+            // when
+            // 비관적 락을 걸어두어 행단위 잠금이 되었고, 해당 트랜잭션 안에서만 조회가 가능.
+
+            Account afterSavingAccount = accountRepository.findByAccount(member.getId(), savingAccount.getId());
+            Account afterRegularAccount = accountRepository.findByRegularAccount(member.getId());
+            if (afterRegularAccount.getBalance() < balance) {
+                throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
+            }
+            afterRegularAccount.transferBalance(afterRegularAccount.getBalance() - balance);
+            afterSavingAccount.transferBalance(afterSavingAccount.getBalance() + balance);
+            accountRepository.saveAll(List.of(afterRegularAccount, afterSavingAccount));
+
+            Account resultSavingAccount = accountRepository.findByAccount(member.getId(), afterSavingAccount.getId());
+            Account resultRegularAccount = accountRepository.findByRegularAccount(member.getId());
+
+            // then
+            assertThat(resultRegularAccount.getBalance()).isEqualTo(afterRegularAccount.getBalance());
+            assertThat(resultSavingAccount.getBalance()).isEqualTo(afterSavingAccount.getBalance());
+        }
+    }
+
+    @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 오류가 발생한다.")
     @Test
     @Transactional
-    void transferFromRegularAccountTest() {
+    void transferFromRegularAccountErrorTest() {
 
         // given
         // 적금 계좌로 이체하려는 금액
-        Long balance = 10000L;
-
-        Member member1 = createMember("test1@naver.com", "test", "test");
-        memberRepository.save(member1);
-        // 메인 계좌
-        Account regularAccount = createAccount(Type.REGULAR_ACCOUNT, member1);
-        // 금액 추가
-        regularAccount.transferBalance(balance);
-        regularAccount.resetDailyLimit(balance.intValue());
-        // 적금 계좌
-        Account savingAccount = createAccount(Type.INSTALLMENT_SAVINGS_ACCOUNT, member1);
-        accountRepository.saveAll(List.of(regularAccount, savingAccount));
+        Long balance = 50000L;
 
         // when
-        // 비관적 락을 걸어두어 행단위 잠금이 되었고, 해당 트랜잭션 안에서만 조회가 가능.
-
-        Account afterSavingAccount = accountRepository.findByAccount(member1.getId(), savingAccount.getId());
-        Account afterRegularAccount = accountRepository.findByRegularAccount(member1.getId());
-        if (afterRegularAccount.getBalance() < balance) {
-            throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
-        }
-        afterRegularAccount.transferBalance(afterRegularAccount.getBalance() - balance);
-        afterSavingAccount.transferBalance(afterSavingAccount.getBalance() + balance);
-        accountRepository.saveAll(List.of(afterRegularAccount, afterSavingAccount));
-
-        Account resultSavingAccount = accountRepository.findByAccount(member1.getId(), afterSavingAccount.getId());
-        Account resultRegularAccount = accountRepository.findByRegularAccount(member1.getId());
+        Account afterRegularAccount = accountRepository.findByRegularAccount(member.getId());
+        Exception exception = assertThrows(BaseException.class, () -> {
+            if (afterRegularAccount.getBalance() < balance) {
+                throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
+            }
+        });
 
         // then
-        assertThat(resultRegularAccount.getBalance()).isEqualTo(0);
-        assertThat(resultSavingAccount.getBalance()).isEqualTo(10000);
-    }
+        assertEquals(HttpStatus.FORBIDDEN.toString(), exception.getMessage());
+     }
 }

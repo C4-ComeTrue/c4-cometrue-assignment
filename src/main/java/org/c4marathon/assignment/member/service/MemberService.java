@@ -1,7 +1,7 @@
 package org.c4marathon.assignment.member.service;
 
 import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
-import org.c4marathon.assignment.member.dto.request.JoinReqeustDto;
+import org.c4marathon.assignment.member.dto.request.JoinRequestDto;
 import org.c4marathon.assignment.member.dto.request.LoginRequestDto;
 import org.c4marathon.assignment.member.dto.response.LoginResponseDto;
 import org.c4marathon.assignment.member.entity.Member;
@@ -41,22 +41,22 @@ public class MemberService {
     }
 
     @Transactional
-    public void join(JoinReqeustDto joinReqeustDto) {
+    public void join(JoinRequestDto joinRequestDto) {
 
-        if (checkEmailExist(joinReqeustDto.email())) {
+        if (checkEmailExist(joinRequestDto.email())) {
             throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
         }
 
         Member member = Member.builder()
-            .email(joinReqeustDto.email())
-            .password(passwordEncoder.encode(joinReqeustDto.password()))
-            .name(joinReqeustDto.name())
+            .email(joinRequestDto.email())
+            .password(passwordEncoder.encode(joinRequestDto.password()))
+            .name(joinRequestDto.name())
             .build();
 
         memberRepository.save(member);
 
         // 회원 가입 완료 이벤트 발행
-        eventPublisher.publishEvent(new MemberJoinedEvent(this, joinReqeustDto.email()));
+        eventPublisher.publishEvent(new MemberJoinedEvent(this, joinRequestDto.email()));
     }
 
     public boolean checkEmailExist(String email) {

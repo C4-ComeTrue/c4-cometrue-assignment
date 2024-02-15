@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.member.controller;
 
-import org.c4marathon.assignment.member.dto.request.JoinReqeustDto;
+import org.c4marathon.assignment.member.dto.request.JoinRequestDto;
 import org.c4marathon.assignment.member.dto.request.LoginRequestDto;
 import org.c4marathon.assignment.member.dto.response.LoginResponseDto;
 import org.c4marathon.assignment.member.service.MemberService;
@@ -29,9 +29,9 @@ public class MemberController {
     public void join(
         @Valid
         @RequestBody
-        JoinReqeustDto joinReqeustDto
+        JoinRequestDto joinRequestDto
     ) {
-        memberService.join(joinReqeustDto);
+        memberService.join(joinRequestDto);
     }
 
     @Operation(summary = "로그인")
