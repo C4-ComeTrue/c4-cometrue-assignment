@@ -69,7 +69,7 @@ public class MemberService {
                 () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
 
         if (!passwordEncoder.matches(loginRequestDto.password(), member.getPassword())) {
-            throw new BaseException(ErrorCode.LOGIN_FAILED.toString(), HttpStatus.EXPECTATION_FAILED.toString());
+            throw new BaseException(ErrorCode.LOGIN_FAILED.toString(), HttpStatus.UNAUTHORIZED.toString());
         }
 
         String jwtToken = JwtTokenUtil.createToken(member.getEmail(), secretKey, expireTimeMs);

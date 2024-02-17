@@ -15,7 +15,7 @@ public enum ErrorCode {
     SUCCESS(OK, "요청에 성공하였습니다."),
 
     // ----- Login Response -----
-    LOGIN_FAILED(EXPECTATION_FAILED, "로그인에 실패했습니다."),
+    LOGIN_FAILED(UNAUTHORIZED, "로그인에 실패했습니다."),
 
     // ----- Common Responses -----
     COMMON_NOT_FOUND(NOT_FOUND, "정보를 가져오는데 실패하였습니다."),

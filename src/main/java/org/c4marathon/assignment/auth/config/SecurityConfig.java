@@ -40,8 +40,7 @@ public class SecurityConfig {
                     config.setAllowCredentials(true);
                     config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:80"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                    config.setAllowedHeaders(List.of("*"));
-                    config.setExposedHeaders(List.of("*"));
+                    config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
 
                     return config;
                 }
@@ -49,6 +48,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(request -> request
                 .requestMatchers("/members/join").permitAll()
                 .requestMatchers("/members/login").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtTokenFilter(secretKey), UsernamePasswordAuthenticationFilter.class)
