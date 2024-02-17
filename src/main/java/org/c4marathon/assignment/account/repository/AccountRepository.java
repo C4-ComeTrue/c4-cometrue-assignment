@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.account.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.member.entity.Member;
@@ -21,7 +22,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
         WHERE a.member.id = :memberId
         AND a.id = :id
         """)
-    Account findByAccount(Long memberId, Long id);
+    Optional<Account> findByAccount(Long memberId, Long id);
 
     // 회원의 메인 계좌 조회
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -30,5 +31,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
         WHERE a.member.id = :memberId
         AND a.type = 'REGULAR_ACCOUNT'
         """)
-    Account findByRegularAccount(Long memberId);
+    Optional<Account> findByRegularAccount(Long memberId);
 }

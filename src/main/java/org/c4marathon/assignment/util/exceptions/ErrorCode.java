@@ -36,6 +36,7 @@ public enum ErrorCode {
     EXCEEDED_DAILY_LIMIT(BAD_REQUEST, "하루 충전 한도를 초과하였습니다."),
     NOT_REGULAR_ACCOUNT(FORBIDDEN, "일반 계좌에서만 송금이 가능합니다."),
     INSUFFICIENT_BALANCE(FORBIDDEN, "잔액이 부족합니다."),
+    REGULAR_ACCOUNT_DOES_NOT_EXIST(FORBIDDEN, "메인 계좌가 존재하지 않습니다."),
     ACCOUNT_DOES_NOT_EXIST(FORBIDDEN, "계좌가 존재하지 않습니다.");
 
     private final HttpStatus status;

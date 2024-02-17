@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.account.service;
 
+import static org.springframework.http.HttpStatus.*;
+
 import java.util.List;
 
 import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
@@ -89,7 +91,15 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
         Member member = findMember();
 
         // 계좌 정보 조회
-        Account account = accountRepository.findByAccount(member.getId(), rechargeAccountRequestDto.accountId());
+        Account account = accountRepository.findByRegularAccount(member.getId())
+            .orElseGet(() -> {
+                // 메인 계좌가 존재하지 않는다면
+                // 새로운 메인 계좌 생성 후 반환
+                saveAccount(new AccountRequestDto(Type.REGULAR_ACCOUNT));
+                return accountRepository.findByRegularAccount(member.getId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(),
+                        FORBIDDEN.toString()));
+            });
         int dailyLimit = account.getDailyLimit() + rechargeAccountRequestDto.balance().intValue();
         Long balance = account.getBalance() + rechargeAccountRequestDto.balance();
 
@@ -106,7 +116,6 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     }
 
     // 메인 계좌에서 적금 계좌로 이체
-    // 없는 계좌는 조회가 안 되기에 예외 처리 x
     @Transactional
     public void transferFromRegularAccount(SavingAccountRequestDto savingAccountRequestDto) {
 
@@ -114,9 +123,11 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
         Member member = findMember();
 
         // 메인 계좌 및 적금 계좌 조회
-        Account regularAccount = accountRepository.findByRegularAccount(member.getId());
+        Account regularAccount = accountRepository.findByRegularAccount(member.getId())
+            .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
         Account savingAccount = accountRepository.findByAccount(member.getId(),
-            savingAccountRequestDto.receiverAccountId());
+                savingAccountRequestDto.receiverAccountId())
+            .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
         // 잔액이 부족하다면 예외 처리
         if (regularAccount.getBalance() < savingAccountRequestDto.balance()) {
