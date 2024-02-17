@@ -3,6 +3,7 @@ package org.c4marathon.assignment.account.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
+import static org.springframework.http.HttpStatus.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -119,7 +120,9 @@ public class AccountServiceTest {
         void findMemberAccountTest() {
 
             // when
-            Account account1 = accountRepository.findByAccount(member.getId(), account.getId());
+            Account account1 = accountRepository.findByAccount(member.getId(), account.getId())
+                .orElseThrow(
+                    () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
             // then
             assertThat(account1.getId()).isEqualTo(account.getId());
@@ -142,7 +145,8 @@ public class AccountServiceTest {
             Long afterBalance = 10000L;
 
             // when
-            Account account1 = accountRepository.findByAccount(member.getId(), account.getId());
+            Account account1 = accountRepository.findByRegularAccount(member.getId()).orElseThrow(
+                () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
             Integer dailyLimit = account1.getDailyLimit() + afterBalance.intValue();
             Long balance = account1.getBalance() + afterBalance;
             // 하루 충전 금액이 300만원 보다 적어야 함.
@@ -153,7 +157,8 @@ public class AccountServiceTest {
             account1.transferBalance(balance);
             accountRepository.save(account1);
 
-            Account resultAccount = accountRepository.findByAccount(member.getId(), account1.getId());
+            Account resultAccount = accountRepository.findByRegularAccount(member.getId()).orElseThrow(
+                () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
             // then
             assertThat(resultAccount.getBalance()).isEqualTo(balance);
@@ -170,12 +175,14 @@ public class AccountServiceTest {
             long afterBalance = Integer.toUnsignedLong(DAILY_LIMIT);
 
             // when
-            Account account1 = accountRepository.findByAccount(member.getId(), account.getId());
+            Account account1 = accountRepository.findByRegularAccount(member.getId()).orElseThrow(
+                () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
             // 하루 충전 금액이 300만원 보다 적어야 함.
             Exception exception = assertThrows(BaseException.class, () -> {
                 if (account1.getDailyLimit() + (int)afterBalance > DAILY_LIMIT) {
-                    throw new BaseException(ErrorCode.EXCEEDED_DAILY_LIMIT.toString(), HttpStatus.BAD_REQUEST.toString());
+                    throw new BaseException(ErrorCode.EXCEEDED_DAILY_LIMIT.toString(),
+                        HttpStatus.BAD_REQUEST.toString());
                 }
             });
 
@@ -198,8 +205,11 @@ public class AccountServiceTest {
             // when
             // 비관적 락을 걸어두어 행단위 잠금이 되었고, 해당 트랜잭션 안에서만 조회가 가능.
 
-            Account afterSavingAccount = accountRepository.findByAccount(member.getId(), savingAccount.getId());
-            Account afterRegularAccount = accountRepository.findByRegularAccount(member.getId());
+            Account afterSavingAccount = accountRepository.findByAccount(member.getId(), savingAccount.getId())
+                .orElseThrow(
+                    () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+            Account afterRegularAccount = accountRepository.findByRegularAccount(member.getId()).orElseThrow(
+                () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
             if (afterRegularAccount.getBalance() < balance) {
                 throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
             }
@@ -207,8 +217,11 @@ public class AccountServiceTest {
             afterSavingAccount.transferBalance(afterSavingAccount.getBalance() + balance);
             accountRepository.saveAll(List.of(afterRegularAccount, afterSavingAccount));
 
-            Account resultSavingAccount = accountRepository.findByAccount(member.getId(), afterSavingAccount.getId());
-            Account resultRegularAccount = accountRepository.findByRegularAccount(member.getId());
+            Account resultSavingAccount = accountRepository.findByAccount(member.getId(), afterSavingAccount.getId())
+                .orElseThrow(
+                    () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+            Account resultRegularAccount = accountRepository.findByRegularAccount(member.getId()).orElseThrow(
+                () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
             // then
             assertThat(resultRegularAccount.getBalance()).isEqualTo(afterRegularAccount.getBalance());
@@ -226,7 +239,8 @@ public class AccountServiceTest {
         Long balance = 50000L;
 
         // when
-        Account afterRegularAccount = accountRepository.findByRegularAccount(member.getId());
+        Account afterRegularAccount = accountRepository.findByRegularAccount(member.getId()).orElseThrow(
+            () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
         Exception exception = assertThrows(BaseException.class, () -> {
             if (afterRegularAccount.getBalance() < balance) {
                 throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
@@ -235,5 +249,5 @@ public class AccountServiceTest {
 
         // then
         assertEquals(HttpStatus.FORBIDDEN.toString(), exception.getMessage());
-     }
+    }
 }

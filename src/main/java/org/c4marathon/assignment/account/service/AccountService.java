@@ -124,7 +124,8 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
         // 메인 계좌 및 적금 계좌 조회
         Account regularAccount = accountRepository.findByRegularAccount(member.getId())
-            .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+            .orElseThrow(
+                () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
         Account savingAccount = accountRepository.findByAccount(member.getId(),
                 savingAccountRequestDto.receiverAccountId())
             .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
