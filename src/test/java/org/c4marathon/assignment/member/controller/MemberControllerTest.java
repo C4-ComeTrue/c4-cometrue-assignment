@@ -179,7 +179,7 @@ public class MemberControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .with(csrf())
                     .content(objectMapper.writeValueAsString(loginRequestDto)))
-                .andExpect(status().isExpectationFailed())
+                .andExpect(status().isUnauthorized())
                 .andReturn();
 
             // then

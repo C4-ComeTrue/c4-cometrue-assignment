@@ -168,12 +168,12 @@ public class MemberServiceTest {
             Exception exception = assertThrows(BaseException.class, () -> {
                 if (!passwordEncoder.matches(password, member.getPassword())) {
                     throw new BaseException(ErrorCode.LOGIN_FAILED.toString(),
-                        HttpStatus.EXPECTATION_FAILED.toString());
+                        HttpStatus.UNAUTHORIZED.toString());
                 }
             });
 
             // then
-            assertEquals(HttpStatus.EXPECTATION_FAILED.toString(), exception.getMessage());
+            assertEquals(HttpStatus.UNAUTHORIZED.toString(), exception.getMessage());
         }
     }
 }
