@@ -108,7 +108,7 @@ public class AccountServiceTest {
         void findAccountTest() {
 
             // when
-            List<Account> accountList = accountRepository.findByMember(member);
+            List<Account> accountList = accountRepository.findByMemberId(member.getId());
 
             // then
             assertThat(accountList).isNotNull();

@@ -75,7 +75,7 @@ public class AccoutControllerTest {
 
     // 토큰 생성
     private String createToken() {
-        return JwtTokenUtil.createToken("test@naver.com", secretKey, expireTimeMs);
+        return JwtTokenUtil.createToken(0L, secretKey, expireTimeMs);
     }
 
     @BeforeAll
