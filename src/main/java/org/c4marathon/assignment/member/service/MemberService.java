@@ -35,9 +35,10 @@ public class MemberService {
     private Long expireTimeMs;
 
     // 이메일로 회원 정보 찾기
-    public Member getMemberByEmail(String email) {
-        return memberRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 회원입니다."));
+    public Member getMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
+            .orElseThrow(
+                () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
     }
 
     @Transactional
@@ -72,7 +73,7 @@ public class MemberService {
             throw new BaseException(ErrorCode.LOGIN_FAILED.toString(), HttpStatus.UNAUTHORIZED.toString());
         }
 
-        String jwtToken = JwtTokenUtil.createToken(member.getEmail(), secretKey, expireTimeMs);
+        String jwtToken = JwtTokenUtil.createToken(member.getId(), secretKey, expireTimeMs);
 
         return new LoginResponseDto(
             jwtToken

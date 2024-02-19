@@ -34,19 +34,19 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
     public static final int DAILY_LIMIT = 3_000_000;
 
-    private Member findMember() {
+    private Long findMember() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String memberEmail = (String)authentication.getPrincipal();
 
-        return memberService.getMemberByEmail(memberEmail);
+        return (Long)authentication.getPrincipal();
     }
 
     // 계좌 생성
     @Transactional
     public void saveAccount(AccountRequestDto accountRequestDto) {
 
-        Member member = findMember();
+        Long memberId = findMember();
+        Member member = memberService.getMemberById(memberId);
         Account account = createAccount(accountRequestDto.type(), member);
 
         accountRepository.save(account);
@@ -73,9 +73,8 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     public List<AccountResponseDto> findAccount() {
 
         // 회원 정보 조회
-        Member member = findMember();
-
-        List<Account> accountList = accountRepository.findByMember(member);
+        Long memberId = findMember();
+        List<Account> accountList = accountRepository.findByMemberId(memberId);
 
         // 계좌 조회 후 Entity를 Dto로 변환 후 리턴
         return accountList.stream()
@@ -88,15 +87,15 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     public void rechargeAccount(RechargeAccountRequestDto rechargeAccountRequestDto) {
 
         // 회원 정보 조회
-        Member member = findMember();
+        Long memberId = findMember();
 
         // 계좌 정보 조회
-        Account account = accountRepository.findByRegularAccount(member.getId())
+        Account account = accountRepository.findByRegularAccount(memberId)
             .orElseGet(() -> {
                 // 메인 계좌가 존재하지 않는다면
                 // 새로운 메인 계좌 생성 후 반환
                 saveAccount(new AccountRequestDto(Type.REGULAR_ACCOUNT));
-                return accountRepository.findByRegularAccount(member.getId())
+                return accountRepository.findByRegularAccount(memberId)
                     .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(),
                         FORBIDDEN.toString()));
             });
@@ -120,13 +119,13 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     public void transferFromRegularAccount(SavingAccountRequestDto savingAccountRequestDto) {
 
         // 회원 정보 조회
-        Member member = findMember();
+        Long memberId = findMember();
 
         // 메인 계좌 및 적금 계좌 조회
-        Account regularAccount = accountRepository.findByRegularAccount(member.getId())
+        Account regularAccount = accountRepository.findByRegularAccount(memberId)
             .orElseThrow(
                 () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
-        Account savingAccount = accountRepository.findByAccount(member.getId(),
+        Account savingAccount = accountRepository.findByAccount(memberId,
                 savingAccountRequestDto.receiverAccountId())
             .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 

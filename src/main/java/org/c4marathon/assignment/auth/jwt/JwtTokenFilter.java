@@ -41,12 +41,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Jwt Token에서 Email 추출
-        String memberLoignEmail = JwtTokenUtil.getMemberEmail(authorizationHeader, secretKey);
+        // Jwt Token에서 memberId 추출
+        Long memberId = JwtTokenUtil.getMemberEmail(authorizationHeader, secretKey);
 
         // loginUser 정보로 UsernamePasswordAuthenticationToken 발급
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-            memberLoignEmail, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+            memberId, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
         // 권한 부여

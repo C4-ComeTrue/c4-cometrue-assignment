@@ -8,13 +8,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 public class JwtTokenUtil {
 
-    private static final String CLAIM_KEY_MEMBER_EMAIL = "memberEmail";
+    private static final String CLAIM_KEY_MEMBER_ID = "memberId";
 
     // JWT Token 발급
-    public static String createToken(String memberEmail, String key, long expireTimeMs) {
+    public static String createToken(Long memberId, String key, long expireTimeMs) {
         // Claim = Jwt Token에 들어갈 정보
         Claims claims = Jwts.claims();
-        claims.put(CLAIM_KEY_MEMBER_EMAIL, memberEmail);
+        claims.put(CLAIM_KEY_MEMBER_ID, memberId);
 
         return Jwts.builder()
             .setClaims(claims)
@@ -25,8 +25,8 @@ public class JwtTokenUtil {
     }
 
     // Claims에서 memberEmail 꺼내기
-    public static String getMemberEmail(String token, String secretKey) {
-        return extractClaims(token, secretKey).get(CLAIM_KEY_MEMBER_EMAIL).toString();
+    public static Long getMemberEmail(String token, String secretKey) {
+        return (Long)extractClaims(token, secretKey).get(CLAIM_KEY_MEMBER_ID);
     }
 
     // 발급된 Token이 만료 시간이 지났는지 체크
