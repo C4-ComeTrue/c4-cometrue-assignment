@@ -81,7 +81,23 @@ public class AccountServiceTest {
     @DisplayName("계좌 생성 테스트")
     class Create {
 
-        @DisplayName("계좌 생성 요청이 들어오면 요청에 따른 타입의 계좌를 생성한다.")
+        @DisplayName("메인 계좌가 존재한다.")
+        @Test
+        void existsAccount() {
+
+            // when
+            boolean existsMainAccount = accountRepository.existsAccountByMemberIdAndType(member.getId(), Type.REGULAR_ACCOUNT);
+
+            // then
+            assertTrue(existsMainAccount);
+        }
+
+        // 메인 계좌가 존재하는지 확인
+        private boolean isMainAccount(Long memberId) {
+            return accountRepository.existsAccountByMemberIdAndType(memberId, Type.REGULAR_ACCOUNT);
+        }
+
+        @DisplayName("계좌 생성 요청이 들어오면 요청에 따른 타입의 계좌를 생성하고 메인 계좌가 존재하지 않는다면 생성한다.")
         @Test
         @Transactional
         void createAccountTest() {
@@ -91,6 +107,9 @@ public class AccountServiceTest {
 
             // when
             accountRepository.save(account1);
+            if (!isMainAccount(member.getId())) {
+                accountRepository.save(createAccount(Type.REGULAR_ACCOUNT, member));
+            }
 
             // then
             Optional<Account> findAccount = accountRepository.findById(account1.getId());
