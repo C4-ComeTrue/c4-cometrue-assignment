@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,15 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
         Account account = createAccount(accountRequestDto.type(), member);
 
         accountRepository.save(account);
+
+        if (!isMainAccount(memberId)) {
+            accountRepository.save(createAccount(Type.REGULAR_ACCOUNT, member));
+        }
+    }
+
+    // 메인 계좌가 존재하는지 확인
+    private boolean isMainAccount(Long memberId) {
+        return accountRepository.existsAccountByMemberIdAndType(memberId, Type.REGULAR_ACCOUNT);
     }
 
     // 계좌 객체 생성
@@ -83,7 +93,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     }
 
     // 메인 계좌 잔액 충전
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void rechargeAccount(RechargeAccountRequestDto rechargeAccountRequestDto) {
 
         // 회원 정보 조회
@@ -91,14 +101,9 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
         // 계좌 정보 조회
         Account account = accountRepository.findByRegularAccount(memberId)
-            .orElseGet(() -> {
-                // 메인 계좌가 존재하지 않는다면
-                // 새로운 메인 계좌 생성 후 반환
-                saveAccount(new AccountRequestDto(Type.REGULAR_ACCOUNT));
-                return accountRepository.findByRegularAccount(memberId)
-                    .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(),
-                        FORBIDDEN.toString()));
-            });
+            .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(),
+                FORBIDDEN.toString()));
+
         int dailyLimit = account.getDailyLimit() + rechargeAccountRequestDto.balance().intValue();
         Long balance = account.getBalance() + rechargeAccountRequestDto.balance();
 
@@ -115,7 +120,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     }
 
     // 메인 계좌에서 적금 계좌로 이체
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void transferFromRegularAccount(SavingAccountRequestDto savingAccountRequestDto) {
 
         // 회원 정보 조회
@@ -125,17 +130,18 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
         Account regularAccount = accountRepository.findByRegularAccount(memberId)
             .orElseThrow(
                 () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
-        Account savingAccount = accountRepository.findByAccount(memberId,
-                savingAccountRequestDto.receiverAccountId())
-            .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
         // 잔액이 부족하다면 예외 처리
         if (regularAccount.getBalance() < savingAccountRequestDto.balance()) {
             throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
         }
 
-        // 적금 이체
         regularAccount.transferBalance(regularAccount.getBalance() - savingAccountRequestDto.balance());
+
+        Account savingAccount = accountRepository.findByAccount(memberId,
+                savingAccountRequestDto.receiverAccountId())
+            .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+
         savingAccount.transferBalance(savingAccount.getBalance() + savingAccountRequestDto.balance());
 
         accountRepository.saveAll(List.of(regularAccount, savingAccount));
