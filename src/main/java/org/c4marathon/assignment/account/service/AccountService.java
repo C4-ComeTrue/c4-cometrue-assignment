@@ -93,7 +93,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     }
 
     // 메인 계좌 잔액 충전
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void rechargeAccount(RechargeAccountRequestDto rechargeAccountRequestDto) {
 
         // 회원 정보 조회
@@ -120,7 +120,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     }
 
     // 메인 계좌에서 적금 계좌로 이체
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void transferFromRegularAccount(SavingAccountRequestDto savingAccountRequestDto) {
 
         // 회원 정보 조회
