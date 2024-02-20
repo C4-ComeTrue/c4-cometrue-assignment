@@ -1,10 +1,8 @@
 package org.c4marathon.assignment.domain.entity;
 
-import org.c4marathon.assignment.domain.ChargeLimit;
+import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,16 +38,19 @@ public class Account extends BaseEntity {
 
 	private String name;
 
-	private String accountNumber;            // TODO: Bank Enum 관리
+	private String accountNumber;
 
 	@NotNull
+	@PositiveOrZero
 	private long amount;
 
 	@NotNull
-	private int accumulatedChargeAmount;     // 사용자가 1일 동안 누적한 충전 금액 -> 하루 주기로 초기화
+	@PositiveOrZero
+	private long accumulatedChargeAmount;     // 사용자가 1일 동안 누적한 충전 금액 -> 하루 주기로 초기화
 
-	@Enumerated(EnumType.STRING)
-	private ChargeLimit chargeLimit = ChargeLimit.DAY_BASIC_LIMIT;
+	@NotNull
+	@PositiveOrZero
+	private long chargeLimit = ChargeLimitUtils.BASIC_LIMIT;     // 충전 한도
 
 	@Builder
 	public Account(Member member, String name, String accountNumber) {
@@ -57,12 +59,12 @@ public class Account extends BaseEntity {
 		this.accountNumber = accountNumber;
 	}
 
-	public void charge(int amount) {
+	public void charge(long amount) {
 		this.amount += amount;
 		this.accumulatedChargeAmount += amount;
 	}
 
-	public void withdraw(int amount) {
+	public void withdraw(long amount) {
 		this.amount -= amount;
 	}
 }

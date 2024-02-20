@@ -35,7 +35,7 @@ class ConcurrencyTest {
 		var response = memberService.register("email", "password");
 		var memberId = response.memberId();
 		var accountId = response.accountId();
-		var concurrentUser = 1;
+		var concurrentUser = 2;
 		var withdrawAmount = 5000;
 		var chargeAmount = 10000;
 

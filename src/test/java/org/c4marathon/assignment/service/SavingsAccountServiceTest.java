@@ -40,7 +40,7 @@ class SavingsAccountServiceTest {
 	void 적금_계좌_생성에_성공한다() {
 		// given
 		var accountId = 1L;
-		var withdrawAmount = 10000;
+		var withdrawAmount = 10000L;
 		var savingType = SavingsType.REGULAR;
 		var member = mock(Member.class);
 		var savingsAccount = mock(SavingsAccount.class);
@@ -59,7 +59,7 @@ class SavingsAccountServiceTest {
 	@Test
 	void 메인_에서_적금_계좌로_이체에_성공한다() {
 		// given
-		var withdrawAmount = 10000;
+		var withdrawAmount = 10000L;
 		var mainAccountAmount = 50000L;
 		var account = mock(Account.class);
 		var savingsAccount = mock(SavingsAccount.class);
@@ -104,7 +104,7 @@ class SavingsAccountServiceTest {
 	void 요청된_인출_금액이_잔고보다_많으면_이체에_실패한다() {
 		// given
 		var memberId = 1L;
-		var withdrawAmount = 50000;
+		var withdrawAmount = 50000L;
 		var mainAccountAmount = 10000L;
 		var account = mock(Account.class);
 		var savingsAccount = mock(SavingsAccount.class);
@@ -125,7 +125,7 @@ class SavingsAccountServiceTest {
 		// given
 		var savingsAccount = mock(SavingsAccount.class);
 		var savingsType = SavingsType.FREE;
-		var transferAmount = 10000;
+		var transferAmount = 10000L;
 
 		given(savingsAccountRepository.findById(anyLong())).willReturn(Optional.of(savingsAccount));
 		given(savingsAccount.getSavingsType()).willReturn(savingsType);
@@ -142,7 +142,7 @@ class SavingsAccountServiceTest {
 	void 자유_적금_계좌가_없다면_충전에_실패한다() {
 		// given
 		var accountId = 1L;
-		var transferAmount = 10000;
+		var transferAmount = 10000L;
 
 		// when + then
 		assertThatThrownBy(() -> savingsAccountService.transferForFreeSavings(accountId, transferAmount))
@@ -154,7 +154,7 @@ class SavingsAccountServiceTest {
 	@Test
 	void 자유_적금이_아닌_정기_적금이라면_충전에_실패한다() {
 		// given
-		var transferAmount = 10000;
+		var transferAmount = 10000L;
 		var savingsAccount = mock(SavingsAccount.class);
 		var savingsType = SavingsType.REGULAR;
 

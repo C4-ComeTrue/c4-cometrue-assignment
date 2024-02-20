@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,22 +40,24 @@ public class SavingsAccount extends BaseEntity {
 	private Member member;
 
 	@NotNull
+	@PositiveOrZero
 	private long amount;                // 현재 보유하고 있는 잔고의 양
 
 	@Enumerated(EnumType.STRING)
 	private SavingsType savingsType;    // 들고 있는 적금 종류
 
-	private int withdrawAmount;         // 고정된 출금액
+	@PositiveOrZero
+	private long withdrawAmount;        // 고정된 출금액
 
 	@Builder
-	public SavingsAccount(Member member, String name, SavingsType savingsType, int withdrawAmount) {
+	public SavingsAccount(Member member, String name, SavingsType savingsType, long withdrawAmount) {
 		this.member = member;
 		this.name = name;
 		this.savingsType = savingsType;
 		this.withdrawAmount = withdrawAmount;
 	}
 
-	public void charge(int amount) {
+	public void charge(long amount) {
 		this.amount += amount;
 	}
 }

@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import org.c4marathon.assignment.common.exception.BusinessException;
 import org.c4marathon.assignment.common.exception.ErrorCode;
-import org.c4marathon.assignment.domain.ChargeLimit;
+import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.Member;
 import org.c4marathon.assignment.repository.AccountRepository;
@@ -52,13 +52,13 @@ class AccountServiceTest {
 	void 계좌_충전에_성공한다() {
 		// given
 		var accountId = 1L;
-		var chargeAmount = 1000;
-		var accumulatedChargeAmount = 100000;
+		var chargeAmount = 1000L;
+		var accumulatedChargeAmount = 100000L;
 		var totalAmount = 1000L;
 		var account = mock(Account.class);
 
 		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
-		given(account.getChargeLimit()).willReturn(ChargeLimit.DAY_BASIC_LIMIT);
+		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
 		given(account.getAccumulatedChargeAmount()).willReturn(accumulatedChargeAmount);
 		given(account.getAmount()).willReturn(totalAmount);
 
@@ -73,7 +73,7 @@ class AccountServiceTest {
 	void 계좌가_존재하지_않는_경우_실패한다() {
 		// given
 		var accountId = 1L;
-		var chargeAmount = 1000;
+		var chargeAmount = 1000L;
 
 		// when + then
 		assertThatThrownBy(() -> accountService.charge(accountId,chargeAmount))
@@ -87,11 +87,11 @@ class AccountServiceTest {
 		// given
 		var accountId = 1L;
 		var account = mock(Account.class);
-		var chargeAmount = 10000;
+		var chargeAmount = 10000L;
 
 		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
-		given(account.getChargeLimit()).willReturn(ChargeLimit.DAY_BASIC_LIMIT);
-		given(account.getAccumulatedChargeAmount()).willReturn(3000001);
+		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
+		given(account.getAccumulatedChargeAmount()).willReturn(3000001L);
 
 		// when + then
 		assertThatThrownBy(() -> accountService.charge(accountId, chargeAmount))

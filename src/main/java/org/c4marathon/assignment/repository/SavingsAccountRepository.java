@@ -12,7 +12,7 @@ import jakarta.persistence.LockModeType;
 
 public interface SavingsAccountRepository extends JpaRepository<SavingsAccount, Long> {
 
-	@Lock(LockModeType.PESSIMISTIC_WRITE)   // SELECT FOR UPDATE
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select sac from SavingsAccount sac where sac.member.id = :id")
 	Optional<SavingsAccount> findByMemberIdWithWriteLock(@Param("id") long memberId);
 }

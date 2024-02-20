@@ -2,7 +2,7 @@ package org.c4marathon.assignment.domain.entity;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.c4marathon.assignment.domain.ChargeLimit;
+import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 import org.junit.jupiter.api.Test;
 
 class AccountTest {
@@ -14,7 +14,7 @@ class AccountTest {
 		var totalAmount = 500000L;
 		var accumulatedChargeAmount = 100000;
 		Member member = new Member("email", "password");
-		Account account = new Account(1L, member, "name", "number", totalAmount, accumulatedChargeAmount, ChargeLimit.DAY_BASIC_LIMIT);
+		Account account = new Account(1L, member, "name", "number", totalAmount, accumulatedChargeAmount, ChargeLimitUtils.BASIC_LIMIT);
 
 		// when
 		account.charge(chargeAmount);
@@ -31,7 +31,7 @@ class AccountTest {
 		var totalAmount = 50000L;
 		var accumulatedChargeAmount = 100000;
 		Member member = new Member("email", "password");
-		Account account = new Account(1L, member, "name", "number", totalAmount, accumulatedChargeAmount, ChargeLimit.DAY_BASIC_LIMIT);
+		Account account = new Account(1L, member, "name", "number", totalAmount, accumulatedChargeAmount, ChargeLimitUtils.BASIC_LIMIT);
 
 		// when
 		account.withdraw(withDrawAmount);

@@ -29,7 +29,7 @@ public class SavingsAccountService {
 	 */
 	@Transactional
 	public CreateSavingsAccountDto.Res createSavingsAccount(
-		long memberId, String name, int withdrawAmount, SavingsType savingsType
+		long memberId, String name, long withdrawAmount, SavingsType savingsType
 	) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(ErrorCode.INVALID_MEMBER::businessException);
@@ -60,7 +60,7 @@ public class SavingsAccountService {
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다.
-		int withDrawAmount = savingsAccount.getWithdrawAmount();
+		long withDrawAmount = savingsAccount.getWithdrawAmount();
 		long totalAmount = account.getAmount();
 
 		if (isAmountEnoughToWithdraw(totalAmount, withDrawAmount)) {
@@ -76,7 +76,7 @@ public class SavingsAccountService {
 	 * 자유 적금 API -> 자유롭게 적금
 	 */
 	@Transactional
-	public ChargeSavingsAccountDto.Res transferForFreeSavings(long accountId, int amount) {
+	public ChargeSavingsAccountDto.Res transferForFreeSavings(long accountId, long amount) {
 		// 1. 자유 적금 계좌를 불러온다.
 		SavingsAccount savingsAccount = savingsAccountRepository.findById(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
@@ -91,7 +91,7 @@ public class SavingsAccountService {
 		return new ChargeSavingsAccountDto.Res(savingsAccount.getAmount());
 	}
 
-	private boolean isAmountEnoughToWithdraw(long totalAmount, int withDrawAmount) {
+	private boolean isAmountEnoughToWithdraw(long totalAmount, long withDrawAmount) {
 		return totalAmount < withDrawAmount;
 	}
 

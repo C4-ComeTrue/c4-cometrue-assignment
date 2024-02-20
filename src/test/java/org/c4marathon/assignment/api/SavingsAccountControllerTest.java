@@ -37,7 +37,7 @@ class SavingsAccountControllerTest {
 		var result = new CreateSavingsAccountDto.Res(accountId);
 		var request = new CreateSavingsAccountDto.Req("name", 1L, 1000, SavingsType.REGULAR);
 
-		given(savingsAccountService.createSavingsAccount(anyLong(), anyString(), anyInt(), any())).willReturn(result);
+		given(savingsAccountService.createSavingsAccount(anyLong(), anyString(), anyLong(), any())).willReturn(result);
 
 		// when
 		mockMvc.perform(

@@ -3,7 +3,6 @@ package org.c4marathon.assignment.common.utils;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 
-@Component
 public class EncryptUtils {
 
 	private EncryptUtils() {}

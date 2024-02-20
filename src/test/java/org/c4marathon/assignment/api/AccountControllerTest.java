@@ -56,7 +56,7 @@ class AccountControllerTest {
 		var result = new ChargeAccountDto.Res(totalAmount);
 		var request = new ChargeAccountDto.Req(accountId, amount);
 
-		given(accountService.charge(anyLong(), anyInt())).willReturn(result);
+		given(accountService.charge(anyLong(), anyLong())).willReturn(result);
 
 		// when
 		mockMvc.perform(
