@@ -33,17 +33,17 @@ public class AccountService {
 
     public static final int DAILY_LIMIT = 3_000_000;
 
-    private Long findMember() {
+    public Long findMember() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         return (Long)authentication.getPrincipal();
     }
-    
+
     // 회원 가입 시 메인 계좌 생성
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void saveMainAccount(Long memberId) {
-        
+
         Member member = memberService.getMemberById(memberId);
         Account account = createAccount(Type.REGULAR_ACCOUNT, member);
 
@@ -67,12 +67,12 @@ public class AccountService {
     }
 
     // 메인 계좌가 존재하는지 확인
-    private boolean isMainAccount(Long memberId) {
+    public boolean isMainAccount(Long memberId) {
         return accountRepository.existsAccountByMemberIdAndType(memberId, Type.REGULAR_ACCOUNT);
     }
 
     // 계좌 객체 생성
-    private Account createAccount(Type type, Member member) {
+    public Account createAccount(Type type, Member member) {
 
         return Account.builder()
             .type(type)
