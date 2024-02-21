@@ -41,9 +41,19 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
         return (Long)authentication.getPrincipal();
     }
+    
+    // 회원 가입 시 메인 계좌 생성
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void saveMainAccount(Long memberId) {
+        
+        Member member = memberService.getMemberById(memberId);
+        Account account = createAccount(Type.REGULAR_ACCOUNT, member);
+
+        accountRepository.save(account);
+    }
 
     // 계좌 생성
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void saveAccount(AccountRequestDto accountRequestDto) {
 
         Long memberId = findMember();
@@ -52,6 +62,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
 
         accountRepository.save(account);
 
+        // 메인 계좌가 존재하지 않을 시 확인 후 생성
         if (!isMainAccount(memberId)) {
             accountRepository.save(createAccount(Type.REGULAR_ACCOUNT, member));
         }
@@ -76,7 +87,7 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
     public void onApplicationEvent(MemberJoinedEvent event) {
 
         // 계좌 생성
-        saveAccount(new AccountRequestDto(Type.REGULAR_ACCOUNT));
+        saveMainAccount(event.getMemberId());
     }
 
     // 계좌 전체 조회

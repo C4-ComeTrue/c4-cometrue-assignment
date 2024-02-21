@@ -57,7 +57,7 @@ public class MemberService {
         memberRepository.save(member);
 
         // 회원 가입 완료 이벤트 발행
-        eventPublisher.publishEvent(new MemberJoinedEvent(this, joinRequestDto.email()));
+        eventPublisher.publishEvent(new MemberJoinedEvent(this, member.getId()));
     }
 
     public boolean checkEmailExist(String email) {

@@ -3,14 +3,14 @@ package org.c4marathon.assignment.util.event;
 import org.springframework.context.ApplicationEvent;
 
 public class MemberJoinedEvent extends ApplicationEvent {
-    private String memberEmail;
+    private Long memberId;
 
-    public MemberJoinedEvent(Object source, String memberEmail) {
+    public MemberJoinedEvent(Object source, Long memberId) {
         super(source);
-        this.memberEmail = memberEmail;
+        this.memberId = memberId;
     }
 
-    public String getMemberEmail() {
-        return memberEmail;
+    public Long getMemberId() {
+        return memberId;
     }
 }
