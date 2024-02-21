@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
 import static org.mockito.BDDMockito.*;
 
 import org.c4marathon.assignment.account.service.AccountService;
+import org.c4marathon.assignment.member.dto.request.JoinRequestDto;
 import org.c4marathon.assignment.member.dto.request.LoginRequestDto;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
@@ -25,6 +26,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,9 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @ActiveProfiles("test")
 public class MemberServiceTest {
-
-    @MockBean
-    private MemberService memberService;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -70,6 +72,25 @@ public class MemberServiceTest {
         void tearDown() {
 
             memberRepository.deleteAllInBatch();
+        }
+
+        @DisplayName("회원 가입을 위해 요청한 데이터를 Entity 객체로 올바르게 변경한다.")
+        @Test
+        void dtoToEntityTest() {
+            // given
+            JoinRequestDto joinRequestDto = new JoinRequestDto("test@naver.com", "test", "test");
+
+            // when
+            Member member = Member.builder()
+                .email(joinRequestDto.email())
+                .password(joinRequestDto.password())
+                .name(joinRequestDto.name())
+                .build();
+
+            // then
+            assertEquals(member.getEmail(), joinRequestDto.email());
+            assertEquals(member.getPassword(), joinRequestDto.password());
+            assertEquals(member.getName(), joinRequestDto.name());
         }
 
         @DisplayName("회원 가입 정보를 받아 새로운 회원을 생성한다.")
@@ -237,15 +258,14 @@ public class MemberServiceTest {
             memberRepository.deleteAllInBatch();
         }
 
-
-        @DisplayName("이메일로 회원 정보 찾는다")
+        @DisplayName("PK로 회원 정보 찾는다")
         @Test
         void getMemberByIdTest() {
-            // given
-            given(memberService.getMemberById(member.getId())).willReturn(member);
 
             // when
-            Member member1 = memberService.getMemberById(member.getId());
+            Member member1 = memberRepository.findById(member.getId())
+                .orElseThrow(
+                    () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
 
             // then
             assertEquals(member.getId(), member1.getId());
@@ -258,14 +278,31 @@ public class MemberServiceTest {
         @DisplayName("회원의 아이디가 존재하는지 확인한다.")
         @Test
         void checkEmailExistTest() {
-            // given
-            given(memberService.checkEmailExist(member.getEmail())).willReturn(true);
 
             // when
-            boolean isBoolean = memberService.checkEmailExist(member.getEmail());
+            boolean result = memberRepository.existsByEmail(member.getEmail());
 
             // then
-            assertTrue(isBoolean);
+            assertTrue(result);
+        }
+
+        private void setSecurityContext() {
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(new TestingAuthenticationToken(member.getId(), "test", "ROLE_USER"));
+            SecurityContextHolder.setContext(securityContext);
+        }
+
+        @DisplayName("SecurityContextHolder에서 등록된 회원의 PK를 찾아온다.")
+        @Test
+        void findPK() {
+            // given
+            setSecurityContext();
+            // when
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Long memberId = (Long)authentication.getPrincipal();
+
+            // then
+            assertEquals(member.getId(), memberId);
          }
     }
 }

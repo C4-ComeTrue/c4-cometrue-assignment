@@ -8,6 +8,8 @@ import static org.springframework.http.HttpStatus.*;
 import java.util.List;
 import java.util.Optional;
 
+import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
@@ -25,6 +27,10 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,6 +88,20 @@ public class AccountServiceTest {
     @DisplayName("계좌 생성 테스트")
     class Create {
 
+        @DisplayName("올바른 계좌 객체가 생성된다.")
+        @Test
+        void createAccountEntityTest() {
+
+            // when
+            Account account1 = Account.builder()
+                .type(Type.REGULAR_ACCOUNT)
+                .member(member)
+                .build();
+            // then
+            assertEquals(account1.getMember().getId(), member.getId());
+            assertEquals(account1.getType(), Type.REGULAR_ACCOUNT);
+         }
+
         @DisplayName("메인 계좌가 존재한다.")
         @Test
         void existsAccount() {
@@ -118,18 +138,67 @@ public class AccountServiceTest {
             assertThat(findAccount).isPresent();
             assertThat(findAccount.get().getId()).isEqualTo(account1.getId());
         }
+
+        @DisplayName("계좌 생성 시 메인 계좌가 존재하지 않아 메인 계좌도 함게 생성한다.")
+        @Test
+        void createAccountWithMainAccountTest() {
+            // given
+            Member member1 = Member.builder()
+                .email("test1@naver.com")
+                .password("test")
+                .name("test")
+                .build();
+            memberRepository.save(member1);
+            AccountRequestDto accountRequestDto = new AccountRequestDto(Type.FREEDOM_INSTALLMENT_SAVINGS_ACCOUNT);
+
+            // when
+            Account account1 = createAccount(accountRequestDto.type(), member1);
+            accountRepository.save(account1);
+            // 메인 계좌가 존재하지 않을 시 확인 후 생성
+            if (!isMainAccount(member1.getId())) {
+                accountRepository.save(createAccount(Type.REGULAR_ACCOUNT, member1));
+            }
+
+            // then
+            assertTrue(isMainAccount(member1.getId()));
+         }
     }
 
     @Nested
     @DisplayName("계좌 조회 테스트")
     class Read {
 
-        @DisplayName("사용자의 생성된 모든 계좌를 불러온다.")
+        @DisplayName("메인 계좌가 존재하는지 확인한다.")
         @Test
-        void findAccountTest() {
+        void isMainAccountTest() {
 
             // when
-            List<Account> accountList = accountRepository.findByMemberId(member.getId());
+            boolean result = accountRepository.existsAccountByMemberIdAndType(member.getId(), Type.REGULAR_ACCOUNT);
+            // then
+            assertTrue(result);
+        }
+
+        private void setSecurityContext() {
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(new TestingAuthenticationToken(member.getId(), "test", "ROLE_USER"));
+            SecurityContextHolder.setContext(securityContext);
+        }
+
+        private Long findMember() {
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            return (Long)authentication.getPrincipal();
+        }
+
+        @DisplayName("계좌 조회를 위해 회원의 정보를 조회하고, 회원의 모든 계좌 정보를 불러온다.")
+        @Test
+        void findAccountTest() {
+            // given
+            setSecurityContext();
+            Long memberId = findMember();
+
+            // when
+            List<Account> accountList = accountRepository.findByMemberId(memberId);
             // 계좌 조회 후 Entity를 Dto로 변환 후 리턴
             List<AccountResponseDto> accountResponseDtoList = accountList.stream()
                 .map(AccountResponseDto::entityToDto)
@@ -236,6 +305,8 @@ public class AccountServiceTest {
             // 적금 계좌
             Account savingAccount = createAccount(Type.INSTALLMENT_SAVINGS_ACCOUNT, member);
             accountRepository.save(savingAccount);
+            SavingAccountRequestDto savingAccountRequestDto = new SavingAccountRequestDto(balance,
+                savingAccount.getId());
 
             // when
             // 비관적 락을 걸어두어 행단위 잠금이 되었고, 해당 트랜잭션 안에서만 조회가 가능.
@@ -245,7 +316,9 @@ public class AccountServiceTest {
                     () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
             Account afterRegularAccount = accountRepository.findByRegularAccount(member.getId()).orElseThrow(
                 () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
-            if (afterRegularAccount.getBalance() < balance) {
+
+            // 잔액이 부족하다면 예외 처리
+            if (afterRegularAccount.getBalance() < savingAccountRequestDto.balance()) {
                 throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), HttpStatus.FORBIDDEN.toString());
             }
             afterRegularAccount.transferBalance(afterRegularAccount.getBalance() - balance);
