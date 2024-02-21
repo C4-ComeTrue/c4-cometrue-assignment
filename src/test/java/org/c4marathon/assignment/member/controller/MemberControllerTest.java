@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Objects;
 
 import org.c4marathon.assignment.auth.config.SecurityConfig;
+import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
 import org.c4marathon.assignment.member.dto.request.JoinRequestDto;
 import org.c4marathon.assignment.member.dto.request.LoginRequestDto;
 import org.c4marathon.assignment.member.dto.response.LoginResponseDto;
@@ -23,8 +24,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -53,6 +54,12 @@ public class MemberControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Value("${jwt.key}")
+    private String secretKey;
+
+    @Value("${jwt.max-age}")
+    private Long expireTimeMs;
 
     private final String REQUEST_URL = "/members";
 
@@ -132,15 +139,22 @@ public class MemberControllerTest {
 
             // given
             LoginRequestDto loginRequestDto = createLoginRequestDto();
-            given(memberService.login(loginRequestDto)).willReturn(ArgumentMatchers.any(LoginResponseDto.class));
+            LoginResponseDto loginResponseDto = new LoginResponseDto(JwtTokenUtil.createToken(0L, secretKey, expireTimeMs));
+            given(memberService.login(loginRequestDto)).willReturn(loginResponseDto);
 
-            // when then
-            mockMvc.perform(post(REQUEST_URL + "/login")
+            // when
+            MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .with(csrf())
                     .content(objectMapper.writeValueAsString(loginRequestDto)))
                 .andExpect(status().isOk())
                 .andReturn();
+
+            // then
+            String responseBody = mvcResult.getResponse().getContentAsString();
+            LoginResponseDto responseDto = objectMapper.readValue(responseBody, LoginResponseDto.class);
+
+            assertEquals(loginResponseDto.token(), responseDto.token());
         }
 
         @DisplayName("유효하지 않은 아이디 입력 시 로그인에 실패한다.")

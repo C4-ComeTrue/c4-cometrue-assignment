@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.*;
 import java.util.List;
 import java.util.Optional;
 
+import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
@@ -86,7 +87,8 @@ public class AccountServiceTest {
         void existsAccount() {
 
             // when
-            boolean existsMainAccount = accountRepository.existsAccountByMemberIdAndType(member.getId(), Type.REGULAR_ACCOUNT);
+            boolean existsMainAccount = accountRepository.existsAccountByMemberIdAndType(member.getId(),
+                Type.REGULAR_ACCOUNT);
 
             // then
             assertTrue(existsMainAccount);
@@ -128,9 +130,17 @@ public class AccountServiceTest {
 
             // when
             List<Account> accountList = accountRepository.findByMemberId(member.getId());
+            // 계좌 조회 후 Entity를 Dto로 변환 후 리턴
+            List<AccountResponseDto> accountResponseDtoList = accountList.stream()
+                .map(AccountResponseDto::entityToDto)
+                .toList();
 
             // then
             assertThat(accountList).isNotNull();
+            assertEquals(accountList.get(0).getId(), accountResponseDtoList.get(0).id());
+            assertEquals(accountList.get(0).getBalance(), accountResponseDtoList.get(0).balance());
+            assertEquals(accountList.get(0).getDailyLimit(), accountResponseDtoList.get(0).dailyLimit());
+            assertEquals(accountList.get(0).getType(), accountResponseDtoList.get(0).type());
         }
 
         @DisplayName("사용자의 특정 계좌를 불러온다.")
@@ -143,8 +153,14 @@ public class AccountServiceTest {
                 .orElseThrow(
                     () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
+            AccountResponseDto accountResponseDto = AccountResponseDto.entityToDto(account1);
+
             // then
-            assertThat(account1.getId()).isEqualTo(account.getId());
+            assertEquals(account1.getId(), account.getId());
+            assertEquals(account1.getId(), accountResponseDto.id());
+            assertEquals(account1.getType(), accountResponseDto.type());
+            assertEquals(account1.getBalance(), accountResponseDto.balance());
+            assertEquals(account1.getDailyLimit(), accountResponseDto.dailyLimit());
         }
     }
 
