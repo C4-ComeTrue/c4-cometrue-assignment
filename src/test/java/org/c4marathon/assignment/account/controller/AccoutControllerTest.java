@@ -8,16 +8,21 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
+import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
+import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.auth.config.SecurityConfig;
 import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
+import org.c4marathon.assignment.member.entity.Member;
+import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.junit.jupiter.api.AfterAll;
@@ -53,6 +58,12 @@ public class AccoutControllerTest {
 
     @MockBean
     private AccountService accountService;
+
+    @MockBean
+    private AccountRepository accountRepository;
+
+    @MockBean
+    private MemberService memberService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -100,8 +111,20 @@ public class AccoutControllerTest {
         void createAccountTest() throws Exception {
 
             // given
+            Member member = Member.builder()
+                .email("test@naver.com")
+                .password("test")
+                .name("test")
+                .build();
+            Account account = Account.builder()
+                .type(Type.ADDITIONAL_ACCOUNT)
+                .member(member)
+                .build();
             AccountRequestDto accountRequestDto = new AccountRequestDto(Type.ADDITIONAL_ACCOUNT);
             willDoNothing().given(accountService).saveAccount(accountRequestDto);
+            willReturn(member).given(memberService).getMemberById(member.getId());
+            willReturn(account).given(accountService).createAccount(Type.ADDITIONAL_ACCOUNT, member);
+            willReturn(true).given(accountService).isMainAccount(0L);
 
             // when
             ResultActions resultActions = mockMvc.perform(post(REQUEST_URL).header("Authorization", token)
@@ -122,7 +145,22 @@ public class AccoutControllerTest {
         @Test
         void findAccountTest() throws Exception {
             // given
-            given(accountService.findAccount()).willReturn(Collections.emptyList());
+            Member member = Member.builder()
+                .email("test@naver.com")
+                .password("test")
+                .name("test")
+                .build();
+            Account account = Account.builder()
+                .type(Type.REGULAR_ACCOUNT)
+                .member(member)
+                .build();
+            List<Account> accountList = List.of(account);
+            List<AccountResponseDto> accountResponseDtoList = accountList.stream()
+                .map(AccountResponseDto::entityToDto)
+                .toList();
+            willReturn(0L).given(accountService).findMember();
+            willReturn(accountResponseDtoList).given(accountService).findAccount();
+            willReturn(accountList).given(accountRepository).findByMemberId(0L);
 
             // when then
             mockMvc.perform(get(REQUEST_URL).header("Authorization", token)).andExpect(status().isOk()).andReturn();

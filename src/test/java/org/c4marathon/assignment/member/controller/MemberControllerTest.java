@@ -10,13 +10,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import org.c4marathon.assignment.auth.config.SecurityConfig;
 import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
 import org.c4marathon.assignment.member.dto.request.JoinRequestDto;
 import org.c4marathon.assignment.member.dto.request.LoginRequestDto;
 import org.c4marathon.assignment.member.dto.response.LoginResponseDto;
+import org.c4marathon.assignment.member.entity.Member;
+import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.c4marathon.assignment.member.service.MemberService;
+import org.c4marathon.assignment.util.event.MemberJoinedEvent;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,9 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -51,6 +57,15 @@ public class MemberControllerTest {
 
     @MockBean
     private MemberService memberService;
+
+    @MockBean
+    private MemberRepository memberRepository;
+
+    @MockBean
+    private ApplicationEventPublisher eventPublisher;
+
+    @MockBean
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -88,9 +103,18 @@ public class MemberControllerTest {
 
             // given
             JoinRequestDto joinRequestDto = createJoinRequestDto();
+            Member member = Member.builder()
+                .email(joinRequestDto.email())
+                .password(passwordEncoder.encode(joinRequestDto.password()))
+                .name(joinRequestDto.name())
+                .build();
 
             // when
             doNothing().when(memberService).join(joinRequestDto);
+            doReturn(false).when(memberService).checkEmailExist(joinRequestDto.email());
+            doReturn(member).when(memberRepository).save(member);
+            doNothing().when(eventPublisher).publishEvent(new MemberJoinedEvent(this, member.getId()));
+
             ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/join")
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf())
@@ -110,6 +134,7 @@ public class MemberControllerTest {
 
             // when
             doThrow(baseException).when(memberService).join(joinRequestDto);
+            doReturn(true).when(memberService).checkEmailExist(joinRequestDto.email());
             MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/join")
                     .contentType(MediaType.APPLICATION_JSON)
                     .with(csrf())
@@ -141,8 +166,16 @@ public class MemberControllerTest {
             LoginRequestDto loginRequestDto = createLoginRequestDto();
             LoginResponseDto loginResponseDto = new LoginResponseDto(JwtTokenUtil.createToken(0L, secretKey, expireTimeMs));
             given(memberService.login(loginRequestDto)).willReturn(loginResponseDto);
+            Member member = Member.builder()
+                .email("test@naver.com")
+                .password("test")
+                .name("test")
+                .build();
 
             // when
+            doReturn(Optional.empty()).when(memberRepository).findByEmail(loginRequestDto.email());
+            doReturn(true).when(passwordEncoder).matches(loginRequestDto.password(), member.getPassword());
+
             MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .with(csrf())
