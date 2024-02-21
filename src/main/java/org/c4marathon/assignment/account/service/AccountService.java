@@ -13,10 +13,8 @@ import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.service.MemberService;
-import org.c4marathon.assignment.util.event.MemberJoinedEvent;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.c4marathon.assignment.util.exceptions.ErrorCode;
-import org.springframework.context.ApplicationListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class AccountService implements ApplicationListener<MemberJoinedEvent> {
+public class AccountService {
     private final AccountRepository accountRepository;
 
     private final MemberService memberService;
@@ -80,14 +78,6 @@ public class AccountService implements ApplicationListener<MemberJoinedEvent> {
             .type(type)
             .member(member)
             .build();
-    }
-
-    // 회원가입 시 계좌를 생성하는 이벤트 수신
-    @Override
-    public void onApplicationEvent(MemberJoinedEvent event) {
-
-        // 계좌 생성
-        saveMainAccount(event.getMemberId());
     }
 
     // 계좌 전체 조회
