@@ -89,12 +89,6 @@ public class MemberServiceTest {
 
             JoinRequestDto joinRequestDto = new JoinRequestDto(email, password, name);
 
-            Member member = Member.builder()
-                .email(joinRequestDto.email())
-                .password(passwordEncoder.encode(joinRequestDto.password()))
-                .name(joinRequestDto.name())
-                .build();
-
             given(memberService.checkEmailExist(joinRequestDto.email())).willReturn(true);
 
             // when
