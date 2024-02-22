@@ -2,200 +2,146 @@ package org.c4marathon.assignment.member.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
 import static org.mockito.BDDMockito.*;
 
-import org.c4marathon.assignment.account.service.AccountService;
+import java.util.Optional;
+
+import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
 import org.c4marathon.assignment.member.dto.request.JoinRequestDto;
 import org.c4marathon.assignment.member.dto.request.LoginRequestDto;
+import org.c4marathon.assignment.member.dto.response.LoginResponseDto;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
-import org.c4marathon.assignment.util.entity.Status;
 import org.c4marathon.assignment.util.event.MemberJoinedEvent;
 import org.c4marathon.assignment.util.exceptions.BaseException;
-import org.c4marathon.assignment.util.exceptions.ErrorCode;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.util.ReflectionTestUtils;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 public class MemberServiceTest {
 
-    @Autowired
+    @InjectMocks
+    private MemberService memberService;
+
+    @Mock
     private MemberRepository memberRepository;
 
-    @Autowired
+    @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
+    @Mock
     private ApplicationEventPublisher eventPublisher;
-
-    @MockBean
-    private AccountService accountService;
-
-    private Member createMember() {
-
-        return Member.builder()
-            .email("test@naver.com")
-            .password(passwordEncoder.encode("test"))
-            .name("test")
-            .build();
-    }
-
-    private boolean checkEmailExist(String email) {
-
-        return memberRepository.existsByEmail(email);
-    }
 
     @Nested
     @DisplayName("회원 가입 테스트")
     class signUp {
-
-        @AfterEach
-        void tearDown() {
-
-            memberRepository.deleteAllInBatch();
-        }
-
-        @DisplayName("회원 가입을 위해 요청한 데이터를 Entity 객체로 올바르게 변경한다.")
+        @DisplayName("회원 가입 정보를 받아 새로운 회원을 생성한뒤 계좌 생성을 위해 이벤트 리스너에 이벤트를 등록한다.")
         @Test
-        void dtoToEntityTest() {
-            // given
-            JoinRequestDto joinRequestDto = new JoinRequestDto("test@naver.com", "test", "test");
-
-            // when
-            Member member = Member.builder()
-                .email(joinRequestDto.email())
-                .password(joinRequestDto.password())
-                .name(joinRequestDto.name())
-                .build();
-
-            // then
-            assertEquals(member.getEmail(), joinRequestDto.email());
-            assertEquals(member.getPassword(), joinRequestDto.password());
-            assertEquals(member.getName(), joinRequestDto.name());
-        }
-
-        @DisplayName("회원 가입 정보를 받아 새로운 회원을 생성한다.")
-        @Test
-        @Transactional
         void signUpTest() {
 
             // given
-            Member member = createMember();
-            member.setStatus(Status.ACTIVE);
+            String email = "test@naver.com";
+            String password = "test";
+            String name = "test";
+
+            JoinRequestDto joinRequestDto = new JoinRequestDto(email, password, name);
+
+            Member member = Member.builder()
+                .email(joinRequestDto.email())
+                .password(passwordEncoder.encode(joinRequestDto.password()))
+                .name(joinRequestDto.name())
+                .build();
+
+            given(memberService.checkEmailExist(joinRequestDto.email())).willReturn(false);
+            given(passwordEncoder.encode(joinRequestDto.password())).willReturn(password);
+            given(memberRepository.save(any(Member.class))).willReturn(member);
 
             // when
-            if (checkEmailExist(member.getEmail())) {
-                throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
-            }
-            memberRepository.save(member);
-            Member findMember = memberRepository.findByEmail(member.getEmail()).orElseThrow(
-                () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
+            memberService.join(joinRequestDto);
 
             // then
-            assertThat(findMember.getEmail()).isEqualTo(member.getEmail());
-        }
+            verify(passwordEncoder, times(2)).encode(password);
+            verify(memberRepository).save(any(Member.class));
+            verify(eventPublisher).publishEvent(any(MemberJoinedEvent.class));
 
-        @DisplayName("회원 가입 정보를 받아 새로운 회원을 생성한뒤 계좌 생성을 위해 이벤트 리스너에 이벤트를 등록한다.")
-        @Test
-        void signUpWithEventListenerTest() {
-            // given
-            Member member = createMember();
-            member.setStatus(Status.ACTIVE);
-
-            // when
-            if (checkEmailExist(member.getEmail())) {
-                throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
-            }
-            memberRepository.save(member);
-            Long memberId = member.getId();
-            doNothing().when(accountService).saveMainAccount(memberId);
-
-            eventPublisher.publishEvent(new MemberJoinedEvent(this, memberId));
-
-            // then
-            verify(accountService, times(1)).saveMainAccount(memberId);
+            assertThat(member.getEmail()).isEqualTo(joinRequestDto.email());
         }
 
         @DisplayName("이미 존재하는 이메일로 회원 가입을 시도하면 실패한다.")
         @Test
-        @Transactional
         void signUpWithExistingEmailTest() {
 
             // given
-            Member member = createMember();
-            memberRepository.save(member);
+            String email = "test@naver.com";
+            String password = "test";
+            String name = "test";
+
+            JoinRequestDto joinRequestDto = new JoinRequestDto(email, password, name);
+
+            Member member = Member.builder()
+                .email(joinRequestDto.email())
+                .password(passwordEncoder.encode(joinRequestDto.password()))
+                .name(joinRequestDto.name())
+                .build();
+
+            given(memberService.checkEmailExist(joinRequestDto.email())).willReturn(true);
 
             // when
-            Member member1 = createMember();
+            Exception exception = assertThrows(BaseException.class, () -> {
+                memberService.join(joinRequestDto);
+            });
 
             // then
-            assertThatThrownBy(() -> {
-                if (checkEmailExist(member1.getEmail())) {
-                    throw new BaseException(ErrorCode.DUPLICATED_EMAIL.toString(), HttpStatus.CONFLICT.toString());
-                }
-                memberRepository.save(member1);
-            }).isInstanceOf(BaseException.class)
-                .hasMessageContaining(HttpStatus.CONFLICT.toString());
+            String expectedMessage = HttpStatus.CONFLICT.toString();
+            String actualMessage = exception.getMessage();
+
+            assertTrue(actualMessage.contains(expectedMessage));
         }
     }
 
     @Nested
-    @TestInstance(value = PER_CLASS)
     @DisplayName("로그인 테스트")
     class Login {
-
-        private Member member;
-
-        @BeforeAll
-        void setUp() {
-            // given
-            member = createMember();
-            memberRepository.save(member);
-        }
-
-        @AfterAll
-        void tearDown() {
-            memberRepository.deleteAllInBatch();
-        }
 
         @DisplayName("유효한 회원 정보 입력 시 로그인에 성공한다")
         @Test
         void loginTest() {
 
             // given
-            LoginRequestDto loginRequestDto = new LoginRequestDto("test@naver.com", "test");
+            String email = "test@naver.com";
+            String password = "test";
+            String jwtToken = "test.jwt.token";
+            Long expireTimeMs = 3600000L;  // 1 hour in milliseconds
+            String secretKey = "testSecretKey";
+            MockedStatic<JwtTokenUtil> mockedStatic = Mockito.mockStatic(JwtTokenUtil.class);
+
+            ReflectionTestUtils.setField(memberService, "expireTimeMs", expireTimeMs);
+            ReflectionTestUtils.setField(memberService, "secretKey", secretKey);
+
+            LoginRequestDto loginRequestDto = new LoginRequestDto(email, password);
+
+            Member member = mock(Member.class);
+
+            given(memberRepository.findByEmail(email)).willReturn(Optional.of(member));
+            given(passwordEncoder.matches(password, member.getPassword())).willReturn(true);
+            mockedStatic.when(() -> JwtTokenUtil.createToken(anyLong(), anyString(), anyLong())).thenReturn(jwtToken);
 
             // when
-            Member member = memberRepository.findByEmail(loginRequestDto.email()).orElseThrow(
-                () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(),
-                    HttpStatus.NOT_FOUND.toString()));
-
-            if (!passwordEncoder.matches(loginRequestDto.password(), member.getPassword())) {
-                throw new BaseException(ErrorCode.LOGIN_FAILED.toString(), HttpStatus.UNAUTHORIZED.toString());
-            }
+            LoginResponseDto loginResponseDto = memberService.login(loginRequestDto);
 
             // then
-            assertThat(loginRequestDto.email()).isEqualTo(member.getEmail());
-            assertTrue(passwordEncoder.matches(loginRequestDto.password(), member.getPassword()));
+            assertEquals(jwtToken, loginResponseDto.token());
         }
 
         @DisplayName("유효하지 않은 아이디 입력 시 로그인에 실패한다.")
@@ -203,15 +149,23 @@ public class MemberServiceTest {
         void loginIdFailedTest() {
 
             // given
-            String email = "test1@naver.com";
+            String email = "test@naver.com";
+            String password = "test";
 
-            // when then
-            assertThrows(BaseException.class, () -> {
-                memberRepository.findByEmail(email)
-                    .orElseThrow(
-                        () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(),
-                            HttpStatus.NOT_FOUND.toString()));
+            LoginRequestDto loginRequestDto = new LoginRequestDto(email, password);
+
+            given(memberRepository.findByEmail(email)).willReturn(Optional.empty());
+
+            // when
+            Exception exception = assertThrows(BaseException.class, () -> {
+                memberService.login(loginRequestDto);
             });
+
+            // then
+            String expectedMessage = HttpStatus.NOT_FOUND.toString();
+            String actualMessage = exception.getMessage();
+
+            assertTrue(actualMessage.contains(expectedMessage));
         }
 
         @DisplayName("유효하지 않은 비밀번호 입력 시 로그인에 실패한다.")
@@ -220,89 +174,58 @@ public class MemberServiceTest {
 
             // given
             String email = "test@naver.com";
-            String password = "test1";
+            String password = "test";
+
+            LoginRequestDto loginRequestDto = new LoginRequestDto(email, password);
+            Member member = mock(Member.class);
+
+            given(memberRepository.findByEmail(email)).willReturn(Optional.of(member));
+            given(passwordEncoder.matches(password, member.getPassword())).willReturn(false);
 
             // when
-            Member member = memberRepository.findByEmail(email)
-                .orElseThrow(
-                    () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
-
             Exception exception = assertThrows(BaseException.class, () -> {
-                if (!passwordEncoder.matches(password, member.getPassword())) {
-                    throw new BaseException(ErrorCode.LOGIN_FAILED.toString(),
-                        HttpStatus.UNAUTHORIZED.toString());
-                }
+                memberService.login(loginRequestDto);
             });
 
             // then
-            assertEquals(HttpStatus.UNAUTHORIZED.toString(), exception.getMessage());
+            String expectedMessage = HttpStatus.UNAUTHORIZED.toString();
+            String actualMessage = exception.getMessage();
+
+            assertTrue(actualMessage.contains(expectedMessage));
         }
     }
 
     @Nested
-    @TestInstance(value = PER_CLASS)
     @DisplayName("회원 정보 조회 테스트")
     class findMember {
-
-        private Member member;
-
-        @BeforeAll
-        void setUp() {
-            // given
-            member = createMember();
-            memberRepository.save(member);
-        }
-
-        @AfterAll
-        void tearDown() {
-            memberRepository.deleteAllInBatch();
-        }
 
         @DisplayName("PK로 회원 정보 찾는다")
         @Test
         void getMemberByIdTest() {
+            // given
+            Long memberId = 0L;
+            Member member = mock(Member.class);
+            given(memberRepository.findById(memberId)).willReturn(Optional.ofNullable(member));
 
             // when
-            Member member1 = memberRepository.findById(member.getId())
-                .orElseThrow(
-                    () -> new BaseException(ErrorCode.COMMON_NOT_FOUND.toString(), HttpStatus.NOT_FOUND.toString()));
+            Member member1 = memberService.getMemberById(memberId);
 
             // then
-            assertEquals(member.getId(), member1.getId());
-            assertEquals(member.getEmail(), member1.getEmail());
-            assertEquals(member.getPassword(), member1.getPassword());
-            assertEquals(member.getName(), member1.getName());
-
+            assertEquals(member, member1);
         }
 
         @DisplayName("회원의 아이디가 존재하는지 확인한다.")
         @Test
         void checkEmailExistTest() {
+            // given
+            String email = "test@naver.com";
+            given(memberRepository.existsByEmail(email)).willReturn(true);
 
             // when
-            boolean result = memberRepository.existsByEmail(member.getEmail());
+            boolean result = memberService.checkEmailExist(email);
 
             // then
             assertTrue(result);
         }
-
-        private void setSecurityContext() {
-            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-            securityContext.setAuthentication(new TestingAuthenticationToken(member.getId(), "test", "ROLE_USER"));
-            SecurityContextHolder.setContext(securityContext);
-        }
-
-        @DisplayName("SecurityContextHolder에서 등록된 회원의 PK를 찾아온다.")
-        @Test
-        void findPK() {
-            // given
-            setSecurityContext();
-            // when
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Long memberId = (Long)authentication.getPrincipal();
-
-            // then
-            assertEquals(member.getId(), memberId);
-         }
     }
 }
