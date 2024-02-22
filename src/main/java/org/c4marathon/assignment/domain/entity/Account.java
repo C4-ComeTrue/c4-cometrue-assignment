@@ -1,5 +1,8 @@
 package org.c4marathon.assignment.domain.entity;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 
 import jakarta.persistence.Entity;
@@ -46,11 +49,14 @@ public class Account extends BaseEntity {
 
 	@NotNull
 	@PositiveOrZero
-	private long accumulatedChargeAmount;     // 사용자가 1일 동안 누적한 충전 금액 -> 하루 주기로 초기화
+	private long accumulatedChargeAmount;     // 사용자가 하루 동안 누적한 충전 금액
 
 	@NotNull
 	@PositiveOrZero
 	private long chargeLimit = ChargeLimitUtils.BASIC_LIMIT;     // 충전 한도
+
+	@NotNull
+	private LocalDate chargeUpdatedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
 	@Builder
 	public Account(Member member, String name, String accountNumber) {
@@ -66,5 +72,10 @@ public class Account extends BaseEntity {
 
 	public void withdraw(long amount) {
 		this.amount -= amount;
+	}
+
+	public void initializeChargeAmount() {
+		this.accumulatedChargeAmount = 0;
+		this.chargeUpdatedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
 	}
 }
