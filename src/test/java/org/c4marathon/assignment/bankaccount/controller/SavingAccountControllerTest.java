@@ -1,8 +1,9 @@
 package org.c4marathon.assignment.bankaccount.controller;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.c4marathon.assignment.bankaccount.dto.response.SavingProductResponseDto;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.service.SavingAccountService;
 import org.c4marathon.assignment.member.session.SessionConst;
@@ -55,9 +56,10 @@ class SavingAccountControllerTest {
 		@DisplayName("로그인한 사용자라면 상품 정보를 반환받는다.")
 		void request_with_a_valid_member() throws Exception {
 			// Given
-			Map<String, Integer> map = new HashMap<>();
-			map.put("free", 500);
-			given(productManager.getProductInfo()).willReturn(map);
+			List<SavingProductResponseDto> list = new ArrayList<>();
+			SavingProductResponseDto productInfo = new SavingProductResponseDto(1L, "free", 500);
+			list.add(productInfo);
+			given(productManager.getProductInfo()).willReturn(list);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/products")
@@ -66,7 +68,8 @@ class SavingAccountControllerTest {
 			// Then
 			resultActions
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.free").value(500));
+				.andExpect(jsonPath("$[0].productName").value(productInfo.productName()))
+				.andExpect(jsonPath("$[0].productRate").value(productInfo.productRate()));
 		}
 	}
 

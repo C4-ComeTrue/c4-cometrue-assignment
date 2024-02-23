@@ -2,6 +2,7 @@ package org.c4marathon.assignment.bankaccount.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
@@ -48,14 +49,14 @@ class SavingAccountServiceImplTest {
 			// Given
 			String productName = "free";
 			Member member = new Member();
-			given(memberRepository.getReferenceById(anyLong())).willReturn(member);
+			given(memberRepository.findById(anyLong())).willReturn(Optional.of(member));
 			given(productManager.getRate(productName)).willReturn(anyInt());
 
 			// When
 			savingAccountService.create(memberPk, productName);
 
 			// Then
-			then(memberRepository).should(times(1)).getReferenceById(memberPk);
+			then(memberRepository).should(times(1)).findById(memberPk);
 			then(savingAccountRepository).should(times(1)).save(any());
 			then(productManager).should(times(1)).getRate(productName);
 		}
@@ -65,7 +66,8 @@ class SavingAccountServiceImplTest {
 		void request_with_not_exist_product() {
 			// Given
 			String productName = "non exist product";
-			given(productManager.getRate(productName)).willReturn(null);
+			given(productManager.getRate(productName)).willThrow(
+				AccountErrorCode.PRODUCT_NOT_FOUND.accountException("productName = " + productName));
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class, () -> {
@@ -86,8 +88,7 @@ class SavingAccountServiceImplTest {
 		void request_with_any_member() {
 			// Given
 			List<SavingAccount> list = new ArrayList<>();
-			SavingAccount savingAccount = new SavingAccount();
-			savingAccount.init("free", 500);
+			SavingAccount savingAccount = new SavingAccount("free", 500);
 			list.add(savingAccount);
 			given(savingAccountRepository.findSavingAccount(anyLong())).willReturn(list);
 

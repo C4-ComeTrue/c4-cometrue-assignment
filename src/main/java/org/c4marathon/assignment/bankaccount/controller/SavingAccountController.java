@@ -1,9 +1,9 @@
 package org.c4marathon.assignment.bankaccount.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseDto;
+import org.c4marathon.assignment.bankaccount.dto.response.SavingProductResponseDto;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.service.SavingAccountService;
 import org.c4marathon.assignment.common.annotation.Login;
@@ -29,7 +29,7 @@ public class SavingAccountController {
 
 	@ResponseStatus(HttpStatus.OK)
 	@GetMapping("/products")
-	Map<String, Integer> getProductInfo(@Login SessionMemberInfo memberInfo) {
+	List<SavingProductResponseDto> getProductInfo(@Login SessionMemberInfo memberInfo) {
 		return productManager.getProductInfo();
 	}
 

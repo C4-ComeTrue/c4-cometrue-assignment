@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
-import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.member.entity.Member;
+import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,14 +26,12 @@ public class SavingAccountServiceImpl implements SavingAccountService {
 	// 성능 vs 안정성 차이 같은데 실무에선 어떻게 하는걸까?
 	@Override
 	public void create(long memberPk, String productName) {
-		SavingAccount savingAccount = new SavingAccount();
 		Integer rate = productManager.getRate(productName);
-		if (rate == null) {
-			throw AccountErrorCode.PRODUCT_NOT_FOUND.accountException("ProductManager에서 이율 조회 중 없는 상품의 이율 조회로 예외 발생.");
-		}
-		savingAccount.init(productName, rate);
+		SavingAccount savingAccount = new SavingAccount(productName, rate);
 
-		Member member = memberRepository.getReferenceById(memberPk);
+		Member member = memberRepository.findById(memberPk)
+			.orElseThrow(() -> MemberErrorCode.USER_NOT_FOUND.memberException("존재하지 않는 사용자, memberPk = " + memberPk));
+
 		savingAccount.addMember(member);
 		savingAccountRepository.save(savingAccount);
 	}

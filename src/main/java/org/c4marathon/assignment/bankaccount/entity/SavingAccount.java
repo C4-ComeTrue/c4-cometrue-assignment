@@ -40,10 +40,10 @@ public class SavingAccount extends BaseEntity {
 	@JoinColumn(name = "member_pk", nullable = false)
 	private Member member;
 
-	public void init(String productName, int rate) {
+	public SavingAccount(String productName, int rate) {
 		this.savingMoney = 0;
-		this.rate = rate;
 		this.productName = productName;
+		this.rate = rate;
 	}
 
 	public void addMember(Member member) {

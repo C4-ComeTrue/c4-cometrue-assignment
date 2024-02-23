@@ -161,8 +161,7 @@ public class MoneySendConcurrencyTest {
 			.build();
 		memberRepository.save(member);
 
-		savingAccount = new SavingAccount();
-		savingAccount.init("free", 500);
+		savingAccount = new SavingAccount("free", 500);
 		savingAccount.addMember(member);
 		savingAccountRepository.save(savingAccount);
 

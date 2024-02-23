@@ -1,26 +1,34 @@
 package org.c4marathon.assignment.bankaccount.product;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+import org.c4marathon.assignment.bankaccount.dto.response.SavingProductResponseDto;
+import org.c4marathon.assignment.bankaccount.entity.SavingProduct;
+import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
+import org.c4marathon.assignment.bankaccount.repository.SavingProductRepository;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
 public class ProductManager {
-	private static final String[] productNames = {"free", "regular"};
-	private static final int[] productRates = {500, 300};
 
-	private Map<String, Integer> productInfo = new HashMap<>();
+	private final SavingProductRepository savingProductRepository;
 
-	public Map<String, Integer> getProductInfo() {
-		return productInfo;
+	@Cacheable(value = "savingProduct")
+	public List<SavingProductResponseDto> getProductInfo() {
+		List<SavingProduct> productList = savingProductRepository.findAll();
+		return productList.stream()
+			.map(product -> new SavingProductResponseDto(product))
+			.toList();
 	}
 
-	public Integer getRate(String productName) {
-		return productInfo.get(productName);
-	}
-
-	public void init() {
-		int length = productNames.length;
-		for (int i = 0; i < length; i++) {
-			productInfo.put(productNames[i], productRates[i]);
-		}
+	@Cacheable(value = "savingProduct", key = "#productName")
+	public int getRate(String productName) {
+		return savingProductRepository.findRateByProductName(productName)
+			.orElseThrow(() -> AccountErrorCode.PRODUCT_NOT_FOUND.accountException(
+				"존재하지 않는 적금 상품 이름, productName = " + productName));
 	}
 }

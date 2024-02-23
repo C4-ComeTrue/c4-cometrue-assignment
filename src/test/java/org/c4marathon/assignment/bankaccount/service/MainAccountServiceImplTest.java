@@ -102,8 +102,7 @@ class MainAccountServiceImplTest {
 		void request_with_exist_accounts_and_valid_send_money() {
 			// Given
 
-			SavingAccount savingAccount = new SavingAccount();
-			savingAccount.init("free", 500);
+			SavingAccount savingAccount = new SavingAccount("free", 500);
 			given(savingAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(savingAccount));
 			MainAccount mainAccount = MainAccount.builder()
 				.money(myMoney)
@@ -151,8 +150,7 @@ class MainAccountServiceImplTest {
 		@DisplayName("메인 계좌 잔고가 이체 금액보다 적으면 AccountException(INVALID_MONEY_SEND) 예외가 발생한다.")
 		void request_with_invalid_send_money() {
 			// Given
-			SavingAccount savingAccount = new SavingAccount();
-			savingAccount.init("free", 500);
+			SavingAccount savingAccount = new SavingAccount("free", 500);
 			given(savingAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(savingAccount));
 			MainAccount mainAccount = MainAccount.builder()
 				.money(0)
