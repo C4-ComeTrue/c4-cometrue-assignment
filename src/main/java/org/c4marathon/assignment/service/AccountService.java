@@ -1,17 +1,13 @@
 package org.c4marathon.assignment.service;
 
-import java.time.LocalDate;
-
 import org.c4marathon.assignment.api.dto.CreateAccountDto;
 import org.c4marathon.assignment.api.dto.TransferAccountDto;
 import org.c4marathon.assignment.common.exception.ErrorCode;
-import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.Member;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -20,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AccountService {
 
-	private final AutoChargeService autoChargeService;
+	private final ChargeService chargeService;
 
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
@@ -50,21 +46,22 @@ public class AccountService {
 	 */
 	@Transactional
 	public TransferAccountDto.Res transfer(long accountId, String transferAccountNumber, long amount) {
+		// 1. 내 계좌 범위
 		Account account = accountRepository.findById(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		// 1. 잔액이 부족할 경우 10000원 단위로 자동 충전한다.
 		if (!isAmountEnoughToTransfer(account.getAmount(), amount)) {
-			autoChargeService.charge(accountId, amount);
+			chargeService.autoChargeByUnit(accountId, amount);
 		}
 
-		// 2. 잔액이 여유로워 졌다면, 친구의 메인 계좌로 송금한다.
+		// 2. 잔액이 여유로워졌다면, 친구의 메인 계좌로 송금한다.
 		Account transferAccount = accountRepository.findByAccountNumber(transferAccountNumber)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		account.withdraw(amount);
 		transferAccount.charge(amount);
-		
+
 		return new TransferAccountDto.Res(account.getAmount());
 	}
 

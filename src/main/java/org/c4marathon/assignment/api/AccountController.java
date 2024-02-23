@@ -1,6 +1,5 @@
 package org.c4marathon.assignment.api;
 
-import org.c4marathon.assignment.api.dto.ChargeAccountDto;
 import org.c4marathon.assignment.api.dto.CreateAccountDto;
 import org.c4marathon.assignment.api.dto.TransferAccountDto;
 import org.c4marathon.assignment.service.AccountService;
@@ -25,12 +24,6 @@ public class AccountController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public CreateAccountDto.Res create(@Valid @RequestBody CreateAccountDto.Req req) {
 		return accountService.createAccount(req.memberId(), req.name(), req.accountNumber());
-	}
-
-	@PostMapping("/charge")
-	@ResponseStatus(HttpStatus.OK)
-	public ChargeAccountDto.Res charge(@Valid @RequestBody ChargeAccountDto.Req req) {
-		return accountService.charge(req.accountId(), req.amount());
 	}
 
 	@PostMapping("/transfer")

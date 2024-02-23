@@ -64,7 +64,7 @@ public class SavingsAccountService {
 		long totalAmount = account.getAmount();
 
 		if (isAmountEnoughToWithdraw(totalAmount, withDrawAmount)) {
-			throw ErrorCode.MAIN_ACCOUNT_LACK_OF_AMOUNT.businessException();
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
 		// 3. 메인 계좌의 잔액을 차감시키고, 저축 계좌의 잔액을 증가시킨다.

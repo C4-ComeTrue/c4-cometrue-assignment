@@ -117,7 +117,7 @@ class SavingsAccountServiceTest {
 		// when + then
 		assertThatThrownBy(() -> savingsAccountService.transferForRegularSavings(memberId))
 			.isInstanceOf(BusinessException.class)
-			.hasMessageContaining(ErrorCode.MAIN_ACCOUNT_LACK_OF_AMOUNT.getMessage());
+			.hasMessageContaining(ErrorCode.ACCOUNT_LACK_OF_AMOUNT.getMessage());
 	}
 
 	@Test
