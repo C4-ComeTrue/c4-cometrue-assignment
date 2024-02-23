@@ -25,19 +25,19 @@ public record SignUpRequestDto(
 	@Size(min = 11, max = 11, message = "'-'를 제외한 전화번호 11자리를 입력해 주세요.")
 	String phoneNumber
 ) {
-	public Member toEntity() {
+	public Member toEntity(String encodedPassword) {
 		return Member.builder()
 			.memberId(memberId)
-			.password(password)
+			.password(encodedPassword)
 			.memberName(memberName)
 			.phoneNumber(phoneNumber)
 			.build();
 	}
 
-	public Member toEntity(long mainAccountPk) {
+	public Member toEntity(long mainAccountPk, String encodedPassword) {
 		return Member.builder()
 			.memberId(memberId)
-			.password(password)
+			.password(encodedPassword)
 			.memberName(memberName)
 			.phoneNumber(phoneNumber)
 			.mainAccountPk(mainAccountPk)

@@ -10,6 +10,7 @@ import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.exception.MemberErrorCode;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.c4marathon.assignment.member.session.SessionMemberInfo;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final MainAccountRepository mainAccountRepository;
 	private final ChargeLimitManager chargeLimitManager;
+	private final PasswordEncoder passwordEncoder;
 
 	@Transactional
 	public void signUp(SignUpRequestDto requestDto) {
@@ -33,7 +35,8 @@ public class MemberService {
 
 		chargeLimitManager.init(mainAccount.getAccountPk());
 
-		Member member = requestDto.toEntity(mainAccount.getAccountPk());
+		String encodedPassword = passwordEncoder.encode(requestDto.password());
+		Member member = requestDto.toEntity(mainAccount.getAccountPk(), encodedPassword);
 		memberRepository.save(member);
 
 	}
@@ -63,6 +66,6 @@ public class MemberService {
 	}
 
 	private boolean isSamePassword(String inputPassword, String findPassword) {
-		return inputPassword.equals(findPassword);
+		return passwordEncoder.matches(inputPassword, findPassword);
 	}
 }

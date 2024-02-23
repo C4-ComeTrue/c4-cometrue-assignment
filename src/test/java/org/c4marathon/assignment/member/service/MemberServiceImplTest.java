@@ -67,7 +67,7 @@ class MemberServiceImplTest {
 		void request_with_duplicated_id() {
 			//Given
 			SignUpRequestDto requestDto = makeRequestForm();
-			Member member = requestDto.toEntity();
+			Member member = requestDto.toEntity("password");
 			given(memberRepository.findMemberByMemberId(requestDto.memberId())).willReturn(member);
 
 			// When
