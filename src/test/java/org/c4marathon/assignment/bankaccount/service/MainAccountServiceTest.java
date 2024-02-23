@@ -8,7 +8,6 @@ import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.exception.AccountException;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
-import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -24,10 +23,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class MainAccountServiceImplTest {
+class MainAccountServiceTest {
 
 	@InjectMocks
-	MainAccountServiceImpl mainAccountService;
+	MainAccountService mainAccountService;
 	@Mock
 	MainAccountRepository mainAccountRepository;
 	@Mock
@@ -47,12 +46,10 @@ class MainAccountServiceImplTest {
 		void request_with_valid_account_and_charging_limit() {
 			// Given
 			given(chargeLimitManager.charge(mainAccountPk, money)).willReturn(true);
-			MainAccount mainAccount = MainAccount.builder()
-				.money(accountMoney)
-				.build();
+			MainAccount mainAccount = new MainAccount(accountMoney);
 			given(mainAccountRepository.findByPkForUpdate(mainAccountPk)).willReturn(Optional.of(mainAccount));
 			// When
-			int returnValue = mainAccountService.chargeMoney(mainAccountPk, money);
+			long returnValue = mainAccountService.chargeMoney(mainAccountPk, money);
 
 			// Then
 			assertEquals(returnValue, accountMoney + money);
@@ -104,9 +101,7 @@ class MainAccountServiceImplTest {
 
 			SavingAccount savingAccount = new SavingAccount("free", 500);
 			given(savingAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(savingAccount));
-			MainAccount mainAccount = MainAccount.builder()
-				.money(myMoney)
-				.build();
+			MainAccount mainAccount = new MainAccount(myMoney);
 			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
 
 			// When
@@ -152,9 +147,7 @@ class MainAccountServiceImplTest {
 			// Given
 			SavingAccount savingAccount = new SavingAccount("free", 500);
 			given(savingAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(savingAccount));
-			MainAccount mainAccount = MainAccount.builder()
-				.money(0)
-				.build();
+			MainAccount mainAccount = new MainAccount();
 			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
 
 			// When
@@ -174,10 +167,7 @@ class MainAccountServiceImplTest {
 		@DisplayName("메인 계좌 정보 조회 성공 테스트")
 		void request_with_valid_mainAccountPk() {
 			// Given
-			MainAccount mainAccount = MainAccount.builder()
-				.chargeLimit(LimitConst.CHARGE_LIMIT)
-				.money(0)
-				.build();
+			MainAccount mainAccount = new MainAccount();
 			given(mainAccountRepository.findById(any())).willReturn(Optional.of(mainAccount));
 
 			// When

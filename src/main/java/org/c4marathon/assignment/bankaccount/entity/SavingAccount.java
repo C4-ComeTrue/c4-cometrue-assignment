@@ -28,10 +28,10 @@ public class SavingAccount extends BaseEntity {
 	private long accountPk;
 
 	@Column(name = "saving_money", nullable = false)
-	private int savingMoney; // 적금에 넣은 돈
+	private long savingMoney; // 적금에 넣은 돈
 
 	@Column(name = "rate", nullable = false)
-	private int rate; // 정수로 계산하고 소수점 아래는 버림. 3.15 -> (*315 / 10000)을 하면 이자가 나옴
+	private long rate; // 정수로 계산하고 소수점 아래는 버림. 3.15 -> (*315 / 10000)을 하면 이자가 나옴
 
 	@Column(name = "product_name", length = 30, nullable = false)
 	private String productName; // 상품 명(현재는 정기, 자유)
@@ -41,7 +41,7 @@ public class SavingAccount extends BaseEntity {
 	private Member member;
 
 	public SavingAccount(String productName, int rate) {
-		this.savingMoney = 0;
+		this.savingMoney = 0L;
 		this.productName = productName;
 		this.rate = rate;
 	}
@@ -50,7 +50,7 @@ public class SavingAccount extends BaseEntity {
 		this.member = member;
 	}
 
-	public void addMoney(int money) {
+	public void addMoney(long money) {
 		this.savingMoney += money;
 	}
 }

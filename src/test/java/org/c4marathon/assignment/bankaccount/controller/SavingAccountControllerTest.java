@@ -1,8 +1,10 @@
 package org.c4marathon.assignment.bankaccount.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.c4marathon.assignment.bankaccount.dto.request.CreateSavingAccountRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.response.SavingProductResponseDto;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.service.SavingAccountService;
@@ -15,9 +17,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -29,6 +34,9 @@ class SavingAccountControllerTest {
 	private String REQUEST_URL = "/api/accounts/saving";
 	@Autowired
 	MockMvc mockMvc;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@MockBean
 	private SavingAccountService savingAccountService;
@@ -81,9 +89,14 @@ class SavingAccountControllerTest {
 		@Test
 		@DisplayName("로그인한 사용자면 적금 계좌 생성에 성공한다.")
 		void request_with_login_member() throws Exception {
+			//Given
+			CreateSavingAccountRequestDto requestDto = new CreateSavingAccountRequestDto("free");
+
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/{productName}", productName)
-				.session(session));
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL).session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
 			resultActions

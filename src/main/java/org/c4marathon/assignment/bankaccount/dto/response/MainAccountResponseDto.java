@@ -1,11 +1,13 @@
 package org.c4marathon.assignment.bankaccount.dto.response;
 
-import lombok.Builder;
+import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 
-@Builder
 public record MainAccountResponseDto(
 	long accountPk,
 	int chargeLimit,
-	int money
+	long money
 ) {
+	public MainAccountResponseDto(MainAccount mainAccount) {
+		this(mainAccount.getAccountPk(), mainAccount.getChargeLimit(), mainAccount.getChargeLimit());
+	}
 }

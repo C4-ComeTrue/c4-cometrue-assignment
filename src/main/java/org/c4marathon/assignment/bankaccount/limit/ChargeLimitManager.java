@@ -20,7 +20,7 @@ public class ChargeLimitManager {
 		return chargeLimit.get(pk);
 	}
 
-	public boolean charge(long pk, int money) {
+	public boolean charge(long pk, long money) {
 		int totalMoney = chargeLimit.get(pk);
 
 		if (totalMoney >= money) {

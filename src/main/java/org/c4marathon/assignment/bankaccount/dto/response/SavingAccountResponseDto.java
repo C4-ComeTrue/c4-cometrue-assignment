@@ -5,8 +5,8 @@ import lombok.Builder;
 @Builder
 public record SavingAccountResponseDto(
 	long accountPk,
-	int savingMoney,
-	int rate,
+	long savingMoney,
+	long rate,
 	String productName
 ) {
 }

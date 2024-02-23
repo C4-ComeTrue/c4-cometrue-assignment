@@ -35,7 +35,7 @@ public class CommonExceptionHandler {
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException error) {
 		ErrorCode errorCode = CommonErrorCode.INVALID_ARGUMENT_ERROR;
-		ErrorResponse errorResponse = ErrorResponse.of(errorCode.getHttpStatus(), errorCode.getMessage());
+		ErrorResponse errorResponse = ErrorResponse.of(errorCode.getHttpStatus(), error.getMessage());
 		ExceptionLogHelper.makeExceptionLog(log, error, errorCode.name());
 
 		return ResponseEntity.status(errorCode.getHttpStatus()).body(errorResponse);

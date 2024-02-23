@@ -6,7 +6,6 @@ import org.c4marathon.assignment.bankaccount.dto.request.SendToSavingRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
-import org.c4marathon.assignment.common.exception.CommonErrorCode;
 import org.c4marathon.assignment.member.session.SessionConst;
 import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,8 +56,8 @@ class MainAccountControllerTest {
 	@Nested
 	@DisplayName("메인 계좌 충전 테스트")
 	class Charge {
-		private final int money = 1000;
-		private int baseMoney = 0;
+		private final long money = 1000;
+		private long baseMoney = 0;
 
 		@Test
 		@DisplayName("유효한 요청이면 정상적으로 메인 계좌에 돈을 충전한다.")
@@ -70,7 +69,8 @@ class MainAccountControllerTest {
 			given(mainAccountService.chargeMoney(mainAccountPk, money)).willReturn(baseMoney + money);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", money).session(session));
+			ResultActions resultActions = mockMvc.perform(
+				get(REQUEST_URL + "/charge").param("money", String.valueOf(money)).session(session));
 
 			// Then
 			resultActions.andExpect(status().isOk())
@@ -84,11 +84,11 @@ class MainAccountControllerTest {
 		@DisplayName("충전 금액이 음수면 ConstraintViolationException 예외가 발생한다.")
 		void request_with_minus_money() throws Exception {
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/charge/{money}", -1).session(session));
+			ResultActions resultActions = mockMvc.perform(
+				get(REQUEST_URL + "/charge").param("money", String.valueOf(-1)).session(session));
 
 			// Then
-			resultActions.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.message").value(CommonErrorCode.INVALID_ARGUMENT_ERROR.getMessage()));
+			resultActions.andExpect(status().isBadRequest());
 		}
 	}
 
@@ -153,11 +153,7 @@ class MainAccountControllerTest {
 		@DisplayName("로그인한 사용자는 메인 계좌 조회에 성공한다")
 		void request_with_login_member() throws Exception {
 			// Given
-			MainAccountResponseDto responseDto = MainAccountResponseDto.builder()
-				.accountPk(1L)
-				.chargeLimit(LimitConst.CHARGE_LIMIT)
-				.money(0)
-				.build();
+			MainAccountResponseDto responseDto = new MainAccountResponseDto(1L, LimitConst.CHARGE_LIMIT, 0);
 			given(mainAccountService.getMainAccountInfo(anyLong())).willReturn(responseDto);
 
 			// When

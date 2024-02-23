@@ -25,10 +25,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SavingAccountServiceImplTest {
+class SavingAccountServiceTest {
 
 	@InjectMocks
-	SavingAccountServiceImpl savingAccountService;
+	SavingAccountService savingAccountService;
 
 	@Mock
 	MemberRepository memberRepository;

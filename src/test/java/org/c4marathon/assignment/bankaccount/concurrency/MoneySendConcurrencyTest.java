@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
-import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
@@ -70,9 +69,9 @@ public class MoneySendConcurrencyTest {
 		void concurrency_send_to_saving_account_and_my_account() throws InterruptedException {
 			// Given
 			MainAccount findMainAccount = mainAccountRepository.findById(mainAccountPk).get();
-			int startMoney = findMainAccount.getMoney();
-			int mainPlusMoney = 1000;
-			int savingPlusMoney = 1000;
+			long startMoney = findMainAccount.getMoney();
+			long mainPlusMoney = 1000;
+			long savingPlusMoney = 1000;
 			final int threadCount = 50;
 			final ExecutorService executorService = Executors.newFixedThreadPool(25);
 			final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
@@ -145,10 +144,7 @@ public class MoneySendConcurrencyTest {
 
 	void createAccount() {
 		int money = 100000;
-		mainAccount = MainAccount.builder()
-			.chargeLimit(LimitConst.CHARGE_LIMIT)
-			.money(money)
-			.build();
+		mainAccount = new MainAccount(money);
 
 		mainAccountRepository.save(mainAccount);
 

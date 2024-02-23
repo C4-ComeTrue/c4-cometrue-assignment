@@ -2,6 +2,7 @@ package org.c4marathon.assignment.bankaccount.controller;
 
 import java.util.List;
 
+import org.c4marathon.assignment.bankaccount.dto.request.CreateSavingAccountRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.response.SavingAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.dto.response.SavingProductResponseDto;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
@@ -11,11 +12,13 @@ import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Validated
@@ -34,10 +37,10 @@ public class SavingAccountController {
 	}
 
 	@ResponseStatus(HttpStatus.CREATED)
-	@GetMapping("/{productName}")
+	@PostMapping
 	void create(@Login SessionMemberInfo memberInfo,
-		@PathVariable String productName) {
-		savingAccountService.create(memberInfo.memberPk(), productName);
+		@Valid @RequestBody CreateSavingAccountRequestDto requestDto) {
+		savingAccountService.create(memberInfo.memberPk(), requestDto.productName());
 	}
 
 	@ResponseStatus(HttpStatus.OK)

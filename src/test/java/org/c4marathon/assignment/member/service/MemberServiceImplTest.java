@@ -28,7 +28,7 @@ import static org.mockito.BDDMockito.*;
 class MemberServiceImplTest {
 
 	@InjectMocks
-	MemberServiceImpl memberService;
+	MemberService memberService;
 	@Mock
 	MemberRepository memberRepository;
 	@Mock
