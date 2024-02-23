@@ -1,7 +1,7 @@
 package org.c4marathon.assignment.bankaccount.entity;
 
-import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.common.entity.BaseEntity;
+import org.c4marathon.assignment.common.utils.ConstValue;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,12 +30,12 @@ public class MainAccount extends BaseEntity {
 	private long money;
 
 	public MainAccount() {
-		this.chargeLimit = LimitConst.CHARGE_LIMIT;
+		this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
 		this.money = 0L;
 	}
 
 	public MainAccount(long money) {
-		this.chargeLimit = LimitConst.CHARGE_LIMIT;
+		this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
 		this.money = money;
 	}
 

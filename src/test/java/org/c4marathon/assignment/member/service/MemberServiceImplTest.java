@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
-import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
+import org.c4marathon.assignment.common.utils.ConstValue;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
 import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
@@ -50,7 +50,7 @@ class MemberServiceImplTest {
 			MainAccount mainAccount = new MainAccount();
 
 			given(mainAccountRepository.save(any())).willReturn(mainAccount);
-			given(chargeLimitManager.get(mainAccount.getAccountPk())).willReturn(LimitConst.CHARGE_LIMIT);
+			given(chargeLimitManager.get(mainAccount.getAccountPk())).willReturn(ConstValue.LimitConst.CHARGE_LIMIT);
 
 			// When
 			memberService.signUp(requestDto);
@@ -59,7 +59,7 @@ class MemberServiceImplTest {
 			then(memberRepository).should(times(1)).findMemberByMemberId(requestDto.memberId());
 			then(mainAccountRepository).should(times(1)).save(any());
 			then(chargeLimitManager).should(times(1)).init(anyLong());
-			assertEquals(LimitConst.CHARGE_LIMIT, chargeLimitManager.get(mainAccount.getAccountPk()));
+			assertEquals(ConstValue.LimitConst.CHARGE_LIMIT, chargeLimitManager.get(mainAccount.getAccountPk()));
 		}
 
 		@Test

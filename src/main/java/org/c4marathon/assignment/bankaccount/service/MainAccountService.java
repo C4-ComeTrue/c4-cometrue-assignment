@@ -71,7 +71,7 @@ public class MainAccountService {
 		MainAccount mainAccount = mainAccountRepository.findById(mainAccountPk)
 			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
 				"존재하지 않는 계좌, mainAccountPk = " + mainAccountPk));
-
+		System.out.println(new MainAccountResponseDto(mainAccount));
 		return new MainAccountResponseDto(mainAccount);
 	}
 

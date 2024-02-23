@@ -3,6 +3,7 @@ package org.c4marathon.assignment.bankaccount.limit;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.c4marathon.assignment.common.utils.ConstValue;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,7 +14,7 @@ public class ChargeLimitManager {
 	private Map<Long, Integer> chargeLimit = new ConcurrentHashMap<>(); // 사용자별 남은 충전 한도
 
 	public void init(long pk) {
-		chargeLimit.put(pk, LimitConst.CHARGE_LIMIT);
+		chargeLimit.put(pk, ConstValue.LimitConst.CHARGE_LIMIT);
 	}
 
 	public int get(long pk) {

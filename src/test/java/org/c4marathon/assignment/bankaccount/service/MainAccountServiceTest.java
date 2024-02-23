@@ -116,6 +116,8 @@ class MainAccountServiceTest {
 		@DisplayName("적금 계좌가 없으면 AccountException(ACCOUNT_NOT_FOUND) 예외가 발생한다.")
 		void request_with_no_main_account() {
 			// Given
+			MainAccount mainAccount = new MainAccount(sendMoney);
+			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
 			given(savingAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.empty());
 
 			// When
@@ -130,7 +132,6 @@ class MainAccountServiceTest {
 		@DisplayName("메인 계좌가 없으면 AccountException(ACCOUNT_NOT_FOUND) 예외가 발생한다.")
 		void request_with_no_saving_account() {
 			// Given
-			given(savingAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(new SavingAccount()));
 			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.empty());
 
 			// When
@@ -145,8 +146,6 @@ class MainAccountServiceTest {
 		@DisplayName("메인 계좌 잔고가 이체 금액보다 적으면 AccountException(INVALID_MONEY_SEND) 예외가 발생한다.")
 		void request_with_invalid_send_money() {
 			// Given
-			SavingAccount savingAccount = new SavingAccount("free", 500);
-			given(savingAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(savingAccount));
 			MainAccount mainAccount = new MainAccount();
 			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
 
@@ -172,7 +171,10 @@ class MainAccountServiceTest {
 
 			// When
 			MainAccountResponseDto mainAccountInfo = mainAccountService.getMainAccountInfo(anyLong());
-
+			Optional<MainAccount> byId = mainAccountRepository.findById(0L);
+			System.out.println(byId.get().getMoney());
+			System.out.println(mainAccount.getMoney());
+			System.out.println(mainAccountInfo);
 			// Then
 			assertEquals(mainAccountInfo.chargeLimit(), mainAccount.getChargeLimit());
 			assertEquals(mainAccountInfo.money(), mainAccount.getMoney());

@@ -8,6 +8,6 @@ public record MainAccountResponseDto(
 	long money
 ) {
 	public MainAccountResponseDto(MainAccount mainAccount) {
-		this(mainAccount.getAccountPk(), mainAccount.getChargeLimit(), mainAccount.getChargeLimit());
+		this(mainAccount.getAccountPk(), mainAccount.getChargeLimit(), mainAccount.getMoney());
 	}
 }

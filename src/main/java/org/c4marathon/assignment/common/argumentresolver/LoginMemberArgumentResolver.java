@@ -37,8 +37,7 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
 
 		HttpServletRequest request = (HttpServletRequest)webRequest.getNativeRequest();
 		HttpSession session = request.getSession();
-
-		if (session == null) {
+		if (session == null || session.getAttribute(SessionConst.MEMBER_INFO) == null) {
 			throw CommonErrorCode.UNAUTHORIZED_USER.commonException("인증 단계 중 resolveArgument 과정에서 세션이 없는 사용자의 접근 발생");
 		}
 

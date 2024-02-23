@@ -4,8 +4,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.c4marathon.assignment.bankaccount.dto.request.SendToSavingRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
-import org.c4marathon.assignment.bankaccount.limit.LimitConst;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
+import org.c4marathon.assignment.common.utils.ConstValue;
 import org.c4marathon.assignment.member.session.SessionConst;
 import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,11 +45,7 @@ class MainAccountControllerTest {
 	@BeforeEach
 	void initSession() {
 		session = new MockHttpSession();
-		SessionMemberInfo memberInfo = SessionMemberInfo.builder()
-			.memberPk(1L)
-			.memberId("testId")
-			.mainAccountPk(1L)
-			.build();
+		SessionMemberInfo memberInfo = new SessionMemberInfo(1L, "testId", 1L);
 		session.setAttribute(SessionConst.MEMBER_INFO, memberInfo);
 	}
 
@@ -153,7 +149,7 @@ class MainAccountControllerTest {
 		@DisplayName("로그인한 사용자는 메인 계좌 조회에 성공한다")
 		void request_with_login_member() throws Exception {
 			// Given
-			MainAccountResponseDto responseDto = new MainAccountResponseDto(1L, LimitConst.CHARGE_LIMIT, 0);
+			MainAccountResponseDto responseDto = new MainAccountResponseDto(1L, ConstValue.LimitConst.CHARGE_LIMIT, 0);
 			given(mainAccountService.getMainAccountInfo(anyLong())).willReturn(responseDto);
 
 			// When
