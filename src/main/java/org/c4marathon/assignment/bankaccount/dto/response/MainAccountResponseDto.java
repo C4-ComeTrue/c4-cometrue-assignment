@@ -4,7 +4,7 @@ import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 
 public record MainAccountResponseDto(
 	long accountPk,
-	int chargeLimit,
+	long chargeLimit,
 	long money
 ) {
 	public MainAccountResponseDto(MainAccount mainAccount) {

@@ -163,8 +163,6 @@ public class MoneySendConcurrencyTest {
 
 		mainAccountPk = mainAccount.getAccountPk();
 		savingAccountPk = savingAccount.getAccountPk();
-
-		chargeLimitManager.init(mainAccountPk);
 	}
 
 	void clearAccount() {

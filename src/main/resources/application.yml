@@ -10,14 +10,14 @@ spring:
   # MySQL
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/minipay?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: minipay
-    password: minipay
+    url: ${mysql.url}
+    username: ${mysql.username}
+    password: ${mysql.password}
 
   # JPA
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -25,6 +25,12 @@ spring:
         use_sql_comments: true
     open-in-view: false
 
+  # Redis
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
 
 logging:
   level:

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -35,6 +36,8 @@ class MemberServiceImplTest {
 	ChargeLimitManager chargeLimitManager;
 	@Mock
 	MainAccountRepository mainAccountRepository;
+	@Mock
+	PasswordEncoder passwordEncoder;
 
 	@Nested
 	@DisplayName("회원 가입 테스트")
@@ -58,7 +61,6 @@ class MemberServiceImplTest {
 			// Then
 			then(memberRepository).should(times(1)).findMemberByMemberId(requestDto.memberId());
 			then(mainAccountRepository).should(times(1)).save(any());
-			then(chargeLimitManager).should(times(1)).init(anyLong());
 			assertEquals(ConstValue.LimitConst.CHARGE_LIMIT, chargeLimitManager.get(mainAccount.getAccountPk()));
 		}
 
@@ -100,6 +102,7 @@ class MemberServiceImplTest {
 				.phoneNumber("01012345678")
 				.build();
 			given(memberRepository.findMemberByMemberId(requestDto.memberId())).willReturn(member);
+			given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
 
 			// When
 			memberService.signIn(requestDto);

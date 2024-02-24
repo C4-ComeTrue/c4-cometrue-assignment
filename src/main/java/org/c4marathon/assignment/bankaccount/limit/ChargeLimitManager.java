@@ -1,34 +1,44 @@
 package org.c4marathon.assignment.bankaccount.limit;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.c4marathon.assignment.common.utils.ConstValue;
+import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
+import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 충전 한도 관리
  */
 @Component
+@RequiredArgsConstructor
 public class ChargeLimitManager {
-	private Map<Long, Integer> chargeLimit = new ConcurrentHashMap<>(); // 사용자별 남은 충전 한도
+	private final RedisTemplate redisTemplate;
+	private final MainAccountRepository mainAccountRepository;
 
-	public void init(long pk) {
-		chargeLimit.put(pk, ConstValue.LimitConst.CHARGE_LIMIT);
-	}
-
-	public int get(long pk) {
-		return chargeLimit.get(pk);
+	public long get(long pk) {
+		return getChargeLimit(pk);
 	}
 
 	public boolean charge(long pk, long money) {
-		int totalMoney = chargeLimit.get(pk);
+		Long limit = getChargeLimit(pk);
 
-		if (totalMoney >= money) {
-			totalMoney -= money;
-			chargeLimit.put(pk, totalMoney);
+		if (limit >= money) {
+			limit -= money;
+			redisTemplate.opsForValue().set(pk, limit);
 			return true;
 		}
 		return false;
+	}
+
+	public Long getChargeLimit(long pk) {
+		Long limit = (Long)redisTemplate.opsForValue().get(pk);
+		if (limit == null) {
+			limit = mainAccountRepository.findChargeLimitByPk(pk)
+				.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException("pk에 해당하는 계좌 없음. PK = " + pk));
+			redisTemplate.opsForValue().set(pk, limit);
+		}
+
+		return limit;
 	}
 }

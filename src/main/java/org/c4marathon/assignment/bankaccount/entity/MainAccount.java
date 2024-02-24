@@ -24,7 +24,7 @@ public class MainAccount extends BaseEntity {
 	private long accountPk;
 
 	@Column(name = "charge_limit", nullable = false)
-	private int chargeLimit;
+	private long chargeLimit;
 
 	@Column(name = "money", nullable = false)
 	private long money;

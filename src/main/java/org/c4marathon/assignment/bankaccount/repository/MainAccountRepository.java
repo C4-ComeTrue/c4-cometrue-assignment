@@ -14,4 +14,7 @@ public interface MainAccountRepository extends JpaRepository<MainAccount, Long> 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select ma from MainAccount ma where ma.accountPk = :accountPk")
 	Optional<MainAccount> findByPkForUpdate(@Param("accountPk") long accountPk);
+
+	@Query("select ma.chargeLimit from MainAccount ma where ma.accountPk = :accountPk")
+	Optional<Long> findChargeLimitByPk(@Param("accountPk") long accountPK);
 }

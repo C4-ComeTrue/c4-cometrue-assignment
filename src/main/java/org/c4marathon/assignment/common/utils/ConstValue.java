@@ -2,7 +2,7 @@ package org.c4marathon.assignment.common.utils;
 
 public final class ConstValue {
 	public final class LimitConst {
-		public static final int CHARGE_LIMIT = 3000000;
+		public static final long CHARGE_LIMIT = 3000000;
 
 		private LimitConst() {
 		}

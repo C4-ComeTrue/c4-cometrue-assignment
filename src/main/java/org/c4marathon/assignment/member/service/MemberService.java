@@ -33,8 +33,6 @@ public class MemberService {
 		MainAccount mainAccount = new MainAccount();
 		mainAccountRepository.save(mainAccount);
 
-		chargeLimitManager.init(mainAccount.getAccountPk());
-
 		String encodedPassword = passwordEncoder.encode(requestDto.password());
 		Member member = requestDto.toEntity(mainAccount.getAccountPk(), encodedPassword);
 		memberRepository.save(member);
