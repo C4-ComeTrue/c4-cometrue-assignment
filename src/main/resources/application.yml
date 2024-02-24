@@ -17,7 +17,7 @@ spring:
   # JPA
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
