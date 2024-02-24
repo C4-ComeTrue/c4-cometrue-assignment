@@ -37,8 +37,7 @@ public class MainAccountService {
 		}
 
 		MainAccount mainAccount = mainAccountRepository.findByPkForUpdate(mainAccountPk)
-			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
-				"존재하지 않는 계좌, mainAccountPk = " + mainAccountPk));
+			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException());
 
 		mainAccount.chargeMoney(money);
 		mainAccountRepository.save(mainAccount);
@@ -49,8 +48,7 @@ public class MainAccountService {
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void sendToSavingAccount(long mainAccountPk, long savingAccountPk, long money) {
 		MainAccount mainAccount = mainAccountRepository.findByPkForUpdate(mainAccountPk)
-			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
-				"존재하지 않는 계좌, mainAccountPk = " + mainAccountPk));
+			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException());
 
 		if (!isSendValid(mainAccount.getMoney(), money)) {
 			throw AccountErrorCode.INVALID_MONEY_SEND.accountException(
@@ -58,8 +56,7 @@ public class MainAccountService {
 		}
 
 		SavingAccount savingAccount = savingAccountRepository.findByPkForUpdate(savingAccountPk)
-			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
-				"존재하지 않는 계좌, savingAccountPk = " + savingAccountPk));
+			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException());
 		savingAccount.addMoney(money);
 		savingAccountRepository.save(savingAccount);
 
@@ -71,7 +68,7 @@ public class MainAccountService {
 		MainAccount mainAccount = mainAccountRepository.findById(mainAccountPk)
 			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
 				"존재하지 않는 계좌, mainAccountPk = " + mainAccountPk));
-		System.out.println(new MainAccountResponseDto(mainAccount));
+		
 		return new MainAccountResponseDto(mainAccount);
 	}
 

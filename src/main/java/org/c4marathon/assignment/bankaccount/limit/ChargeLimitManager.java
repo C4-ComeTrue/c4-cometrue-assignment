@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class ChargeLimitManager {
-	private final RedisTemplate redisTemplate;
+	private final RedisTemplate<Long, Long> redisTemplate;
 	private final MainAccountRepository mainAccountRepository;
 
 	public long get(long pk) {
@@ -22,11 +22,11 @@ public class ChargeLimitManager {
 
 	public boolean charge(long pk, long money) {
 		Long limit = getChargeLimit(pk);
-		System.out.println("limit: " + limit);
+
 		if (limit >= money) {
 			limit -= money;
 			redisTemplate.opsForValue().set(pk, limit);
-			System.out.println("db limit: " + limit);
+
 			return true;
 		}
 		return false;

@@ -21,7 +21,7 @@ public class LoginInterceptor implements HandlerInterceptor {
 		HttpSession session = request.getSession();
 		SessionMemberInfo memberInfo = (SessionMemberInfo)session.getAttribute(SessionConst.MEMBER_INFO);
 
-		if (session == null || memberInfo == null) {
+		if (memberInfo == null) {
 			HttpStatus httpStatus = CommonErrorCode.UNAUTHORIZED_USER.getHttpStatus();
 			String message = CommonErrorCode.UNAUTHORIZED_USER.getMessage();
 			ErrorResponse errorResponse = ErrorResponse.of(httpStatus, message);

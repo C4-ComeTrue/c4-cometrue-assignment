@@ -11,6 +11,14 @@ public class AccountException extends RuntimeException {
 	private final String errorMessage;
 	private final String debugMessage;
 
+	public AccountException(HttpStatus httpStatus, String errorName, String errorMessage) {
+		super(errorMessage);
+		this.httpStatus = httpStatus;
+		this.errorName = errorName;
+		this.errorMessage = errorMessage;
+		this.debugMessage = null;
+	}
+
 	public AccountException(HttpStatus httpStatus, String errorName, String errorMessage,
 		String debugMessage) {
 		super(errorMessage);

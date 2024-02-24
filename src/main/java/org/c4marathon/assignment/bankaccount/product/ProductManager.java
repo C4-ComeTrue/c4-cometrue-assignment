@@ -21,7 +21,7 @@ public class ProductManager {
 	public List<SavingProductResponseDto> getProductInfo() {
 		List<SavingProduct> productList = savingProductRepository.findAll();
 		return productList.stream()
-			.map(product -> new SavingProductResponseDto(product))
+			.map(SavingProductResponseDto::new)
 			.toList();
 	}
 
