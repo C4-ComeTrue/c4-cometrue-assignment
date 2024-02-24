@@ -33,7 +33,7 @@ public class ChargeLimitManager {
 	}
 
 	public Long getChargeLimit(long pk) {
-		Long limit = (Long)redisTemplate.opsForValue().get(pk);
+		Long limit = redisTemplate.opsForValue().get(pk);
 		if (limit == null) {
 			limit = mainAccountRepository.findChargeLimitByPk(pk)
 				.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException("pk에 해당하는 계좌 없음. PK = " + pk));

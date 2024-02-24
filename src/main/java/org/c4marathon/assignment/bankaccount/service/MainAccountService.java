@@ -32,8 +32,7 @@ public class MainAccountService {
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public long chargeMoney(long mainAccountPk, long money) {
 		if (!chargeLimitManager.charge(mainAccountPk, money)) {
-			throw AccountErrorCode.CHARGE_LIMIT_EXCESS.accountException(
-				"충전 한도 초과, money = " + money);
+			throw AccountErrorCode.CHARGE_LIMIT_EXCESS.accountException("충전 한도 초과, money = " + money);
 		}
 
 		MainAccount mainAccount = mainAccountRepository.findByPkForUpdate(mainAccountPk)
@@ -48,7 +47,7 @@ public class MainAccountService {
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void sendToSavingAccount(long mainAccountPk, long savingAccountPk, long money) {
 		MainAccount mainAccount = mainAccountRepository.findByPkForUpdate(mainAccountPk)
-			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException());
+			.orElseThrow(AccountErrorCode.ACCOUNT_NOT_FOUND::accountException);
 
 		if (!isSendValid(mainAccount.getMoney(), money)) {
 			throw AccountErrorCode.INVALID_MONEY_SEND.accountException(
@@ -56,7 +55,7 @@ public class MainAccountService {
 		}
 
 		SavingAccount savingAccount = savingAccountRepository.findByPkForUpdate(savingAccountPk)
-			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException());
+			.orElseThrow(AccountErrorCode.ACCOUNT_NOT_FOUND::accountException);
 		savingAccount.addMoney(money);
 		savingAccountRepository.save(savingAccount);
 
@@ -68,7 +67,7 @@ public class MainAccountService {
 		MainAccount mainAccount = mainAccountRepository.findById(mainAccountPk)
 			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException(
 				"존재하지 않는 계좌, mainAccountPk = " + mainAccountPk));
-		
+
 		return new MainAccountResponseDto(mainAccount);
 	}
 

@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.c4marathon.assignment.SetContainerTest;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
@@ -24,7 +23,13 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+
+import com.redis.testcontainers.RedisContainer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,7 +37,21 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-public class MoneySendConcurrencyTest extends SetContainerTest {
+public class MoneySendConcurrencyTest {
+
+	private static final String REDIS_IMAGE = "redis:latest";
+	private static final int REDIS_PORT = 6379;
+
+	@Container
+	private static RedisContainer redis = new RedisContainer(DockerImageName.parse(REDIS_IMAGE)).withExposedPorts(
+		REDIS_PORT);
+
+	@DynamicPropertySource
+	private static void redisProperties(DynamicPropertyRegistry registry) {
+		redis.start();
+		registry.add("spring.data.redis.host", redis::getHost);
+		registry.add("spring.data.redis.port", redis::getFirstMappedPort);
+	}
 
 	@Autowired
 	MemberRepository memberRepository;
