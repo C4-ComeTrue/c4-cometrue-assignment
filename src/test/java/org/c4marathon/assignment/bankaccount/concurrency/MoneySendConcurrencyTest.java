@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.c4marathon.assignment.SetContainerTest;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
@@ -21,14 +22,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class MoneySendConcurrencyTest {
+@Testcontainers
+public class MoneySendConcurrencyTest extends SetContainerTest {
 
 	@Autowired
 	MemberRepository memberRepository;
@@ -43,6 +47,8 @@ public class MoneySendConcurrencyTest {
 	ChargeLimitManager chargeLimitManager;
 	@Autowired
 	MainAccountService mainAccountService;
+	@Autowired
+	RedisTemplate redisTemplate;
 
 	private Member member;
 	private MainAccount mainAccount;
