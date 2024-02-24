@@ -39,12 +39,7 @@ public class SavingAccountService {
 		List<SavingAccount> savingAccount = savingAccountRepository.findSavingAccount(memberPk);
 
 		return savingAccount.stream()
-			.map(account -> SavingAccountResponseDto.builder()
-				.accountPk(account.getAccountPk())
-				.savingMoney(account.getSavingMoney())
-				.rate(account.getRate())
-				.productName(account.getProductName())
-				.build())
+			.map(SavingAccountResponseDto::new)
 			.toList();
 	}
 }
