@@ -47,29 +47,34 @@ public class SavingsAccountService {
 
 	/**
 	 * 정기 적금 API -> 매일 오전 8시에 자동 출금
-	 * 드물게 발생하지 않는 상황을 위해 매번 쓰기 락을 거는 것은 너무 비효율적 -> 개선 필요
+	 * 드물게 발생하지 않는 상황을 위해 매번 쓰기 락을 거는 것은 비효율적
+	 * REPEATABLE READ 설정 시 메인 계좌 잔액 차감 로직에서 데드락 발생
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void transferForRegularSavings(long memberId) {
 		// 1. 사용자의 메인 계좌와 저축 계좌를 불러온다.
-		Account account = accountRepository.findByMemberIdWithWriteLock(memberId)
+		Account account = accountRepository.findByMemberId(memberId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-		SavingsAccount savingsAccount = savingsAccountRepository.findByMemberIdWithWriteLock(memberId)
+		SavingsAccount savingsAccount = savingsAccountRepository.findByMemberId(memberId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다.
+		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다. (불필요한 쿼리 방지)
 		long withdrawAmount = savingsAccount.getWithdrawAmount();
-		long totalAmount = account.getAmount();
-
-		if (isAmountEnoughToWithdraw(totalAmount, withdrawAmount)) {
-			// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재 수행
-			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
+		if (isAmountEnoughToWithdraw(account.getAmount(), withdrawAmount)) {
+			doSavingsFailProcess();
 		}
 
-		// 3. 메인 계좌의 잔액을 차감시키고, 저축 계좌의 잔액을 증가시킨다.
-		account.withdraw(withdrawAmount);
-		savingsAccount.charge(withdrawAmount);
+		// 4. 메인 계좌의 잔액을 차감시킨다.
+		int effectedRowCnt = accountRepository.withdraw(account.getId(), withdrawAmount);
+
+		// 5. 만약 해당 로직 사이에 송금이 일어나서 잔액이 부족해지면 예외를 던진다. (UPDATE 시에만 락을 건다)
+		if (isAmountLackToWithdraw(effectedRowCnt)) {
+			doSavingsFailProcess();
+		}
+
+		// 6. 저축 계좌의 잔액을 증가시킨다.
+		savingsAccountRepository.charge(savingsAccount.getId(), withdrawAmount);
 	}
 
 	/**
@@ -93,6 +98,15 @@ public class SavingsAccountService {
 
 	private boolean isAmountEnoughToWithdraw(long totalAmount, long withDrawAmount) {
 		return totalAmount < withDrawAmount;
+	}
+
+	private boolean isAmountLackToWithdraw(int effectedRowCnt) {
+		return effectedRowCnt == 0;
+	}
+
+	private void doSavingsFailProcess() {
+		// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재수행
+		throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 	}
 
 	private boolean isNotFreeSavingsAccount(SavingsType savingsType) {

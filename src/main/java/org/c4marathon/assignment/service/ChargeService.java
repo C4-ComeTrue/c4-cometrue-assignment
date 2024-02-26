@@ -11,6 +11,7 @@ import org.c4marathon.assignment.domain.entity.ChargeLinkedAccount;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.ChargeLinkedAccountRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -50,8 +51,6 @@ public class ChargeService {
 
 	/**
 	 * 메인 계좌 자동 충전 API
-	 * 자꾸 송금 성공(계좌 잔액 줄이고 -> 상대방 계좌 잔액 늘이기)?
-	 *
 	 */
 	@Transactional
 	public void autoChargeByUnit(long accountId, long amount) {
@@ -78,7 +77,7 @@ public class ChargeService {
 	@Transactional
 	public ChargeAccountDto.Res charge(long accountId, long chargeAmount) {
 		// 1. 현재 충전 한도와 잔고가 얼마인지 확인한다.
-		Account account = accountRepository.findByIdWithWriteLock(accountId)
+		Account account = accountRepository.findById(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		// 2. 다음날이 되어 1일 충전 한도를 초기화 시켜야 하는지 확인한다.
@@ -92,9 +91,8 @@ public class ChargeService {
 			throw ErrorCode.EXCEED_CHARGE_LIMIT.businessException();
 		}
 
-		// 4. 메인 계좌의 잔액을 증가시킨다.
-		account.charge(chargeAmount);
-		return new ChargeAccountDto.Res(account.getAmount());
+		accountRepository.charge(accountId, chargeAmount);
+		return new ChargeAccountDto.Res(accountRepository.findAmount(accountId));
 	}
 
 	private long getChargeAmountByUnit(long amount) {
