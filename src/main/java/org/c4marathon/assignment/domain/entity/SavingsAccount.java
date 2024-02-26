@@ -57,7 +57,11 @@ public class SavingsAccount extends BaseEntity {
 		this.withdrawAmount = withdrawAmount;
 	}
 
-	public void charge(long amount) {
-		this.amount += amount;
+	public void charge(long chargeAmount) {
+		this.amount += chargeAmount;
+	}
+
+	public boolean isAmountLackToWithDraw(long withDrawAmount) {
+		return this.amount < withDrawAmount;
 	}
 }

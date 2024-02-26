@@ -66,17 +66,12 @@ public class Account extends BaseEntity {
 		this.accountNumber = accountNumber;
 	}
 
-	public void charge(long amount) {
-		this.amount += amount;
-		this.accumulatedChargeAmount += amount;
-	}
-
-	public void withdraw(long amount) {
-		this.amount -= amount;
-	}
-
 	public void initializeChargeAmount() {
 		this.accumulatedChargeAmount = 0;
 		this.chargeUpdatedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+	}
+
+	public boolean isAmountLackToWithDraw(long withDrawAmount) {
+		return this.amount < withDrawAmount;
 	}
 }

@@ -62,7 +62,7 @@ public class ChargeService {
 		long chargeAmount = getChargeAmountByUnit(amount);
 
 		// 3. 주 충전 연동 계좌를 확인하고, 충전이 가능한지 확인한다.
-		if (isAmountLackToTransfer(linkedAccount.getAmount(), chargeAmount)) {
+		if (linkedAccount.isAmountLackToWithDraw(chargeAmount)) {
 			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
@@ -100,10 +100,6 @@ public class ChargeService {
 			return BASE_CHARGE_UNIT * ((amount / BASE_CHARGE_UNIT) + 1);
 		}
 		return amount;
-	}
-
-	private boolean isAmountLackToTransfer(long totalAmount, long chargeAmount) {
-		return totalAmount < chargeAmount;
 	}
 
 	private boolean isChargeDateChanged(LocalDate chargeRequestDate) {

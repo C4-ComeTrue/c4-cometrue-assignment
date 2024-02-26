@@ -57,4 +57,8 @@ public class ChargeLinkedAccount {
 	public void withdraw(long amount) {
 		this.amount -= amount;
 	}
+
+	public boolean isAmountLackToWithDraw(long withDrawAmount) {
+		return this.amount < withDrawAmount;
+	}
 }

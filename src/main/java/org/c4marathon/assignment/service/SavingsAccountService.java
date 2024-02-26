@@ -61,16 +61,17 @@ public class SavingsAccountService {
 
 		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다. (불필요한 쿼리 방지)
 		long withdrawAmount = savingsAccount.getWithdrawAmount();
-		if (isAmountEnoughToWithdraw(account.getAmount(), withdrawAmount)) {
-			doSavingsFailProcess();
+		if (account.isAmountLackToWithDraw(withdrawAmount)) {
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
 		// 4. 메인 계좌의 잔액을 차감시킨다.
 		int effectedRowCnt = accountRepository.withdraw(account.getId(), withdrawAmount);
 
 		// 5. 만약 해당 로직 사이에 송금이 일어나서 잔액이 부족해지면 예외를 던진다. (UPDATE 시에만 락을 건다)
-		if (isAmountLackToWithdraw(effectedRowCnt)) {
-			doSavingsFailProcess();
+		if (effectedRowCnt == 0) {
+			// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재수행
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
 		// 6. 저축 계좌의 잔액을 증가시킨다.
@@ -94,19 +95,6 @@ public class SavingsAccountService {
 		// 2. 계좌에 돈을 충전한다.
 		savingsAccount.charge(amount);
 		return new ChargeSavingsAccountDto.Res(savingsAccount.getAmount());
-	}
-
-	private boolean isAmountEnoughToWithdraw(long totalAmount, long withDrawAmount) {
-		return totalAmount < withDrawAmount;
-	}
-
-	private boolean isAmountLackToWithdraw(int effectedRowCnt) {
-		return effectedRowCnt == 0;
-	}
-
-	private void doSavingsFailProcess() {
-		// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재수행
-		throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 	}
 
 	private boolean isNotFreeSavingsAccount(SavingsType savingsType) {

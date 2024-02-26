@@ -51,13 +51,13 @@ public class AccountService {
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		// 1. 잔액이 부족할 경우 10000원 단위로 자동 충전한다.
-		if (isAmountLackToTransfer(account.getAmount(), transferAmount)) {
+		if (account.isAmountLackToWithDraw(transferAmount)) {
 			chargeService.autoChargeByUnit(accountId, transferAmount);
 		}
 
 		// 2. 잔액이 여유로워졌다면, 내 메인 계좌의 잔액을 차감시킨다.
 		int effectedRowCnt = accountRepository.withdraw(accountId, transferAmount);
-		if (isAmountLackToWithdraw(effectedRowCnt)) {
+		if (effectedRowCnt == 0) {
 			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
@@ -74,13 +74,5 @@ public class AccountService {
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		accountRepository.deposit(transferAccount.getId(), transferAmount);
-	}
-
-	private boolean isAmountLackToTransfer(long totalAmount, long transferAmount) {
-		return totalAmount < transferAmount;
-	}
-
-	private boolean isAmountLackToWithdraw(int effectedRowCnt) {
-		return effectedRowCnt == 0;
 	}
 }
