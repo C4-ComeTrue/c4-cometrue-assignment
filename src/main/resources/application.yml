@@ -1,0 +1,19 @@
+server:
+  port: 80
+
+spring:
+  profiles:
+    active: dev
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+logging:
+  level:
+    org.hibernate.type.descriptor.sql: trace
+
+jwt:
+  key: test001
+  max-age: 3600000

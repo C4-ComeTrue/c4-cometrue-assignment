@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost/pay_prod
+    username: root
+    password: 4015pskc
+
+  jpa:
+    hibernate:
+      ddl-auto: none
