@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### .editorconfig ###
+.editorconfig
+
+### private env.properties ###
+properties
+EnvConfig.java

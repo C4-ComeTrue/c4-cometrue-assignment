@@ -1,0 +1,24 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:tc:mysql:8.0.33:///
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username:
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+
+logging:
+  level:
+    org:
+      springframework:
+        orm:
+          jpa: DEBUG
+
+        transaction:
+          interceptor:
