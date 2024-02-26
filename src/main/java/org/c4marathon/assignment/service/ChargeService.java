@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 import org.c4marathon.assignment.api.dto.ChargeAccountDto;
@@ -25,6 +26,8 @@ public class ChargeService {
 
 	private final AccountRepository accountRepository;
 
+	private final Clock clock;
+
 	/**
 	 * 충전 연동 계좌 등록 API
 	 */
@@ -47,18 +50,20 @@ public class ChargeService {
 
 	/**
 	 * 메인 계좌 자동 충전 API
+	 * 자꾸 송금 성공(계좌 잔액 줄이고 -> 상대방 계좌 잔액 늘이기)?
+	 *
 	 */
 	@Transactional
 	public void autoChargeByUnit(long accountId, long amount) {
 		// 1. 해당 계좌와 연동된 주 충전 계좌를 가져온다.
-		ChargeLinkedAccount linkedAccount = linkedAccountRepository.findById(accountId)
+		ChargeLinkedAccount linkedAccount = linkedAccountRepository.findByAccountIdAndMain(accountId, true)
 			.orElseThrow(ErrorCode.INVALID_CHARGE_LINKED_ACCOUNT::businessException);
 
 		// 2. 만원 단위로 충전할 금액을 계산한다.
 		long chargeAmount = getChargeAmountByUnit(amount);
 
 		// 3. 주 충전 연동 계좌를 확인하고, 충전이 가능한지 확인한다.
-		if (linkedAccount.getAmount() > chargeAmount) {
+		if (isAmountLackToTransfer(linkedAccount.getAmount(), chargeAmount)) {
 			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
@@ -94,12 +99,16 @@ public class ChargeService {
 
 	private long getChargeAmountByUnit(long amount) {
 		if (amount % BASE_CHARGE_UNIT != 0) {
-			return BASE_CHARGE_UNIT * (amount / BASE_CHARGE_UNIT) + 1;
+			return BASE_CHARGE_UNIT * ((amount / BASE_CHARGE_UNIT) + 1);
 		}
 		return amount;
 	}
 
+	private boolean isAmountLackToTransfer(long totalAmount, long chargeAmount) {
+		return totalAmount < chargeAmount;
+	}
+
 	private boolean isChargeDateChanged(LocalDate chargeRequestDate) {
-		return !LocalDate.now().equals(chargeRequestDate);
+		return !LocalDate.now(clock).equals(chargeRequestDate);
 	}
 }

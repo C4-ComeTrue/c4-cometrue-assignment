@@ -15,4 +15,12 @@ public interface SavingsAccountRepository extends JpaRepository<SavingsAccount, 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select sac from SavingsAccount sac where sac.member.id = :id")
 	Optional<SavingsAccount> findByMemberIdWithWriteLock(@Param("id") long memberId);
+
+	// Optional<SavingsAccount> findByMemberId(long memberId);
+	//
+	// @Modifying
+	// @Query("update SavingsAccount ac "
+	// 	+ "set ac.amount = ac.amount + :chargeAmount where ac.id = :id")
+	// void charge(@Param("id") long id, @Param("chargeAmount") long chargeAmount);
+
 }

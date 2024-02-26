@@ -47,8 +47,7 @@ public class SavingsAccountService {
 
 	/**
 	 * 정기 적금 API -> 매일 오전 8시에 자동 출금
-	 * TODO: @schedule
-	 * TODO: 실패된 적금 트랜잭션 관리 (FAILED QUEUE)
+	 * 드물게 발생하지 않는 상황을 위해 매번 쓰기 락을 거는 것은 너무 비효율적 -> 개선 필요
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void transferForRegularSavings(long memberId) {
@@ -60,16 +59,17 @@ public class SavingsAccountService {
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다.
-		long withDrawAmount = savingsAccount.getWithdrawAmount();
+		long withdrawAmount = savingsAccount.getWithdrawAmount();
 		long totalAmount = account.getAmount();
 
-		if (isAmountEnoughToWithdraw(totalAmount, withDrawAmount)) {
+		if (isAmountEnoughToWithdraw(totalAmount, withdrawAmount)) {
+			// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재 수행
 			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
 		// 3. 메인 계좌의 잔액을 차감시키고, 저축 계좌의 잔액을 증가시킨다.
-		account.withdraw(withDrawAmount);
-		savingsAccount.charge(withDrawAmount);
+		account.withdraw(withdrawAmount);
+		savingsAccount.charge(withdrawAmount);
 	}
 
 	/**

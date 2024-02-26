@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import org.c4marathon.assignment.common.exception.BusinessException;
 import org.c4marathon.assignment.common.exception.ErrorCode;
-import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.Member;
 import org.c4marathon.assignment.repository.AccountRepository;
@@ -26,6 +25,9 @@ class AccountServiceTest {
 
 	@Mock
 	MemberRepository memberRepository;
+
+	@Mock
+	ChargeService chargeService;
 
 	@InjectMocks
 	AccountService accountService;
@@ -48,4 +50,77 @@ class AccountServiceTest {
 		assertThat(result.id()).isEqualTo(accountId);
 	}
 
+	@Test
+	void 계좌_송금에_성공한다() {
+		// given
+		var accountId = 1L;
+		var transferAccountNumber = "11-22";
+		var amount = 10000L;
+		var transferAmount = 1000L;
+		var account = mock(Account.class);
+		var transferAccount = mock(Account.class);
+
+		given(account.getAmount()).willReturn(amount);
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findByAccountNumberWithWriteLock(anyString())).willReturn(Optional.of(transferAccount));
+
+		// when
+		accountService.transfer(accountId, transferAccountNumber, transferAmount);
+
+		// then
+		verify(account, times(1)).withdraw(transferAmount);
+		verify(transferAccount, times(1)).charge(transferAmount);
+	}
+
+
+	@Test
+	void 잔액이_부족하다면_자동_충전이_발생한다() {
+		var accountId = 1L;
+		var transferAccountNumber = "11-22";
+		var amount = 100L;
+		var transferAmount = 1000L;
+		var account = mock(Account.class);
+		var transferAccount = mock(Account.class);
+
+		given(account.getAmount()).willReturn(amount);
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findByAccountNumberWithWriteLock(anyString())).willReturn(Optional.of(transferAccount));
+
+		// when
+		accountService.transfer(accountId, transferAccountNumber, transferAmount);
+
+		// then
+		verify(chargeService, times(1)).autoChargeByUnit(anyLong(), anyLong());
+	}
+
+	@Test
+	void 계좌가_없다면_송금에_실패한다() {
+		// given
+		var accountId = 1L;
+		var transferAccountNumber = "11-22";
+		var transferAmount = 10000L;
+
+		// when + then
+		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
+			.isInstanceOf(BusinessException.class)
+			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
+	}
+
+	@Test
+	void 송금_대상의_계좌가_없다면_송금에_실패한다() {
+		// given
+		var accountId = 1L;
+		var transferAccountNumber = "11-22";
+		var amount = 100000L;
+		var transferAmount = 10000L;
+		var account = mock(Account.class);
+
+		// when
+		given(account.getAmount()).willReturn(amount);
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+
+		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
+			.isInstanceOf(BusinessException.class)
+			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
+	}
 }

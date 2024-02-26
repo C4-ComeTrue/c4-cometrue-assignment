@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/charge-accounts/")
+@RequestMapping("/v1/charge-account")
 public class ChargeController {
 
 	private final ChargeService chargeService;

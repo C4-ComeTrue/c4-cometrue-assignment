@@ -27,7 +27,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)   // TEST
 @Table(
-	indexes = {@Index(name = "account_member_index", columnList = "member_id")}
+	indexes = {@Index(name = "account_member_index", columnList = "member_id"),
+		@Index(name = "account_number_index", columnList = "accountNumber")}
 )
 public class Account extends BaseEntity {
 
