@@ -92,7 +92,8 @@ public class ChargeService {
 		}
 
 		accountRepository.charge(accountId, chargeAmount);
-		return new ChargeAccountDto.Res(accountRepository.findAmount(accountId));
+		long resultAmount = accountRepository.findAmount(accountId);
+		return new ChargeAccountDto.Res(resultAmount);
 	}
 
 	private long getChargeAmountByUnit(long amount) {

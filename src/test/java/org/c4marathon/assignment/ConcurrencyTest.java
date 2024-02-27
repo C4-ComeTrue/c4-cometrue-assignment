@@ -6,8 +6,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 import org.c4marathon.assignment.domain.SavingsType;
-import org.c4marathon.assignment.domain.entity.Account;
-import org.c4marathon.assignment.domain.entity.ChargeLinkedAccount;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.ChargeLinkedAccountRepository;
 import org.c4marathon.assignment.repository.SavingsAccountRepository;
@@ -43,7 +41,7 @@ class ConcurrencyTest {
 		var response = memberService.register("email", "password");
 		var memberId = response.memberId();
 		var accountId = response.accountId();
-		var concurrentUser = 1;
+		var concurrentUser = 2;
 		var withdrawAmount = 5000;
 		var chargeAmount = 10000;
 
@@ -55,10 +53,9 @@ class ConcurrencyTest {
 		var countDownLatch = new CountDownLatch(concurrentUser);
 
 		// when
-		// 정기 적금 이체 자체는 동시에 수행되는 경우가 없지만, 충전 로직과 동시에 일어나는 경우를 테스트
 		for (int i = 0; i < concurrentUser; i++) {
 			executorService.execute(() -> {
-				chargeService.charge(accountId, chargeAmount);               // 메인 계좌 2번 10000원 충전
+				chargeService.charge(accountId, chargeAmount);               // 메인 계좌 2번 10000원 충전 = 20000
 				savingsAccountService.transferForRegularSavings(memberId);   // 메인 계좌 2번 5000원이 감소, 적금 계좌 2번 5000원 증가
 				countDownLatch.countDown();
 			});
@@ -74,36 +71,39 @@ class ConcurrencyTest {
 		assertThat(savingsAccountEntity.getAmount()).isEqualTo(withdrawAmount * concurrentUser);
 	}
 
-	/**
-	 *  충전 로직에서 에러가 발생하면, 송금 로직도 진행을 멈추게 되는가?
-	 */
-	// @Test
-	void 트랜잭션_분리_테스트() {
+	@Test
+	void 동시에_같은_계좌에_송금이_발생한다() throws InterruptedException {
 		// given
 		// 1. 회원 가입 -> 메인 계좌 자동 생성
 		var userA = memberService.register("email1", "password1");
 		var userB = memberService.register("email2", "password2");
 
-		var memberId = userA.memberId();
-		var accountId = userA.accountId();
-		var withdrawAmount = 5000;
-		var chargeAmount = 10000;
+		var userAAccountId = userA.accountId();
+		var userBAccountId = userB.accountId();   // userB 에게 동시에 전송
+		var transferAmount = 5000;
+		var chargeAmount = 1000000;
 
-		// 2. 계좌 충전 계좌 연동
-		Account accountA = accountRepository.findById(userA.accountId()).get();
-		Account accountB = accountRepository.findById(userB.accountId()).get();
+		// 2. 각 회원이 10000원씩 충전한다.
+		var userBAccountNumber = accountRepository.findById(userBAccountId).orElseThrow().getAccountNumber();
+		chargeService.charge(userAAccountId, chargeAmount);
 
-		var chargedLinkedAccount = ChargeLinkedAccount.builder()
-				.account(accountA)
-				.bank("우리은행")
-				.accountNumber("1234")
-				.amount(1)   // 에러 발생 위해 1원 설정
-				.build();
-
-		chargeLinkedAccountRepository.save(chargedLinkedAccount);
+		var concurrentUser = 100;
+		var executorService = Executors.newFixedThreadPool(1000);
+		var countDownLatch = new CountDownLatch(concurrentUser);
 
 		// when
-		accountService.transfer(accountId, accountB.getAccountNumber(), 10000);
+		for (int i = 0; i < concurrentUser; i++) {
+			executorService.execute(() -> {
+				accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);
+				countDownLatch.countDown();
+			});
+		}
 
+		countDownLatch.await();
+		executorService.shutdown();
+
+		// then
+		var accountEntity = accountRepository.findById(userAAccountId).orElseThrow();
+		assertThat(accountEntity.getAmount()).isEqualTo(chargeAmount - transferAmount * concurrentUser);
 	}
 }

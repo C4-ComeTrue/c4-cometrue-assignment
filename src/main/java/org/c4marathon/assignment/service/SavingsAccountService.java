@@ -47,7 +47,7 @@ public class SavingsAccountService {
 
 	/**
 	 * 정기 적금 API -> 매일 오전 8시에 자동 출금
-	 * 드물게 발생하지 않는 상황을 위해 매번 쓰기 락을 거는 것은 비효율적
+	 * 드물게 발생하는 상황을 위해 매번 쓰기 락을 거는 것은 비효율적
 	 * REPEATABLE READ 설정 시 메인 계좌 잔액 차감 로직에서 데드락 발생
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
@@ -62,19 +62,12 @@ public class SavingsAccountService {
 		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다. (불필요한 쿼리 방지)
 		long withdrawAmount = savingsAccount.getWithdrawAmount();
 		if (account.isAmountLackToWithDraw(withdrawAmount)) {
-			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
-		}
-
-		// 4. 메인 계좌의 잔액을 차감시킨다.
-		int effectedRowCnt = accountRepository.withdraw(account.getId(), withdrawAmount);
-
-		// 5. 만약 해당 로직 사이에 송금이 일어나서 잔액이 부족해지면 예외를 던진다. (UPDATE 시에만 락을 건다)
-		if (effectedRowCnt == 0) {
 			// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재수행
 			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
-		// 6. 저축 계좌의 잔액을 증가시킨다.
+		// 4. 메인 계좌의 잔액을 차감시키고, 저축 계좌의 잔액을 증가시킨다.
+		minusMyAccount(account.getId(), withdrawAmount);
 		savingsAccountRepository.charge(savingsAccount.getId(), withdrawAmount);
 	}
 
@@ -95,6 +88,14 @@ public class SavingsAccountService {
 		// 2. 계좌에 돈을 충전한다.
 		savingsAccount.charge(amount);
 		return new ChargeSavingsAccountDto.Res(savingsAccount.getAmount());
+	}
+
+	private void minusMyAccount(long accountId, long withDrawAmount) {
+		int effectedRowCnt = accountRepository.withdraw(accountId, withDrawAmount);
+		// 만약 해당 로직 사이에 송금이 일어나서 잔액이 부족해지면 예외를 던진다. (UPDATE 시에만 락을 건다)
+		if (effectedRowCnt == 0) {
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
+		}
 	}
 
 	private boolean isNotFreeSavingsAccount(SavingsType savingsType) {

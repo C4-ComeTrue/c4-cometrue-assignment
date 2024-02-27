@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.anyBoolean;
-import static org.mockito.BDDMockito.times;
-import static org.mockito.BDDMockito.verify;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.*;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -64,22 +61,19 @@ public class ChargeServiceTest {
 		// given
 		var accountId = 1L;
 		var chargeAmount = 12000L;   // 20000원 자동 충전
-		var linkedAccountAmount = 20000L;
 		var accumulatedChargeAmount = 100000L;
-		var totalAmount = 1000L;
+		var linkedAccountAmount = 20000L;
 
 		var linkedAccount = mock(ChargeLinkedAccount.class);
 		var account = mock(Account.class);
 
 		mockCurrentLocalDate();
 
-		given(linkedAccount.getAmount()).willReturn(linkedAccountAmount);
 		given(linkedAccountRepository.findByAccountIdAndMain(anyLong(), anyBoolean())).willReturn(Optional.of(linkedAccount));
 
-		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
 		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
 		given(account.getAccumulatedChargeAmount()).willReturn(accumulatedChargeAmount);
-		given(account.getAmount()).willReturn(totalAmount);
 		given(account.getChargeUpdatedAt()).willReturn(chargedDate);
 
 		// when
@@ -97,8 +91,8 @@ public class ChargeServiceTest {
 		var linkedAccountAmount = 19000L;
 		var linkedAccount = mock(ChargeLinkedAccount.class);
 
-		given(linkedAccount.getAmount()).willReturn(linkedAccountAmount);
 		given(linkedAccountRepository.findByAccountIdAndMain(anyLong(), anyBoolean())).willReturn(Optional.of(linkedAccount));
+		given(linkedAccount.isAmountLackToWithDraw(anyLong())).willReturn(true);
 
 		// when + then
 		assertThatThrownBy(() -> chargeService.autoChargeByUnit(accountId, chargeAmount))
@@ -129,10 +123,10 @@ public class ChargeServiceTest {
 
 		mockCurrentLocalDate();
 
-		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findAmount(anyLong())).willReturn(totalAmount);
 		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
 		given(account.getAccumulatedChargeAmount()).willReturn(accumulatedChargeAmount);
-		given(account.getAmount()).willReturn(totalAmount);
 		given(account.getChargeUpdatedAt()).willReturn(chargedDate);
 
 		// when
@@ -164,7 +158,7 @@ public class ChargeServiceTest {
 		mockCurrentLocalDate();
 
 		given(account.getChargeUpdatedAt()).willReturn(chargedDate);
-		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
 		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
 		given(account.getAccumulatedChargeAmount()).willReturn(3000001L);
 
@@ -185,7 +179,7 @@ public class ChargeServiceTest {
 		mockCurrentLocalDate();
 
 		given(account.getChargeUpdatedAt()).willReturn(chargedDate);
-		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
 		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
 		given(account.getAccumulatedChargeAmount()).willReturn(accumulatedChargeAmount);
 

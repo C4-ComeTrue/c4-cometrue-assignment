@@ -55,22 +55,23 @@ public class AccountService {
 			chargeService.autoChargeByUnit(accountId, transferAmount);
 		}
 
-		// 2. 잔액이 여유로워졌다면, 내 메인 계좌의 잔액을 차감시킨다.
-		int effectedRowCnt = accountRepository.withdraw(accountId, transferAmount);
-		if (effectedRowCnt == 0) {
-			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
-		}
-
-		// 3. 친구의 메인 계좌로 송금한다.
-		transferToTargetAccount(transferAccountNumber, transferAmount);
+		// 2. 잔액이 여유로워졌다면, 내 계좌의 잔액을 차감시키고 친구의 메인 계좌로 송금한다.
+		minusMyAccount(accountId, transferAmount);
+		plusTargetAccount(transferAccountNumber, transferAmount);
 
 		long resultAmount = accountRepository.findAmount(accountId);
 		return new TransferAccountDto.Res(resultAmount);
 	}
 
-	@Transactional
-	public void transferToTargetAccount(String transferAccountNumber, long transferAmount) {
-		Account transferAccount = accountRepository.findByAccountNumber(transferAccountNumber)
+	private void minusMyAccount(long accountId, long transferAmount) {
+		int effectedRowCnt = accountRepository.withdraw(accountId, transferAmount);
+		if (effectedRowCnt == 0) {
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
+		}
+	}
+
+	private void plusTargetAccount(String accountNumber, long transferAmount) {
+		Account transferAccount = accountRepository.findByAccountNumber(accountNumber)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		accountRepository.deposit(transferAccount.getId(), transferAmount);
