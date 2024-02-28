@@ -11,12 +11,10 @@ public class TransferAccountDto {
 		@NotBlank(message = "송금하려는 계좌의 번호는 비어있을 수 없습니다.") String accountNumber,
 		@NotNull @Positive(message = "송금은 1원 이상 가능합니다.") Long transferAmount
 	) {
-
 	}
 
 	public record Res(
 		long totalAmount
 	) {
-
 	}
 }
