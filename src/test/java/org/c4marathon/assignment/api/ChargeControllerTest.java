@@ -39,7 +39,7 @@ class ChargeControllerTest {
 
 		// when then
 		mockMvc.perform(
-			post("/v1/charge-account")
+			post("/v1/charge-accounts")
 				.content(mapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON)
 		).andExpectAll(
@@ -60,7 +60,7 @@ class ChargeControllerTest {
 
 		// when + then
 		mockMvc.perform(
-			post("/v1/charge-account/charge")
+			post("/v1/charge-accounts/charge")
 				.content(mapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON)
 		).andExpectAll(
@@ -73,7 +73,7 @@ class ChargeControllerTest {
 	void 계좌_번호가_null_이면_충전에_실패한다() throws Exception {
 		var request = new ChargeAccountDto.Req(null, 1000);
 		mockMvc.perform(
-				post("/v1/charge-account/charge")
+				post("/v1/charge-accounts/charge")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -84,7 +84,7 @@ class ChargeControllerTest {
 	void 계좌_번호가_이면_충전에_실패한다() throws Exception {
 		var request = new ChargeAccountDto.Req(null, 1000);
 		mockMvc.perform(
-				post("/v1/charge-account/charge")
+				post("/v1/charge-accounts/charge")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -95,7 +95,7 @@ class ChargeControllerTest {
 	void 충전_금액이_null_이면_충전에_실패한다() throws Exception {
 		var request = new ChargeAccountDto.Req(1L, null);
 		mockMvc.perform(
-				post("/v1/charge-account/charge")
+				post("/v1/charge-accounts/charge")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -106,7 +106,7 @@ class ChargeControllerTest {
 	void 충전_금액이_음수이면_충전에_실패한다() throws Exception {
 		var request = new ChargeAccountDto.Req(1L, -1000);
 		mockMvc.perform(
-				post("/v1/charge-account/charge")
+				post("/v1/charge-accounts/charge")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)

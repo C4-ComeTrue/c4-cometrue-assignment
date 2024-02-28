@@ -11,7 +11,6 @@ import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.SavingsAccountRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -47,10 +46,9 @@ public class SavingsAccountService {
 
 	/**
 	 * 정기 적금 API -> 매일 오전 8시에 자동 출금
-	 * 드물게 발생하는 상황을 위해 매번 쓰기 락을 거는 것은 비효율적
-	 * REPEATABLE READ 설정 시 메인 계좌 잔액 차감 로직에서 데드락 발생
+	 * 범위 좁히기 : 충전 <-> 송금 트랜잭션을 분리?
 	 */
-	@Transactional(isolation = Isolation.READ_COMMITTED)
+	@Transactional
 	public void transferForRegularSavings(long memberId) {
 		// 1. 사용자의 메인 계좌와 저축 계좌를 불러온다.
 		Account account = accountRepository.findByMemberId(memberId)
@@ -59,14 +57,14 @@ public class SavingsAccountService {
 		SavingsAccount savingsAccount = savingsAccountRepository.findByMemberId(memberId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다. (불필요한 쿼리 방지)
+		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다.
 		long withdrawAmount = savingsAccount.getWithdrawAmount();
 		if (account.isAmountLackToWithDraw(withdrawAmount)) {
 			// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재수행
 			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
-		// 4. 메인 계좌의 잔액을 차감시키고, 저축 계좌의 잔액을 증가시킨다.
+		// 3. 메인 계좌의 잔액을 차감시키고, 저축 계좌의 잔액을 증가시킨다.
 		minusMyAccount(account.getId(), withdrawAmount);
 		savingsAccountRepository.charge(savingsAccount.getId(), withdrawAmount);
 	}
@@ -85,7 +83,7 @@ public class SavingsAccountService {
 			throw ErrorCode.INVALID_SAVINGS_TRANSFER.businessException();
 		}
 
-		// 2. 계좌에 돈을 충전한다.
+		// 3. 계좌에 돈을 충전한다.
 		savingsAccount.charge(amount);
 		return new ChargeSavingsAccountDto.Res(savingsAccount.getAmount());
 	}

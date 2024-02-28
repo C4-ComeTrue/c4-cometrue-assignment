@@ -3,6 +3,7 @@ package org.c4marathon.assignment.domain.entity;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import org.c4marathon.assignment.common.Constants;
 import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 
 import jakarta.persistence.Entity;
@@ -57,7 +58,7 @@ public class Account extends BaseEntity {
 	private long chargeLimit = ChargeLimitUtils.BASIC_LIMIT;     // 충전 한도
 
 	@NotNull
-	private LocalDate chargeUpdatedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+	private LocalDate chargeUpdatedAt = LocalDate.now(ZoneId.of(Constants.zoneId));
 
 	@Builder
 	public Account(Member member, String name, String accountNumber) {
@@ -68,7 +69,7 @@ public class Account extends BaseEntity {
 
 	public void initializeChargeAmount() {
 		this.accumulatedChargeAmount = 0;
-		this.chargeUpdatedAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		this.chargeUpdatedAt = LocalDate.now(ZoneId.of(Constants.zoneId));
 	}
 
 	public boolean isAmountLackToWithDraw(long withDrawAmount) {

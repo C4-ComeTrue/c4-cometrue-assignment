@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(
-	indexes = {@Index(name = "charge_link_account_index", columnList = "account_id, accountNumber")}
+	indexes = {@Index(name = "charge_link_account_index", columnList = "account_id")}
 )
 public class ChargeLinkedAccount {
 

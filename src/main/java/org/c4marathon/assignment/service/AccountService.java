@@ -41,9 +41,8 @@ public class AccountService {
 
 	/**
 	 * 메인 계좌 송금 API
-	 * 내 계좌 충전 -> 내 계좌 감소 -> 상대방 계좌 증가가 하나의 트랜잭션 안에 묶여야 할 것 같은데, 범위를 어떻게 좁힐 수 있을 지 고민
 	 */
-	@Transactional(isolation = Isolation.READ_COMMITTED)
+	@Transactional
 	public TransferAccountDto.Res transfer(
 		long accountId, String transferAccountNumber, long transferAmount
 	) {

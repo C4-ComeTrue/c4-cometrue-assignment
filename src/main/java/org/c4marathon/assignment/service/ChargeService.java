@@ -11,7 +11,6 @@ import org.c4marathon.assignment.domain.entity.ChargeLinkedAccount;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.ChargeLinkedAccountRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
