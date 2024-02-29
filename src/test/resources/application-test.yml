@@ -1,9 +1,6 @@
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/storage
-    username: root
-    password: 1115
+    url: jdbc:h2:mem:test;MODE=MySQL;DATABASE_TO_LOWER=TRUE
 
   jpa:
     hibernate:
@@ -12,18 +9,4 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-
-# 동시성 테스트 레벨 3 실패
-#spring:
-#  datasource:
-#    url: jdbc:h2:mem:test;MODE=MySQL;DATABASE_TO_LOWER=TRUE
-#
-#  jpa:
-#    hibernate:
-#      ddl-auto: create-drop
-#    properties:
-#      hibernate:
-#        format_sql: true
-#        show_sql: true
-#    database-platform: H2
+    database-platform: H2
