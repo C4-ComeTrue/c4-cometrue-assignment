@@ -43,7 +43,8 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.4'
     testImplementation 'org.testcontainers:mysql:1.19.4'
     testImplementation "com.redis:testcontainers-redis:2.0.2"
-
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
 }
 

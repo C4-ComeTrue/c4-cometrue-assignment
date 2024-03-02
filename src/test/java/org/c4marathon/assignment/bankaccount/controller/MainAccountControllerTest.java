@@ -2,7 +2,7 @@ package org.c4marathon.assignment.bankaccount.controller;
 
 import java.nio.charset.StandardCharsets;
 
-import org.c4marathon.assignment.bankaccount.dto.request.SendToSavingRequestDto;
+import org.c4marathon.assignment.bankaccount.dto.request.SendMoneyRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
 import org.c4marathon.assignment.common.utils.ConstValue;
@@ -96,7 +96,7 @@ class MainAccountControllerTest {
 		@DisplayName("존재하는 계좌 정보와 1원 이상의 금액으로 요청하면 이체를 성공한다.")
 		void request_with_valid_account_and_valid_money() throws Exception {
 			// Given
-			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 1000);
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(1, 1000);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
@@ -112,7 +112,7 @@ class MainAccountControllerTest {
 		@DisplayName("존재하지 않는 계좌 정보(0 이하의 pk)로 요청하면 실패한다.")
 		void request_with_non_valid_account() throws Exception {
 			// Given
-			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(0, 1000);
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(0, 1000);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
@@ -128,7 +128,7 @@ class MainAccountControllerTest {
 		@DisplayName("이체 금액을 0 이하로 요청하면 실패한다.")
 		void request_with_non_valid_money() throws Exception {
 			// Given
-			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 0);
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(1, 0);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
