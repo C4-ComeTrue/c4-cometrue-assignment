@@ -3,12 +3,13 @@ package org.c4marathon.assignment.bankaccount.service;
 import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
+import org.c4marathon.assignment.bankaccount.entity.SendRecord;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
+import org.c4marathon.assignment.bankaccount.repository.SendRecordRepository;
 import org.c4marathon.assignment.common.utils.ConstValue;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ public class MainAccountService {
 	private final ChargeLimitManager chargeLimitManager;
 	private final SavingAccountRepository savingAccountRepository;
 	private final DepositHandlerService depositHandlerService;
-	private final ThreadPoolTaskExecutor executor;
+	private final SendRecordRepository sendRecordRepository;
 
 	/**
 	 *
@@ -82,17 +83,20 @@ public class MainAccountService {
 	 * 락을 짧게 가져가기 위해 출금과 입금 로직을 분리하였습니다. 입금 로직은 백그라운드에서 자동으로 실행됩니다.
 	 * */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void sendToOtherAccount(long myAccountPk, long otherAccountPk, long money) {
+	public void sendToOtherAccount(long senderPk, long depositPk, long money) {
 		// 1. 나의 계좌에서 이체할 금액을 빼준다.
-		MainAccount myAccount = mainAccountRepository.findByPkForUpdate(myAccountPk)
+		MainAccount myAccount = mainAccountRepository.findByPkForUpdate(senderPk)
 			.orElseThrow(AccountErrorCode.ACCOUNT_NOT_FOUND::accountException);
 
 		autoMoneyChange(myAccount, money);
 		mainAccountRepository.save(myAccount);
 		// 2. 이체 로그를 남겨준다.
+		SendRecord sendRecord = new SendRecord(senderPk, depositPk, money);
+		sendRecordRepository.save(sendRecord);
+		long recordPk = sendRecord.getRecordPk();
 
 		// 3. 입금 로직은 다른 스레드 풀에게 넘기고 트랜잭션을 종료한다.
-		depositHandlerService.doDeposit(otherAccountPk, 1000);
+		depositHandlerService.doDeposit(depositPk, money, recordPk);
 	}
 
 	public boolean isSendValid(long myMoney, long sendMoney) {
