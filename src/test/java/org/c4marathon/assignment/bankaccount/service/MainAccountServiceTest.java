@@ -7,7 +7,6 @@ import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.exception.AccountException;
-import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -29,8 +28,7 @@ class MainAccountServiceTest {
 	MainAccountService mainAccountService;
 	@Mock
 	MainAccountRepository mainAccountRepository;
-	@Mock
-	ChargeLimitManager chargeLimitManager;
+
 	@Mock
 	SavingAccountRepository savingAccountRepository;
 
@@ -105,7 +103,7 @@ class MainAccountServiceTest {
 			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
 
 			// When
-			mainAccountService.sendToSavingAccount(1, 1, sendMoney);
+			mainAccountService.sendToSavingAccount(1, 1, sendMoney, 1);
 
 			// Then
 			assertEquals(savingAccount.getSavingMoney(), sendMoney);
@@ -122,7 +120,7 @@ class MainAccountServiceTest {
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class,
-				() -> mainAccountService.sendToSavingAccount(1, 1, sendMoney));
+				() -> mainAccountService.sendToSavingAccount(1, 1, sendMoney, 1));
 
 			// Then
 			assertEquals(AccountErrorCode.ACCOUNT_NOT_FOUND.name(), accountException.getErrorName());
@@ -136,7 +134,7 @@ class MainAccountServiceTest {
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class,
-				() -> mainAccountService.sendToSavingAccount(1, 1, sendMoney));
+				() -> mainAccountService.sendToSavingAccount(1, 1, sendMoney, 1));
 
 			// Then
 			assertEquals(AccountErrorCode.ACCOUNT_NOT_FOUND.name(), accountException.getErrorName());
@@ -151,7 +149,7 @@ class MainAccountServiceTest {
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class,
-				() -> mainAccountService.sendToSavingAccount(1, 1, sendMoney));
+				() -> mainAccountService.sendToSavingAccount(1, 1, sendMoney, 1));
 
 			// Then
 			assertEquals(AccountErrorCode.INVALID_MONEY_SEND.name(), accountException.getErrorName());

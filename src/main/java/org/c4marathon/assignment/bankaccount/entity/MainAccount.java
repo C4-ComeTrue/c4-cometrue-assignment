@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.bankaccount.entity;
 
 import org.c4marathon.assignment.common.entity.BaseEntity;
-import org.c4marathon.assignment.common.utils.ConstValue;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,19 +22,14 @@ public class MainAccount extends BaseEntity {
 	@Column(name = "account_pk", nullable = false, updatable = false)
 	private long accountPk;
 
-	@Column(name = "charge_limit", nullable = false)
-	private long chargeLimit;
-
 	@Column(name = "money", nullable = false)
 	private long money;
 
 	public MainAccount() {
-		this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
 		this.money = 0L;
 	}
 
 	public MainAccount(long money) {
-		this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
 		this.money = money;
 	}
 

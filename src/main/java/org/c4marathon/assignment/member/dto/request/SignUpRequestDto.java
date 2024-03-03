@@ -34,13 +34,14 @@ public record SignUpRequestDto(
 			.build();
 	}
 
-	public Member toEntity(long mainAccountPk, String encodedPassword) {
+	public Member toEntity(long mainAccountPk, long chargeLimitPk, String encodedPassword) {
 		return Member.builder()
 			.memberId(memberId)
 			.password(encodedPassword)
 			.memberName(memberName)
 			.phoneNumber(phoneNumber)
 			.mainAccountPk(mainAccountPk)
+			.chargeLimitPk(chargeLimitPk)
 			.build();
 	}
 }

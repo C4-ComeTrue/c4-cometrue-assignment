@@ -16,7 +16,7 @@ public class JustTest {
 	@Test
 	void threadPoolTest() {
 		MainAccountResponseDto mainAccountInfo = mainAccountService.getMainAccountInfo(4);
-		mainAccountService.sendToOtherAccount(1, 4, 1000);
+		mainAccountService.sendToOtherAccount(1, 4, 1000, 1);
 		// try {
 		// 	Thread.sleep(2000);
 		// } catch (Exception e) {

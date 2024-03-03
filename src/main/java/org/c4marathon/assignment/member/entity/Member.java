@@ -42,16 +42,21 @@ public class Member extends BaseEntity {
 	@Column(name = "main_account_pk", nullable = false)
 	private long mainAccountPk;
 
+	@Column(name = "charge_limit_pk", nullable = false)
+	private long chargeLimitPk;
+
 	@OneToMany(mappedBy = "member")
 	List<SavingAccount> savingAccounts = new ArrayList<>();
 
 	@Builder
-	public Member(String memberId, String password, String memberName, String phoneNumber, long mainAccountPk) {
+	public Member(String memberId, String password, String memberName, String phoneNumber, long mainAccountPk,
+		long chargeLimitPk) {
 		this.memberId = memberId;
 		this.password = password;
 		this.memberName = memberName;
 		this.phoneNumber = phoneNumber;
 		this.mainAccountPk = mainAccountPk;
+		this.chargeLimitPk = chargeLimitPk;
 	}
 
 }

@@ -1,7 +1,8 @@
 package org.c4marathon.assignment.member.service;
 
+import org.c4marathon.assignment.bankaccount.entity.ChargeLimit;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
-import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
+import org.c4marathon.assignment.bankaccount.repository.ChargeLimitRepository;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
@@ -22,8 +23,8 @@ public class MemberService {
 
 	private final MemberRepository memberRepository;
 	private final MainAccountRepository mainAccountRepository;
-	private final ChargeLimitManager chargeLimitManager;
 	private final PasswordEncoder passwordEncoder;
+	private final ChargeLimitRepository chargeLimitRepository;
 
 	@Transactional
 	public void signUp(SignUpRequestDto requestDto) {
@@ -33,8 +34,11 @@ public class MemberService {
 		MainAccount mainAccount = new MainAccount();
 		mainAccountRepository.save(mainAccount);
 
+		ChargeLimit chargeLimit = new ChargeLimit();
+		chargeLimitRepository.save(chargeLimit);
+
 		String encodedPassword = passwordEncoder.encode(requestDto.password());
-		Member member = requestDto.toEntity(mainAccount.getAccountPk(), encodedPassword);
+		Member member = requestDto.toEntity(mainAccount.getAccountPk(), chargeLimit.getLimitPk(), encodedPassword);
 		memberRepository.save(member);
 
 	}
@@ -48,7 +52,8 @@ public class MemberService {
 			throw MemberErrorCode.INVALID_PASSWORD.memberException("비밀번호 불일치");
 		}
 
-		return new SessionMemberInfo(member.getMemberPk(), member.getMemberId(), member.getMainAccountPk());
+		return new SessionMemberInfo(member.getMemberPk(), member.getMemberId(), member.getMainAccountPk(),
+			member.getChargeLimitPk());
 	}
 
 	public MemberInfoResponseDto getMemberInfo(long memberPk) {

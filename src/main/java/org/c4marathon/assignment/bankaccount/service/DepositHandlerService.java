@@ -19,8 +19,7 @@ public class DepositHandlerService {
 	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
 	@Async("depositExecutor")
 	public void doDeposit(long accountPk, long money, long recordPk) {
-		throw new RuntimeException();
-		// mainAccountRepository.deposit(accountPk, money);
-		// sendRecordRepository.checkRecord(recordPk);
+		mainAccountRepository.deposit(accountPk, money);
+		sendRecordRepository.checkRecord(recordPk);
 	}
 }

@@ -5,9 +5,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.c4marathon.assignment.bankaccount.entity.ChargeLimit;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
-import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
+import org.c4marathon.assignment.bankaccount.repository.ChargeLimitRepository;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
@@ -63,7 +64,7 @@ public class MoneySendConcurrencyTest {
 	SavingAccountRepository savingAccountRepository;
 
 	@Autowired
-	ChargeLimitManager chargeLimitManager;
+	ChargeLimitRepository chargeLimitRepository;
 	@Autowired
 	MainAccountService mainAccountService;
 	@Autowired
@@ -72,8 +73,10 @@ public class MoneySendConcurrencyTest {
 	private Member member;
 	private MainAccount mainAccount;
 	private SavingAccount savingAccount;
+	private ChargeLimit chargeLimit;
 	private long mainAccountPk;
 	private long savingAccountPk;
+	private long chargeLimitPk;
 
 	@Nested
 	@DisplayName("메인 계좌에서 적금 계좌 송금시 동시성 테스트")
@@ -108,8 +111,9 @@ public class MoneySendConcurrencyTest {
 			for (int i = 0; i < threadCount; i++) {
 				executorService.submit(() -> {
 					try {
-						mainAccountService.sendToSavingAccount(mainAccountPk, savingAccountPk, savingPlusMoney);
-						mainAccountService.chargeMoney(mainAccountPk, mainPlusMoney);
+						mainAccountService.sendToSavingAccount(mainAccountPk, savingAccountPk, savingPlusMoney,
+							chargeLimitPk);
+						mainAccountService.chargeMoney(mainAccountPk, mainPlusMoney, chargeLimitPk);
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
 						failCount.getAndIncrement();
@@ -148,7 +152,8 @@ public class MoneySendConcurrencyTest {
 			for (int i = 0; i < threadCount; i++) {
 				executorService.submit(() -> {
 					try {
-						mainAccountService.sendToSavingAccount(mainAccountPk, savingAccountPk, sendMoney);
+						mainAccountService.sendToSavingAccount(mainAccountPk, savingAccountPk, sendMoney,
+							chargeLimitPk);
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
 						failCount.getAndIncrement();
@@ -170,8 +175,10 @@ public class MoneySendConcurrencyTest {
 	void createAccount() {
 		int money = 100000;
 		mainAccount = new MainAccount(money);
-
 		mainAccountRepository.save(mainAccount);
+
+		chargeLimit = new ChargeLimit();
+		chargeLimitRepository.save(chargeLimit);
 
 		member = Member.builder()
 			.memberId("testId")
@@ -179,6 +186,7 @@ public class MoneySendConcurrencyTest {
 			.memberName("testName")
 			.phoneNumber("testPhone")
 			.mainAccountPk(mainAccount.getAccountPk())
+			.chargeLimitPk(chargeLimit.getLimitPk())
 			.build();
 		memberRepository.save(member);
 
@@ -194,5 +202,6 @@ public class MoneySendConcurrencyTest {
 		savingAccountRepository.delete(savingAccount);
 		mainAccountRepository.delete(mainAccount);
 		memberRepository.delete(member);
+		chargeLimitRepository.delete(chargeLimit);
 	}
 }
