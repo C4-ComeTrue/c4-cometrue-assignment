@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
 /**
@@ -25,6 +27,7 @@ import lombok.Getter;
  */
 @Entity
 @Getter
+@Table(indexes = {@Index(name = "check_index", columnList = "charge_check")})
 public class ChargeLimit {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,21 +35,27 @@ public class ChargeLimit {
 	private long limitPk;
 
 	// 최대 충전 한도
-	@Column(name = "charge_limit", nullable = false)
-	private long chargeLimit;
+	@Column(name = "limit_money", nullable = false)
+	private long limitMoney;
 
 	// 추가로 충전할 수 있는 금액
 	@Column(name = "spare_money", nullable = false)
 	private long spareMoney;
 
+	// 오늘 충전 여부
+	@Column(name = "charge_check", nullable = false)
+	private boolean chargeCheck;
+
 	public ChargeLimit() {
-		this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
+		this.limitMoney = ConstValue.LimitConst.CHARGE_LIMIT;
 		this.spareMoney = ConstValue.LimitConst.CHARGE_LIMIT;
+		this.chargeCheck = false;
 	}
 
 	public boolean charge(long money) {
 		if (spareMoney >= money) {
 			spareMoney -= money;
+			this.chargeCheck = true;
 			return true;
 		}
 		return false;
