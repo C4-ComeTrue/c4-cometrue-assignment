@@ -117,6 +117,7 @@ public class MoneySendConcurrencyTest {
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
 						failCount.getAndIncrement();
+						exception.printStackTrace();
 					} finally {
 						countDownLatch.countDown();
 					}
@@ -138,7 +139,7 @@ public class MoneySendConcurrencyTest {
 		}
 
 		@Test
-		@DisplayName("메인 계좌 잔고가 부족하면 적금 계좌로 송금에 실패한다.")
+		@DisplayName("메인 계좌 잔고가 부족해도 충전 한도 안이면 자동 충전되어 송금에 성공한다.")
 		void concurrency_send_to_saving_account() throws InterruptedException {
 			int threadCount = 50;
 			int sendMoney = 10000;
@@ -167,8 +168,7 @@ public class MoneySendConcurrencyTest {
 			executorService.shutdown();
 
 			// Then
-			assertEquals(10, successCount.get());
-			assertEquals(40, failCount.get());
+			assertEquals(threadCount, successCount.get());
 		}
 	}
 
@@ -196,6 +196,7 @@ public class MoneySendConcurrencyTest {
 
 		mainAccountPk = mainAccount.getAccountPk();
 		savingAccountPk = savingAccount.getAccountPk();
+		chargeLimitPk = chargeLimit.getLimitPk();
 	}
 
 	void clearAccount() {

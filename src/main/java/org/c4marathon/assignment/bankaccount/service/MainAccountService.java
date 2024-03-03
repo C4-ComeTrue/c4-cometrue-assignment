@@ -130,7 +130,7 @@ public class MainAccountService {
 	 * 충전 한도 테이블에서 충전 한도를 확인하고 가능하면 충전해주는 메소드
 	 */
 	public void checkAndCharge(long money, long chargeLimitPk) {
-		ChargeLimit chargeLimit = chargeLimitRepository.findById(chargeLimitPk).orElseThrow(() ->
+		ChargeLimit chargeLimit = chargeLimitRepository.findByPkForUpdate(chargeLimitPk).orElseThrow(() ->
 			AccountErrorCode.CHARGE_LIMIT_NOT_FOUND.accountException(
 				"충전 한도 정보를 찾을 수 없음, chargeLimitPk = " + chargeLimitPk)
 		);

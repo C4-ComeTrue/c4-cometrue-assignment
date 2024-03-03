@@ -2,9 +2,10 @@ package org.c4marathon.assignment.member.service;
 
 import java.util.Optional;
 
+import org.c4marathon.assignment.bankaccount.entity.ChargeLimit;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
+import org.c4marathon.assignment.bankaccount.repository.ChargeLimitRepository;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
-import org.c4marathon.assignment.common.utils.ConstValue;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
 import org.c4marathon.assignment.member.dto.response.MemberInfoResponseDto;
@@ -32,11 +33,11 @@ class MemberServiceImplTest {
 	@Mock
 	MemberRepository memberRepository;
 	@Mock
-	ChargeLimitManager chargeLimitManager;
-	@Mock
 	MainAccountRepository mainAccountRepository;
 	@Mock
 	PasswordEncoder passwordEncoder;
+	@Mock
+	ChargeLimitRepository chargeLimitRepository;
 
 	@Nested
 	@DisplayName("회원 가입 테스트")
@@ -50,9 +51,10 @@ class MemberServiceImplTest {
 			SignUpRequestDto requestDto = makeRequestForm();
 			given(memberRepository.findMemberByMemberId(requestDto.memberId())).willReturn(null);
 			MainAccount mainAccount = new MainAccount();
+			ChargeLimit chargeLimit = new ChargeLimit();
 
 			given(mainAccountRepository.save(any())).willReturn(mainAccount);
-			given(chargeLimitManager.get(mainAccount.getAccountPk())).willReturn(ConstValue.LimitConst.CHARGE_LIMIT);
+			given(chargeLimitRepository.save(any())).willReturn(chargeLimit);
 
 			// When
 			memberService.signUp(requestDto);
@@ -60,7 +62,6 @@ class MemberServiceImplTest {
 			// Then
 			then(memberRepository).should(times(1)).findMemberByMemberId(requestDto.memberId());
 			then(mainAccountRepository).should(times(1)).save(any());
-			assertEquals(ConstValue.LimitConst.CHARGE_LIMIT, chargeLimitManager.get(mainAccount.getAccountPk()));
 		}
 
 		@Test

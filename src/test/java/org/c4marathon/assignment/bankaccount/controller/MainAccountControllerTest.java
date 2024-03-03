@@ -2,10 +2,10 @@ package org.c4marathon.assignment.bankaccount.controller;
 
 import java.nio.charset.StandardCharsets;
 
+import org.c4marathon.assignment.bankaccount.dto.request.ChargeMoneyRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.request.SendMoneyRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
-import org.c4marathon.assignment.common.utils.ConstValue;
 import org.c4marathon.assignment.member.session.SessionConst;
 import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ class MainAccountControllerTest {
 	@BeforeEach
 	void initSession() {
 		session = new MockHttpSession();
-		SessionMemberInfo memberInfo = new SessionMemberInfo(1L, "testId", 1L);
+		SessionMemberInfo memberInfo = new SessionMemberInfo(1L, "testId", 1L, 1L);
 		session.setAttribute(SessionConst.MEMBER_INFO, memberInfo);
 	}
 
@@ -61,12 +61,17 @@ class MainAccountControllerTest {
 			// Given
 			SessionMemberInfo memberInfo = (SessionMemberInfo)session.getAttribute(SessionConst.MEMBER_INFO);
 			long mainAccountPk = memberInfo.mainAccountPk();
+			long chargeLimitPk = memberInfo.chargeLimitPk();
+			ChargeMoneyRequestDto requestDto = new ChargeMoneyRequestDto(money);
 
-			given(mainAccountService.chargeMoney(mainAccountPk, money)).willReturn(baseMoney + money);
+			given(mainAccountService.chargeMoney(mainAccountPk, money, chargeLimitPk)).willReturn(baseMoney + money);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(
-				get(REQUEST_URL + "/charge").param("money", String.valueOf(money)).session(session));
+				post(REQUEST_URL + "/charge").session(session)
+					.contentType(MediaType.APPLICATION_JSON)
+					.characterEncoding(StandardCharsets.UTF_8)
+					.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
 			resultActions.andExpect(status().isOk())
@@ -77,11 +82,17 @@ class MainAccountControllerTest {
 		}
 
 		@Test
-		@DisplayName("충전 금액이 음수면 ConstraintViolationException 예외가 발생한다.")
+		@DisplayName("충전 금액이 음수면 예외가 발생한다.")
 		void request_with_minus_money() throws Exception {
+			// Given
+			ChargeMoneyRequestDto requestDto = new ChargeMoneyRequestDto(-1);
+
 			// When
 			ResultActions resultActions = mockMvc.perform(
-				get(REQUEST_URL + "/charge").param("money", String.valueOf(-1)).session(session));
+				post(REQUEST_URL + "/charge").session(session)
+					.contentType(MediaType.APPLICATION_JSON)
+					.characterEncoding(StandardCharsets.UTF_8)
+					.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
 			resultActions.andExpect(status().isBadRequest());
@@ -149,7 +160,7 @@ class MainAccountControllerTest {
 		@DisplayName("로그인한 사용자는 메인 계좌 조회에 성공한다")
 		void request_with_login_member() throws Exception {
 			// Given
-			MainAccountResponseDto responseDto = new MainAccountResponseDto(1L, ConstValue.LimitConst.CHARGE_LIMIT, 0);
+			MainAccountResponseDto responseDto = new MainAccountResponseDto(1L, 0);
 			given(mainAccountService.getMainAccountInfo(anyLong())).willReturn(responseDto);
 
 			// When
@@ -157,7 +168,6 @@ class MainAccountControllerTest {
 
 			// Then
 			resultActions.andExpectAll(status().isOk(), jsonPath("$.accountPk").value(responseDto.accountPk()),
-				jsonPath("$.chargeLimit").value(responseDto.chargeLimit()),
 				jsonPath("$.money").value(responseDto.money()));
 		}
 	}

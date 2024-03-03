@@ -49,7 +49,7 @@ class SavingAccountControllerTest {
 	@BeforeEach
 	public void setSession() {
 		session = new MockHttpSession();
-		SessionMemberInfo sessionMemberInfo = new SessionMemberInfo(1L, "testId", 1L);
+		SessionMemberInfo sessionMemberInfo = new SessionMemberInfo(1L, "testId", 1L, 1L);
 		session.setAttribute(SessionConst.MEMBER_INFO, sessionMemberInfo);
 	}
 

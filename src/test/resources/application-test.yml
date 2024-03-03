@@ -23,6 +23,4 @@ logging:
         transaction:
           interceptor:
       c4marathon:
-        assignment:
-          bankaccount:
-            concurrency: INFO
+        assignment: INFO

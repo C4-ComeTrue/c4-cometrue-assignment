@@ -3,10 +3,12 @@ package org.c4marathon.assignment.bankaccount.service;
 import java.util.Optional;
 
 import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
+import org.c4marathon.assignment.bankaccount.entity.ChargeLimit;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.exception.AccountException;
+import org.c4marathon.assignment.bankaccount.repository.ChargeLimitRepository;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +33,8 @@ class MainAccountServiceTest {
 
 	@Mock
 	SavingAccountRepository savingAccountRepository;
+	@Mock
+	ChargeLimitRepository chargeLimitRepository;
 
 	@Nested
 	@DisplayName("메인 계좌 충전 테스트")
@@ -38,16 +42,18 @@ class MainAccountServiceTest {
 		long mainAccountPk = 1L;
 		int money = 1000;
 		int accountMoney = 0;
+		long chargeLimitPk = 1L;
 
 		@Test
 		@DisplayName("계좌가 있고 충전 한도를 벗어나지 않으면 정상 충전된다.")
 		void request_with_valid_account_and_charging_limit() {
 			// Given
-			given(chargeLimitManager.charge(mainAccountPk, money)).willReturn(true);
 			MainAccount mainAccount = new MainAccount(accountMoney);
 			given(mainAccountRepository.findByPkForUpdate(mainAccountPk)).willReturn(Optional.of(mainAccount));
+			ChargeLimit chargeLimit = new ChargeLimit();
+			given(chargeLimitRepository.findByPkForUpdate(chargeLimitPk)).willReturn(Optional.of(chargeLimit));
 			// When
-			long returnValue = mainAccountService.chargeMoney(mainAccountPk, money);
+			long returnValue = mainAccountService.chargeMoney(mainAccountPk, money, chargeLimitPk);
 
 			// Then
 			assertEquals(returnValue, accountMoney + money);
@@ -57,11 +63,13 @@ class MainAccountServiceTest {
 		@DisplayName("충전 한도를 초과하면 AccountException(CHARGE_LIMIT_EXCESS) 예외가 발생한다.")
 		void request_with_over_charge_limit() {
 			// Given
-			given(chargeLimitManager.charge(mainAccountPk, money)).willReturn(false);
+			ChargeLimit chargeLimit = new ChargeLimit();
+			chargeLimit.charge(chargeLimit.getSpareMoney());
+			given(chargeLimitRepository.findByPkForUpdate(chargeLimitPk)).willReturn(Optional.of(chargeLimit));
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class, () -> {
-				mainAccountService.chargeMoney(mainAccountPk, money);
+				mainAccountService.chargeMoney(mainAccountPk, money, chargeLimitPk);
 			});
 
 			// Then
@@ -72,12 +80,13 @@ class MainAccountServiceTest {
 		@DisplayName("메인 계좌가 생성되지 않은 사용자라면 AccountException(ACCOUNT_NOT_FOUND) 예외가 발생한다.")
 		void request_with_no_main_account() {
 			// Given
-			given(chargeLimitManager.charge(mainAccountPk, money)).willReturn(true);
+			ChargeLimit chargeLimit = new ChargeLimit();
 			given(mainAccountRepository.findByPkForUpdate(mainAccountPk)).willReturn(Optional.empty());
+			given(chargeLimitRepository.findByPkForUpdate(chargeLimitPk)).willReturn(Optional.of(chargeLimit));
 
 			// When
 			AccountException accountException = assertThrows(AccountException.class, () -> {
-				mainAccountService.chargeMoney(mainAccountPk, money);
+				mainAccountService.chargeMoney(mainAccountPk, money, chargeLimitPk);
 			});
 
 			// Then
@@ -139,21 +148,6 @@ class MainAccountServiceTest {
 			// Then
 			assertEquals(AccountErrorCode.ACCOUNT_NOT_FOUND.name(), accountException.getErrorName());
 		}
-
-		@Test
-		@DisplayName("메인 계좌 잔고가 이체 금액보다 적으면 AccountException(INVALID_MONEY_SEND) 예외가 발생한다.")
-		void request_with_invalid_send_money() {
-			// Given
-			MainAccount mainAccount = new MainAccount();
-			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
-
-			// When
-			AccountException accountException = assertThrows(AccountException.class,
-				() -> mainAccountService.sendToSavingAccount(1, 1, sendMoney, 1));
-
-			// Then
-			assertEquals(AccountErrorCode.INVALID_MONEY_SEND.name(), accountException.getErrorName());
-		}
 	}
 
 	@Nested
@@ -174,7 +168,6 @@ class MainAccountServiceTest {
 			System.out.println(mainAccount.getMoney());
 			System.out.println(mainAccountInfo);
 			// Then
-			assertEquals(mainAccountInfo.chargeLimit(), mainAccount.getChargeLimit());
 			assertEquals(mainAccountInfo.money(), mainAccount.getMoney());
 		}
 

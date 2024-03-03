@@ -226,7 +226,7 @@ class MemberControllerTest {
 		void request_with_valid_id_and_password() throws Exception {
 			// Given
 			SignInRequestDto requestDto = new SignInRequestDto("testId", "password");
-			SessionMemberInfo memberDto = new SessionMemberInfo(1L, "testId", 0L);
+			SessionMemberInfo memberDto = new SessionMemberInfo(1L, "testId", 0L, 1L);
 			given(memberService.signIn(requestDto)).willReturn(memberDto);
 
 			// When
@@ -289,7 +289,7 @@ class MemberControllerTest {
 		@DisplayName("로그인한 사용자는 자신의 정보를 반환받는다.")
 		void request_with_login_member() throws Exception {
 			// Given
-			SessionMemberInfo sessionMemberInfo = new SessionMemberInfo(1L, "testId", 0L);
+			SessionMemberInfo sessionMemberInfo = new SessionMemberInfo(1L, "testId", 0L, 1L);
 			MockHttpSession session = new MockHttpSession();
 			session.setAttribute(SessionConst.MEMBER_INFO, sessionMemberInfo);
 
