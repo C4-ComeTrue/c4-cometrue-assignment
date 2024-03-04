@@ -18,7 +18,7 @@ public class ChargeLimitScheduler {
 	 * 충전 한도를 00시에 초기화 해주는 스케줄러
 	 * ChargeLimit 테이블 sapreMoney 값을 CHARGE_LIMIT으로 초기화한다.
 	 */
-	@Scheduled(cron = "0 0/1 0 * * *")
+	@Scheduled(cron = "0 0 0 * * *")
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void chargeLimitSchedule() {
 		chargeLimitRepository.bulkSpareMoneyInit();
