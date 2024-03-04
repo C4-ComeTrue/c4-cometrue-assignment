@@ -28,7 +28,8 @@ public enum ErrorCode {
 	DELIVERY_STATUS_NOT_FOUND(NOT_FOUND, "요청에 해당하는 배송 상태가 존재하지 않습니다."),
 	CONFIRM_NOT_AVAILABLE(BAD_REQUEST, "구매 확정이 불가능한 상태입니다."),
 	NOT_ENOUGH_PRODUCT_STOCK(BAD_REQUEST, "상품의 재고가 부족합니다."),
-	NOT_ENOUGH_POINT(BAD_REQUEST, "사용할 포인트가 부족합니다.");
+	NOT_ENOUGH_POINT(BAD_REQUEST, "사용할 포인트가 부족합니다."),
+	CONSUMER_NOT_FOUND_BY_ID(NOT_FOUND, "id에 해당하는 Consumer가 존재하지 않습니다.");
 
 	private final HttpStatus status;
 	private final String message;
