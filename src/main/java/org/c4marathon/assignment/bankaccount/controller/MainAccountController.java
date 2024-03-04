@@ -30,8 +30,7 @@ public class MainAccountController {
 	@PostMapping("/charge")
 	public long chargeMoney(@Login SessionMemberInfo memberInfo,
 		@Valid @RequestBody ChargeMoneyRequestDto requestDto) {
-		return mainAccountService.chargeMoney(memberInfo.mainAccountPk(), requestDto.money(),
-			memberInfo.chargeLimitPk());
+		return mainAccountService.chargeMoney(memberInfo.mainAccountPk(), requestDto.money());
 	}
 
 	@ResponseStatus(HttpStatus.OK)
@@ -39,7 +38,7 @@ public class MainAccountController {
 	public void sendToSavingAccount(@Login SessionMemberInfo memberInfo,
 		@Valid @RequestBody SendMoneyRequestDto sendAccountInfo) {
 		mainAccountService.sendToSavingAccount(memberInfo.mainAccountPk(), sendAccountInfo.accountPk(),
-			sendAccountInfo.money(), memberInfo.chargeLimitPk());
+			sendAccountInfo.money());
 	}
 
 	@ResponseStatus(HttpStatus.OK)
@@ -53,6 +52,6 @@ public class MainAccountController {
 	public void sendToOtherAccount(@Login SessionMemberInfo memberInfo,
 		@Valid @RequestBody SendMoneyRequestDto sendAccountInfo) {
 		mainAccountService.sendToOtherAccount(memberInfo.mainAccountPk(), sendAccountInfo.accountPk(),
-			sendAccountInfo.money(), memberInfo.chargeLimitPk());
+			sendAccountInfo.money());
 	}
 }

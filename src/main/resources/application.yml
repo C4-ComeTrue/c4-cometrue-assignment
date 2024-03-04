@@ -25,12 +25,6 @@ spring:
         use_sql_comments: true
     open-in-view: false
 
-  # Redis
-  data:
-    redis:
-      host: ${redis.host}
-      port: ${redis.port}
-      password: ${redis.password}
 
 logging:
   level:

@@ -1,15 +1,12 @@
 package org.c4marathon.assignment.bankaccount.concurrency;
 
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.c4marathon.assignment.bankaccount.entity.ChargeLimit;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
-import org.c4marathon.assignment.bankaccount.repository.ChargeLimitRepository;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
@@ -24,16 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-
-import com.redis.testcontainers.RedisContainer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,20 +32,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 public class MoneySendConcurrencyTest {
-
-	private static final String REDIS_IMAGE = "redis:latest";
-	private static final int REDIS_PORT = 6379;
-
-	@Container
-	private static RedisContainer redis = new RedisContainer(DockerImageName.parse(REDIS_IMAGE)).withExposedPorts(
-		REDIS_PORT);
-
-	@DynamicPropertySource
-	private static void redisProperties(DynamicPropertyRegistry registry) {
-		redis.start();
-		registry.add("spring.data.redis.host", redis::getHost);
-		registry.add("spring.data.redis.port", redis::getFirstMappedPort);
-	}
 
 	@Autowired
 	MemberRepository memberRepository;
@@ -67,11 +43,8 @@ public class MoneySendConcurrencyTest {
 	SavingAccountRepository savingAccountRepository;
 
 	@Autowired
-	ChargeLimitRepository chargeLimitRepository;
-	@Autowired
 	MainAccountService mainAccountService;
-	@Autowired
-	RedisTemplate redisTemplate;
+
 	@Autowired
 	@Qualifier("depositExecutor")
 	ThreadPoolTaskExecutor executor;
@@ -79,10 +52,8 @@ public class MoneySendConcurrencyTest {
 	private Member[] member;
 	private MainAccount mainAccount;
 	private SavingAccount savingAccount;
-	private ChargeLimit chargeLimit;
 	private long[] mainAccountPk;
 	private long[] savingAccountPk;
-	private long[] chargeLimitPk;
 
 	@Nested
 	@DisplayName("메인 계좌에서 적금 계좌 송금시 동시성 테스트")
@@ -117,9 +88,8 @@ public class MoneySendConcurrencyTest {
 			for (int i = 0; i < threadCount; i++) {
 				executorService.submit(() -> {
 					try {
-						mainAccountService.sendToSavingAccount(mainAccountPk[0], savingAccountPk[0], savingPlusMoney,
-							chargeLimitPk[0]);
-						mainAccountService.chargeMoney(mainAccountPk[0], mainPlusMoney, chargeLimitPk[0]);
+						mainAccountService.sendToSavingAccount(mainAccountPk[0], savingAccountPk[0], savingPlusMoney);
+						mainAccountService.chargeMoney(mainAccountPk[0], mainPlusMoney);
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
 						failCount.getAndIncrement();
@@ -159,8 +129,7 @@ public class MoneySendConcurrencyTest {
 			for (int i = 0; i < threadCount; i++) {
 				executorService.submit(() -> {
 					try {
-						mainAccountService.sendToSavingAccount(mainAccountPk[0], savingAccountPk[0], sendMoney,
-							chargeLimitPk[0]);
+						mainAccountService.sendToSavingAccount(mainAccountPk[0], savingAccountPk[0], sendMoney);
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
 						failCount.getAndIncrement();
@@ -216,8 +185,7 @@ public class MoneySendConcurrencyTest {
 						// j번째 사람은 다음 순서의 사용자 메인 계좌에 이체 작업을 수행한다
 						for (int j = 0; j < 3; j++) {
 							mainAccountService.sendToOtherAccount(mainAccountPk[j], mainAccountPk[(j + 1) % 3],
-								sendMoney,
-								chargeLimitPk[j]);
+								sendMoney);
 						}
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
@@ -278,8 +246,7 @@ public class MoneySendConcurrencyTest {
 						// j번째 사람은 다음 순서의 사용자 메인 계좌에 이체 작업을 수행한다
 						for (int j = 0; j < 3; j++) {
 							mainAccountService.sendToOtherAccount(mainAccountPk[j], mainAccountPk[(j + 1) % 3],
-								sendMoney[j],
-								chargeLimitPk[j]);
+								sendMoney[j]);
 						}
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
@@ -340,8 +307,7 @@ public class MoneySendConcurrencyTest {
 						// j번째 사람은 다음 순서의 사용자 메인 계좌에 이체 작업을 수행한다
 						for (int j = 0; j < 2; j++) {
 							mainAccountService.sendToOtherAccount(mainAccountPk[j], mainAccountPk[2],
-								sendMoney[j],
-								chargeLimitPk[j]);
+								sendMoney[j]);
 						}
 						successCount.getAndIncrement();
 					} catch (Exception exception) {
@@ -382,15 +348,12 @@ public class MoneySendConcurrencyTest {
 	void createAccount() {
 		mainAccountPk = new long[3];
 		savingAccountPk = new long[3];
-		chargeLimitPk = new long[3];
 		member = new Member[3];
 		for (int i = 0; i < 3; i++) {
 			int money = 100000;
-			mainAccount = new MainAccount(money);
+			mainAccount = new MainAccount();
+			mainAccount.charge(money);
 			mainAccountRepository.save(mainAccount);
-
-			chargeLimit = new ChargeLimit();
-			chargeLimitRepository.save(chargeLimit);
 
 			member[i] = Member.builder()
 				.memberId("testId" + i)
@@ -398,7 +361,6 @@ public class MoneySendConcurrencyTest {
 				.memberName("testName" + i)
 				.phoneNumber("testPhone" + i)
 				.mainAccountPk(mainAccount.getAccountPk())
-				.chargeLimitPk(chargeLimit.getLimitPk())
 				.build();
 			memberRepository.save(member[i]);
 
@@ -408,20 +370,16 @@ public class MoneySendConcurrencyTest {
 
 			mainAccountPk[i] = mainAccount.getAccountPk();
 			savingAccountPk[i] = savingAccount.getAccountPk();
-			chargeLimitPk[i] = chargeLimit.getLimitPk();
 		}
-		System.out.println("mainaccountpk = " + Arrays.toString(mainAccountPk));
 	}
 
 	void clearAccount() {
 		for (int i = 0; i < 3; i++) {
 			savingAccount = savingAccountRepository.findById(savingAccountPk[i]).get();
 			mainAccount = mainAccountRepository.findById(mainAccountPk[i]).get();
-			chargeLimit = chargeLimitRepository.findById(chargeLimitPk[i]).get();
 			savingAccountRepository.delete(savingAccount);
 			mainAccountRepository.delete(mainAccount);
 			memberRepository.delete(member[i]);
-			chargeLimitRepository.delete(chargeLimit);
 		}
 	}
 }
