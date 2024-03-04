@@ -11,6 +11,7 @@ import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
+import org.c4marathon.assignment.auth.service.SecurityService;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
@@ -31,14 +32,9 @@ public class AccountService {
 
     private final MemberService memberService;
 
+    private final SecurityService securityService;
+
     public static final int DAILY_LIMIT = 3_000_000;
-
-    public Long findMember() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        return (Long)authentication.getPrincipal();
-    }
 
     // 회원 가입 시 메인 계좌 생성
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -54,7 +50,7 @@ public class AccountService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void saveAccount(AccountRequestDto accountRequestDto) {
 
-        Long memberId = findMember();
+        Long memberId = securityService.findMember();
         Member member = memberService.getMemberById(memberId);
         Account account = createAccount(accountRequestDto.type(), member);
 
@@ -84,7 +80,7 @@ public class AccountService {
     public List<AccountResponseDto> findAccount() {
 
         // 회원 정보 조회
-        Long memberId = findMember();
+        Long memberId = securityService.findMember();
         List<Account> accountList = accountRepository.findByMemberId(memberId);
 
         // 계좌 조회 후 Entity를 Dto로 변환 후 리턴
@@ -98,7 +94,7 @@ public class AccountService {
     public void rechargeAccount(RechargeAccountRequestDto rechargeAccountRequestDto) {
 
         // 회원 정보 조회
-        Long memberId = findMember();
+        Long memberId = securityService.findMember();
 
         // 계좌 정보 조회
         Account account = accountRepository.findByRegularAccount(memberId)
@@ -125,7 +121,7 @@ public class AccountService {
     public void transferFromRegularAccount(SavingAccountRequestDto savingAccountRequestDto) {
 
         // 회원 정보 조회
-        Long memberId = findMember();
+        Long memberId = securityService.findMember();
 
         // 메인 계좌 및 적금 계좌 조회
         Account regularAccount = accountRepository.findByRegularAccount(memberId)
