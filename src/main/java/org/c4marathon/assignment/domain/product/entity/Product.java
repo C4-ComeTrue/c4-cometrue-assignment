@@ -1,7 +1,10 @@
 package org.c4marathon.assignment.domain.product.entity;
 
+import static org.c4marathon.assignment.global.constant.ProductStatus.*;
+
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
+import org.c4marathon.assignment.global.constant.ProductStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,6 +58,9 @@ public class Product extends BaseEntity {
 	@JoinColumn(name = "seller_id", nullable = false)
 	private Seller seller;
 
+	@Column(name = "status", columnDefinition = "VARCHAR(20)")
+	private ProductStatus productStatus;
+
 	@Builder
 	public Product(
 		String name,
@@ -68,13 +74,13 @@ public class Product extends BaseEntity {
 		this.amount = amount;
 		this.stock = stock;
 		this.seller = seller;
+		this.productStatus = IN_STOCK;
 	}
 
 	public void decreaseStock(Integer quantity) {
 		this.stock -= quantity;
-	}
-
-	public void addStock(Integer quantity) {
-		this.stock += quantity;
+		if (this.stock == 0) {
+			productStatus = OUT_OF_STOCK;
+		}
 	}
 }
