@@ -15,6 +15,7 @@ import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.repository.AccountRepository;
+import org.c4marathon.assignment.auth.service.SecurityService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +34,9 @@ public class AccountServiceTest {
 
     @InjectMocks
     private AccountService accountService;
+
+    @Mock
+    private SecurityService securityService;
 
     @Mock
     private AccountRepository accountRepository;
@@ -64,9 +68,8 @@ public class AccountServiceTest {
             List<Account> accountList = List.of(mock(Account.class), mock(Account.class));
             Authentication authentication = mock(Authentication.class);
 
-            given(authentication.getPrincipal()).willReturn(memberId);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            given(accountService.findMember()).willReturn(memberId);
+            given(securityService.findMember()).willReturn(memberId);
             given(accountRepository.findByMemberId(memberId)).willReturn(accountList);
 
             // when
@@ -90,7 +93,7 @@ public class AccountServiceTest {
         @BeforeEach
         void setUp() {
             Authentication authentication = mock(Authentication.class);
-            given(authentication.getPrincipal()).willReturn(memberId);
+            given(securityService.findMember()).willReturn(memberId);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

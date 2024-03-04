@@ -21,6 +21,7 @@ import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.auth.config.SecurityConfig;
 import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
+import org.c4marathon.assignment.auth.service.SecurityService;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
@@ -64,6 +65,9 @@ public class AccoutControllerTest {
 
     @MockBean
     private MemberService memberService;
+
+    @MockBean
+    private SecurityService securityService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -158,7 +162,7 @@ public class AccoutControllerTest {
             List<AccountResponseDto> accountResponseDtoList = accountList.stream()
                 .map(AccountResponseDto::entityToDto)
                 .toList();
-            willReturn(0L).given(accountService).findMember();
+            willReturn(0L).given(securityService).findMember();
             willReturn(accountResponseDtoList).given(accountService).findAccount();
             willReturn(accountList).given(accountRepository).findByMemberId(0L);
 
