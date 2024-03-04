@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.repository.AccountRepository;
@@ -147,7 +147,7 @@ public class AccountServiceTest {
             Long receiverAccountd = 3L;
             Account regularAccount = mock(Account.class);
             Account savingAccount = mock(Account.class);
-            SavingAccountRequestDto requestDto = new SavingAccountRequestDto(balance, receiverAccountd);
+            TransferToSavingAccountRequestDto requestDto = new TransferToSavingAccountRequestDto(balance, receiverAccountd);
 
             given(regularAccount.getBalance()).willReturn(balance);
             given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));
@@ -169,7 +169,7 @@ public class AccountServiceTest {
 
             // given
             Account regularAccount = mock(Account.class);
-            SavingAccountRequestDto requestDto = new SavingAccountRequestDto(balance, accountId);
+            TransferToSavingAccountRequestDto requestDto = new TransferToSavingAccountRequestDto(balance, accountId);
 
             given(regularAccount.getBalance()).willReturn(0L);
             given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));

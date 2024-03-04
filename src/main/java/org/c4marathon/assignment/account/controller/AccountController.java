@@ -1,10 +1,7 @@
 package org.c4marathon.assignment.account.controller;
 
-import java.util.List;
-
-import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.springframework.http.HttpStatus;
@@ -27,25 +24,12 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @Operation(summary = "추가 계좌 생성")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PostMapping("")
-    public void createAccount(
-        @Valid
-        @RequestBody
-        AccountRequestDto accountRequestDto
-    ) {
-
-        accountService.saveAccount(accountRequestDto);
-    }
-
-    @Operation(summary = "계좌 전체 조회")
+    @Operation(summary = "메인 계좌 조회")
     @GetMapping("")
-    public ResponseEntity<List<AccountResponseDto>> findAccount(
+    public ResponseEntity<AccountResponseDto> findAccount(
     ) {
-
-        List<AccountResponseDto> accountResponseDtoList = accountService.findAccount();
-        return ResponseEntity.ok(accountResponseDtoList);
+        AccountResponseDto accountResponseDto = accountService.findAccount();
+        return ResponseEntity.ok(accountResponseDto);
     }
 
     @Operation(summary = "메인 계좌 충전")
@@ -65,8 +49,8 @@ public class AccountController {
     public void rechargeAccount(
         @Valid
         @RequestBody
-        SavingAccountRequestDto savingAccountRequestDto
+        TransferToSavingAccountRequestDto transferToSavingAccountRequestDto
     ) {
-        accountService.transferFromRegularAccount(savingAccountRequestDto);
+        accountService.transferFromRegularAccount(transferToSavingAccountRequestDto);
     }
 }

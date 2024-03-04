@@ -13,7 +13,7 @@ import java.util.Objects;
 
 import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
@@ -215,13 +215,13 @@ public class AccoutControllerTest {
         void transferFromRegularAccountTest() throws Exception {
 
             // given
-            SavingAccountRequestDto savingAccountRequestDto = new SavingAccountRequestDto(10000L, 2L);
-            willDoNothing().given(accountService).transferFromRegularAccount(savingAccountRequestDto);
+            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(10000L, 2L);
+            willDoNothing().given(accountService).transferFromRegularAccount(transferToSavingAccountRequestDto);
 
             // when then
             mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(savingAccountRequestDto))).andExpect(status().isNoContent());
+                .content(objectMapper.writeValueAsString(transferToSavingAccountRequestDto))).andExpect(status().isNoContent());
         }
 
         @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 오류가 발생한다.")
@@ -229,14 +229,14 @@ public class AccoutControllerTest {
         void transferFromRegularAccountErrorTest() throws Exception {
 
             // given
-            SavingAccountRequestDto savingAccountRequestDto = new SavingAccountRequestDto(50000L, 2L);
+            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(50000L, 2L);
             BaseException baseException = ErrorCode.INSUFFICIENT_BALANCE.baseException("잔액이 부족합니다.");
-            willThrow(baseException).given(accountService).transferFromRegularAccount(savingAccountRequestDto);
+            willThrow(baseException).given(accountService).transferFromRegularAccount(transferToSavingAccountRequestDto);
 
             // when
             MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(savingAccountRequestDto)))
+                    .content(objectMapper.writeValueAsString(transferToSavingAccountRequestDto)))
                 .andExpect(status().isForbidden())
                 .andReturn();
 

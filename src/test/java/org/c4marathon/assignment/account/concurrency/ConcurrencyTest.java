@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
@@ -105,7 +105,7 @@ public class ConcurrencyTest {
                         accountService.rechargeAccount(new RechargeAccountRequestDto(mainAccount.getId(), 10000L));
                         // 적금 계좌로 출금
                         accountService.transferFromRegularAccount(
-                            new SavingAccountRequestDto(10000L, savingAccount.getId()));
+                            new TransferToSavingAccountRequestDto(10000L, savingAccount.getId()));
                         successCount.getAndIncrement();
                     } catch (Exception e) {
                         failCount.getAndIncrement();
