@@ -41,15 +41,12 @@ public class Order extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
 
-	@NotNull
 	@Column(name = "used_point", columnDefinition = "BIGINT DEFAULT 0")
 	private Long usedPoint;
 
-	@NotNull
 	@Column(name = "earned_point", columnDefinition = "BIGINT DEFAULT 0")
 	private Long earnedPoint;
 
-	@NotNull
 	@Column(name = "total_amount", columnDefinition = "BIGINT DEFAULT 0")
 	private Long totalAmount;
 
