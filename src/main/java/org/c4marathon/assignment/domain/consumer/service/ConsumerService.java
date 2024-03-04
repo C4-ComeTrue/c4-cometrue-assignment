@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ObjLongConsumer;
 
-import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductEntry;
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductRequest;
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
@@ -39,7 +38,6 @@ public class ConsumerService {
 	public static final double FEE = 0.05;
 	public static final String INVOICE_NUMBER_PATTERN = "yyyyMMddHHmmssSSSSSSSSS";
 	private final ConsumerRepository consumerRepository;
-	private final ConsumerReadService consumerReadService;
 	private final OrderRepository orderRepository;
 	private final DeliveryRepository deliveryRepository;
 	private final ProductReadService productReadService;
@@ -49,17 +47,6 @@ public class ConsumerService {
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
 
 	/**
-	 * 회원 가입
-	 * @param request address와 email
-	 */
-	public void signup(SignUpRequest request) {
-		if (request.address() == null) {
-			throw CONSUMER_NEED_ADDRESS.baseException();
-		}
-		processSignup(request);
-	}
-
-	/**
 	 * 상품 구매
 	 * Delivery 생성 -> Order 생성 -> OrderProduct 생성
 	 * @param consumer 상품 구매하는 소비자
@@ -67,7 +54,7 @@ public class ConsumerService {
 	@Transactional
 	public void purchaseProduct(PurchaseProductRequest request, Consumer consumer) {
 		Delivery delivery = saveDelivery(consumer);
-		Order order = saveOrder(consumer, delivery);
+		Order order = saveOrder(consumer);
 		long totalAmount = saveOrderProduct(request, order);
 		if (consumer.getBalance() < totalAmount) {
 			throw NOT_ENOUGH_BALANCE.baseException("total amount: %d", totalAmount);
@@ -104,28 +91,6 @@ public class ConsumerService {
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProductAndSeller(orderId);
 
 		addSellerBalance(orderProducts);
-	}
-
-	/**
-	 * Delivery 저장
-	 */
-	private Delivery saveDelivery(Consumer consumer) {
-		return deliveryRepository.save(Delivery.builder()
-			.address(consumer.getAddress())
-			.invoiceNumber(createInvoiceNumber(consumer))
-			.deliveryCompany(deliveryCompanyReadService.findMinimumCountOfDelivery())
-			.build());
-	}
-
-	/**
-	 * Order 저장
-	 */
-	private Order saveOrder(Consumer consumer, Delivery delivery) {
-		return orderRepository.save(Order.builder()
-			.orderStatus(COMPLETE_PAYMENT)
-			.consumer(consumer)
-			.delivery(delivery)
-			.build());
 	}
 
 	/**
@@ -187,16 +152,6 @@ public class ConsumerService {
 	}
 
 	/**
-	 * email 중복 체크 이후 Consumer 저장
-	 */
-	private void processSignup(SignUpRequest request) {
-		if (Boolean.TRUE.equals(consumerReadService.existsByEmail(request.email()))) {
-			throw ALREADY_CONSUMER_EXISTS.baseException("email: %s", request.email());
-		}
-		saveConsumer(request);
-	}
-
-	/**
 	 * 구매 확정 시 검증 과정
 	 * 1. 주문한 소비자가 현재 로그인한 소비자인지
 	 * 2. 올바른 주문, 배송 상태인지
@@ -239,13 +194,6 @@ public class ConsumerService {
 	}
 
 	/**
-	 * Consumer 저장
-	 */
-	private void saveConsumer(SignUpRequest request) {
-		consumerRepository.save(new Consumer(request.email(), request.address()));
-	}
-
-	/**
 	 * 송장번호 생성
 	 * 현재 시간(nano second) + consumer PK
 	 */
@@ -253,5 +201,26 @@ public class ConsumerService {
 		LocalDateTime now = LocalDateTime.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(INVOICE_NUMBER_PATTERN);
 		return now.format(formatter) + consumer.getId();
+	}
+
+	/**
+	 * Delivery 저장
+	 */
+	private Delivery saveDelivery(Consumer consumer) {
+		return deliveryRepository.save(Delivery.builder()
+			.address(consumer.getAddress())
+			.invoiceNumber(createInvoiceNumber(consumer))
+			.deliveryCompany(deliveryCompanyReadService.findMinimumCountOfDelivery())
+			.build());
+	}
+
+	/**
+	 * Order 저장
+	 */
+	private Order saveOrder(Consumer consumer) {
+		return orderRepository.save(Order.builder()
+			.orderStatus(COMPLETE_PAYMENT)
+			.consumer(consumer)
+			.build());
 	}
 }

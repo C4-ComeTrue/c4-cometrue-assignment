@@ -1,12 +1,10 @@
 package org.c4marathon.assignment.domain.seller.service;
 
-import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.repository.ProductRepository;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.dto.request.PutProductRequest;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
-import org.c4marathon.assignment.domain.seller.repository.SellerRepository;
 import org.c4marathon.assignment.global.error.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,20 +15,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class SellerService {
 
-	private final SellerRepository sellerRepository;
 	private final ProductRepository productRepository;
 	private final ProductReadService productReadService;
-
-	/**
-	 * Seller 회원가입
-	 */
-	@Transactional
-	public void signup(SignUpRequest request) {
-		if (Boolean.TRUE.equals(sellerRepository.existsByEmail(request.email()))) {
-			throw ErrorCode.ALREADY_SELLER_EXISTS.baseException("email: %s", request.email());
-		}
-		saveSeller(request);
-	}
 
 	/**
 	 * 상품 업로드
@@ -43,13 +29,6 @@ public class SellerService {
 				.baseException("seller id: %d, product name: %s", seller.getId(), request.name());
 		}
 		saveProduct(request, seller);
-	}
-
-	/**
-	 * Seller 저장
-	 */
-	private void saveSeller(SignUpRequest request) {
-		sellerRepository.save(new Seller(request.email()));
 	}
 
 	/**
