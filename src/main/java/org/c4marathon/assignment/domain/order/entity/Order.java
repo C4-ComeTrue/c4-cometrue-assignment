@@ -6,10 +6,12 @@ import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,22 +41,46 @@ public class Order extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
 
+	@NotNull
+	@Column(name = "used_point", columnDefinition = "BIGINT DEFAULT 0")
+	private Long usedPoint;
+
+	@NotNull
+	@Column(name = "earned_point", columnDefinition = "BIGINT DEFAULT 0")
+	private Long earnedPoint;
+
+	@NotNull
+	@Column(name = "total_amount", columnDefinition = "BIGINT DEFAULT 0")
+	private Long totalAmount;
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "consumer_id", nullable = false)
 	private Consumer consumer;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "delivery_id", nullable = false)
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "delivery_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private Delivery delivery;
 
 	@Builder
-	public Order(OrderStatus orderStatus, Consumer consumer, Delivery delivery) {
+	public Order(OrderStatus orderStatus, Consumer consumer, long usedPoint) {
 		this.orderStatus = orderStatus;
 		this.consumer = consumer;
-		this.delivery = delivery;
+		this.usedPoint = usedPoint;
 	}
 
 	public void updateOrderStatus(OrderStatus orderStatus) {
 		this.orderStatus = orderStatus;
+	}
+
+	public void updateDelivery(Delivery delivery) {
+		this.delivery = delivery;
+	}
+
+	public void updateEarnedPoint(long earnedPoint) {
+		this.earnedPoint = earnedPoint;
+	}
+
+	public void updateTotalAmount(long totalAmount) {
+		this.totalAmount = totalAmount;
 	}
 }
