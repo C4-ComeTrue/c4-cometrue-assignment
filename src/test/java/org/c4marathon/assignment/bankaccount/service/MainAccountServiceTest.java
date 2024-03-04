@@ -11,6 +11,8 @@ import org.c4marathon.assignment.bankaccount.exception.AccountException;
 import org.c4marathon.assignment.bankaccount.repository.ChargeLimitRepository;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
+import org.c4marathon.assignment.bankaccount.repository.SendRecordRepository;
+import org.c4marathon.assignment.common.utils.ConstValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,10 @@ class MainAccountServiceTest {
 	SavingAccountRepository savingAccountRepository;
 	@Mock
 	ChargeLimitRepository chargeLimitRepository;
+	@Mock
+	SendRecordRepository sendRecordRepository;
+	@Mock
+	DepositHandlerService depositHandlerService;
 
 	@Nested
 	@DisplayName("메인 계좌 충전 테스트")
@@ -183,6 +189,94 @@ class MainAccountServiceTest {
 
 			// Then
 			assertEquals(AccountErrorCode.ACCOUNT_NOT_FOUND.name(), accountException.getErrorName());
+		}
+	}
+
+	@Nested
+	@DisplayName("메인 계좌 간 이체 테스트")
+	class SendToMainAccount {
+
+		@Test
+		@DisplayName("이체 성공 테스트")
+		void send_to_other_account_success() {
+			// Given
+			long senderPk = 1L;
+			long depositPk = 2L;
+			long money = 1000;
+			long chargeLimitPk = 1L;
+			MainAccount mainAccount = new MainAccount();
+			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
+			ChargeLimit chargeLimit = new ChargeLimit();
+			given(chargeLimitRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(chargeLimit));
+
+			// When
+			mainAccountService.sendToOtherAccount(senderPk, depositPk, money, chargeLimitPk);
+
+			// Then
+			then(mainAccountRepository).should(times(1)).findByPkForUpdate(anyLong());
+			then(mainAccountRepository).should(times(1)).save(any());
+			then(sendRecordRepository).should(times(1)).save(any());
+			then(depositHandlerService).should(times(1)).doDeposit(anyLong(), anyLong(), anyLong());
+		}
+
+		@Test
+		@DisplayName("요청한 계좌의 정보가 없으면 AccountException(ACCOUNT_NOT_FOUND) 예외가 발생한다.")
+		void request_with_non_valid_accountPk() {
+			// Given
+			long senderPk = 1L;
+			long depositPk = 2L;
+			long money = 1000;
+			long chargeLimitPk = 1L;
+			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.empty());
+
+			// When
+			AccountException accountException = assertThrows(AccountException.class,
+				() -> mainAccountService.sendToOtherAccount(senderPk, depositPk, money, chargeLimitPk));
+
+			// Then
+			assertEquals(accountException.getErrorName(), AccountErrorCode.ACCOUNT_NOT_FOUND.name());
+		}
+
+		@Test
+		@DisplayName("충전 한도 정보가 없으면 AccountException(CHARGE_LIMIT_NOT_FOUND) 예외가 발생한다.")
+		void request_with_non_valid_chargeLimitPk() {
+			// Given
+			long senderPk = 1L;
+			long depositPk = 2L;
+			long money = 1000;
+			long chargeLimitPk = 1L;
+			MainAccount mainAccount = new MainAccount();
+			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
+			given(chargeLimitRepository.findByPkForUpdate(anyLong())).willReturn(Optional.empty());
+
+			// When
+			AccountException accountException = assertThrows(AccountException.class,
+				() -> mainAccountService.sendToOtherAccount(senderPk, depositPk, money, chargeLimitPk));
+
+			// Then
+			assertEquals(accountException.getErrorName(), AccountErrorCode.CHARGE_LIMIT_NOT_FOUND.name());
+		}
+
+		@Test
+		@DisplayName("충전 한도를 초과하면 AccountException(CHARGE_LIMIT_EXCESS) 예외가 발생한다.")
+		void request_with_no_spare_money() {
+			// Given
+			long senderPk = 1L;
+			long depositPk = 2L;
+			long money = 1000;
+			long chargeLimitPk = 1L;
+			MainAccount mainAccount = new MainAccount();
+			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
+			ChargeLimit chargeLimit = new ChargeLimit();
+			chargeLimit.charge(ConstValue.LimitConst.CHARGE_LIMIT);
+			given(chargeLimitRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(chargeLimit));
+
+			// When
+			AccountException accountException = assertThrows(AccountException.class,
+				() -> mainAccountService.sendToOtherAccount(senderPk, depositPk, money, chargeLimitPk));
+
+			// Then
+			assertEquals(accountException.getErrorName(), AccountErrorCode.CHARGE_LIMIT_EXCESS.name());
 		}
 	}
 }

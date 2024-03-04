@@ -171,4 +171,57 @@ class MainAccountControllerTest {
 				jsonPath("$.money").value(responseDto.money()));
 		}
 	}
+
+	@Nested
+	@DisplayName("메인 계좌 간 이체 테스트")
+	class SendToOtherAccount {
+
+		@Test
+		@DisplayName("올바른 요청 정보로 이체 요청을 한다면 이체에 성공한다.")
+		void request_with_valid_request() throws Exception {
+			// Given
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(2, 1000);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/other").session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions.andExpect(status().isOk());
+		}
+
+		@Test
+		@DisplayName("잘못된 계좌 정보로 이체 요청을 한다면 이체에 실패한다.")
+		void request_with_invalid_account() throws Exception {
+			// Given
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(-1, 1000);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/other").session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		@DisplayName("양이 아닌 수의 돈으로 이체 요청을 한다면 이체에 실패한다.")
+		void request_with_invalid_money() throws Exception {
+			// Given
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(1, -1);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/other").session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions.andExpect(status().isBadRequest());
+		}
+	}
 }
