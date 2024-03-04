@@ -278,5 +278,25 @@ class MainAccountServiceTest {
 			// Then
 			assertEquals(accountException.getErrorName(), AccountErrorCode.CHARGE_LIMIT_EXCESS.name());
 		}
+
+		@Test
+		@DisplayName("잔고를 초과한 금액은 10000원 단위로 충전후 이체를 진행한다.")
+		void request_with_over_money() {
+			// Given
+			long senderPk = 1L;
+			long depositPk = 2L;
+			long money = 1000;
+			long chargeLimitPk = 1L;
+			MainAccount mainAccount = new MainAccount();
+			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
+			ChargeLimit chargeLimit = new ChargeLimit();
+			given(chargeLimitRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(chargeLimit));
+
+			// When
+			mainAccountService.sendToOtherAccount(senderPk, depositPk, money, chargeLimitPk);
+
+			// Then
+			assertEquals(ConstValue.LimitConst.CHARGE_AMOUNT - money, mainAccount.getMoney());
+		}
 	}
 }
