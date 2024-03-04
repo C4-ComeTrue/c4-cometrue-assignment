@@ -46,11 +46,16 @@ public class Consumer extends BaseEntity {
 	@Column(name = "is_deleted", columnDefinition = "BIT DEFAULT 0")
 	private Boolean isDeleted;
 
+	@NotNull
+	@Column(name = "point", columnDefinition = "BIGINT")
+	private Long point;
+
 	public Consumer(String email, String address) {
 		this.email = email;
 		this.address = address;
 		this.balance = 0L;
 		this.isDeleted = false;
+		this.point = 0L;
 	}
 
 	public void addBalance(Long amount) {
