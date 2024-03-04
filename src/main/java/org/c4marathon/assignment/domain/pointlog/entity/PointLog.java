@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,11 +27,24 @@ public class PointLog {
 	@Column(name = "consumer_id")
 	private Long consumerId;
 
-	@Column(name = "point")
-	private Long point;
+	@Column(name = "earned_point")
+	private Long earnedPoint;
 
-	public PointLog(Long consumerId, Long point) {
+	@Column(name = "used_point")
+	private Long usedPoint;
+
+	@Column(name = "total_amount")
+	private Long totalAmount;
+
+	@Column(name = "is_confirm")
+	private Boolean isConfirm;
+
+	@Builder
+	public PointLog(Long consumerId, Long earnedPoint, Long usedPoint, Long totalAmount, Boolean isConfirm) {
 		this.consumerId = consumerId;
-		this.point = point;
+		this.earnedPoint = earnedPoint;
+		this.usedPoint = usedPoint;
+		this.totalAmount = totalAmount;
+		this.isConfirm = isConfirm;
 	}
 }

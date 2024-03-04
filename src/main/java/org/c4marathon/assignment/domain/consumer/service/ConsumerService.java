@@ -24,9 +24,12 @@ import org.c4marathon.assignment.domain.order.service.OrderReadService;
 import org.c4marathon.assignment.domain.orderproduct.entity.OrderProduct;
 import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductJdbcRepository;
 import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
+import org.c4marathon.assignment.domain.pointlog.entity.PointLog;
+import org.c4marathon.assignment.domain.pointlog.repository.PointLogRepository;
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +51,8 @@ public class ConsumerService {
 	private final OrderReadService orderReadService;
 	private final OrderProductReadService orderProductReadService;
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
+	private final PointLogRepository pointLogRepository;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * 상품 구매
@@ -78,8 +83,8 @@ public class ConsumerService {
 		validateRefundRequest(consumer, order);
 
 		updateStatusWhenRefund(order);
-		updateConsumer(consumer, order.getTotalAmount() - order.getUsedPoint(), Consumer::addBalance);
-		updateConsumer(consumer, order.getUsedPoint(), Consumer::updatePoint);
+		PointLog pointLog = savePointLog(consumer, order, false);
+		applicationEventPublisher.publishEvent(pointLog);
 	}
 
 	/**
@@ -95,12 +100,12 @@ public class ConsumerService {
 	public void confirmOrder(Long orderId, Consumer consumer) {
 		Order order = orderReadService.findByIdJoinFetch(orderId);
 		validateConfirmRequest(consumer, order);
-
 		order.updateOrderStatus(CONFIRM);
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProductAndSeller(orderId);
-
 		addSellerBalance(orderProducts);
-		updateConsumer(consumer, order.getEarnedPoint(), Consumer::updatePoint);
+
+		PointLog pointLog = savePointLog(consumer, order, true);
+		applicationEventPublisher.publishEvent(pointLog);
 	}
 
 	/**
@@ -268,5 +273,16 @@ public class ConsumerService {
 			.consumer(consumer)
 			.usedPoint(usedPoint)
 			.build());
+	}
+
+	private PointLog savePointLog(Consumer consumer, Order order, Boolean isConfirm) {
+		return pointLogRepository.save(
+			PointLog.builder()
+				.consumerId(consumer.getId())
+				.usedPoint(order.getUsedPoint())
+				.earnedPoint(order.getEarnedPoint())
+				.totalAmount(order.getTotalAmount())
+				.isConfirm(isConfirm)
+				.build());
 	}
 }
