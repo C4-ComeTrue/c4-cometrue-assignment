@@ -48,40 +48,6 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 				);
 		}
 
-		@DisplayName("productId가 null이면 실패한다.")
-		@Test
-		void fail_when_productIdIsNull() throws Exception {
-			PurchaseProductRequest request = createRequest(null, 1);
-
-			ErrorCode errorCode = BIND_ERROR;
-			mockMvc.perform(post(REQUEST_URL)
-					.content(om.writeValueAsString(request))
-					.contentType(MediaType.APPLICATION_JSON)
-					.characterEncoding(StandardCharsets.UTF_8))
-				.andExpectAll(
-					status().isBadRequest(),
-					jsonPath("$.errorCode").value(errorCode.name()),
-					jsonPath("$.message").value(errorCode.getMessage())
-				);
-		}
-
-		@DisplayName("quantity가 null이면 실패한다.")
-		@Test
-		void fail_when_quantityIsNull() throws Exception {
-			PurchaseProductRequest request = createRequest(1L, null);
-
-			ErrorCode errorCode = BIND_ERROR;
-			mockMvc.perform(post(REQUEST_URL)
-					.content(om.writeValueAsString(request))
-					.contentType(MediaType.APPLICATION_JSON)
-					.characterEncoding(StandardCharsets.UTF_8))
-				.andExpectAll(
-					status().isBadRequest(),
-					jsonPath("$.errorCode").value(errorCode.name()),
-					jsonPath("$.message").value(errorCode.getMessage())
-				);
-		}
-
 		@DisplayName("quantity가 1미만이면 실패한다.")
 		@Test
 		void fail_when_quantityIsLessThan1() throws Exception {
@@ -100,7 +66,7 @@ public class ConsumerControllerTest extends ControllerTestSupport {
 		}
 
 		private PurchaseProductRequest createRequest(Long productId, Integer quantity) {
-			return new PurchaseProductRequest(List.of(new PurchaseProductEntry(productId, quantity)));
+			return new PurchaseProductRequest(List.of(new PurchaseProductEntry(productId, quantity)), 0);
 		}
 	}
 

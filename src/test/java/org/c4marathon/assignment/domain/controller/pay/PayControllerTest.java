@@ -12,9 +12,6 @@ import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 
 public class PayControllerTest extends ControllerTestSupport {
@@ -39,12 +36,10 @@ public class PayControllerTest extends ControllerTestSupport {
 				);
 		}
 
-		@DisplayName("amount가 null이거나 0 미만이면 실패한다.")
-		@ParameterizedTest
-		@NullSource
-		@ValueSource(longs = {-1})
-		void fail_when_amountIsNullOrLessThan0(Long amount) throws Exception {
-			ChargePayRequest request = createRequest(amount);
+		@DisplayName("amount가 0 미만이면 실패한다.")
+		@Test
+		void fail_when_amountIsNullOrLessThan0() throws Exception {
+			ChargePayRequest request = createRequest(-1L);
 
 			ErrorCode errorCode = BIND_ERROR;
 			mockMvc.perform(post(REQUEST_URL)

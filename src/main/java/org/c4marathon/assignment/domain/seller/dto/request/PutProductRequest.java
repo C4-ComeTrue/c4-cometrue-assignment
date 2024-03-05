@@ -10,9 +10,7 @@ public record PutProductRequest(
 	@Size(max = 500, message = "description length exceed 500")
 	@NotNull(message = "description is null")
 	String description,
-	@NotNull(message = "amount is null")
-	Long amount,
-	@NotNull(message = "stock is null")
-	Integer stock
+	long amount,
+	int stock
 ) {
 }

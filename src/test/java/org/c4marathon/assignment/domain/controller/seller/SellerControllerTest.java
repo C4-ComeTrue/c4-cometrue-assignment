@@ -86,40 +86,6 @@ public class SellerControllerTest extends ControllerTestSupport {
 				);
 		}
 
-		@DisplayName("amount가 null이면 실패한다.")
-		@Test
-		void fail_when_amountIsNull() throws Exception {
-			PutProductRequest request = createRequest("name", "description", 100, null);
-
-			ErrorCode errorCode = BIND_ERROR;
-			mockMvc.perform(post(REQUEST_URL)
-					.content(om.writeValueAsString(request))
-					.contentType(MediaType.APPLICATION_JSON)
-					.characterEncoding(StandardCharsets.UTF_8))
-				.andExpectAll(
-					status().isBadRequest(),
-					jsonPath("$.errorCode").value(errorCode.name()),
-					jsonPath("$.message").value(errorCode.getMessage())
-				);
-		}
-
-		@DisplayName("stock이 null이면 실패한다.")
-		@Test
-		void fail_when_stockIsNull() throws Exception {
-			PutProductRequest request = createRequest("name", "description", null, 1000L);
-
-			ErrorCode errorCode = BIND_ERROR;
-			mockMvc.perform(post(REQUEST_URL)
-					.content(om.writeValueAsString(request))
-					.contentType(MediaType.APPLICATION_JSON)
-					.characterEncoding(StandardCharsets.UTF_8))
-				.andExpectAll(
-					status().isBadRequest(),
-					jsonPath("$.errorCode").value(errorCode.name()),
-					jsonPath("$.message").value(errorCode.getMessage())
-				);
-		}
-
 		private PutProductRequest createRequest(String name, String description, Integer stock, Long amount) {
 			return new PutProductRequest(name, description, amount, stock);
 		}

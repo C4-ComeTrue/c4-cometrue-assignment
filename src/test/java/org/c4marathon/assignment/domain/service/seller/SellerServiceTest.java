@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 
-import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.dto.request.PutProductRequest;
@@ -25,40 +24,6 @@ public class SellerServiceTest extends ServiceTestSupport {
 	private SellerService sellerService;
 	@Mock
 	private ProductReadService productReadService;
-
-	@DisplayName("회원 가입 시")
-	@Nested
-	class Signup {
-
-		@DisplayName("가입된 email이 존재하지 않으면 성공한다.")
-		@Test
-		void success_when_emailNotExists() {
-			SignUpRequest request = createRequest();
-			given(sellerRepository.existsByEmail(anyString())).willReturn(false);
-
-			assertThatNoException().isThrownBy(() -> sellerService.signup(request));
-			then(sellerRepository)
-				.should(times(1))
-				.save(any(Seller.class));
-		}
-
-		@DisplayName("가입된 email이 존재하면 예외를 반환한다.")
-		@Test
-		void fail_when_emailExists() {
-			SignUpRequest request = createRequest();
-			given(sellerRepository.existsByEmail(anyString())).willReturn(true);
-
-			ErrorCode errorCode = ALREADY_SELLER_EXISTS;
-			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
-			assertThatThrownBy(() -> sellerService.signup(request))
-				.isInstanceOf(exception.getClass())
-				.hasMessage(exception.getMessage());
-		}
-
-		private SignUpRequest createRequest() {
-			return new SignUpRequest("email", "address");
-		}
-	}
 
 	@DisplayName("상품 업로드 시")
 	@Nested

@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import org.c4marathon.assignment.domain.auth.controller.AuthController;
+import org.c4marathon.assignment.domain.auth.service.AuthService;
 import org.c4marathon.assignment.domain.consumer.controller.ConsumerController;
 import org.c4marathon.assignment.domain.consumer.service.ConsumerService;
 import org.c4marathon.assignment.domain.deliverycompany.controller.DeliveryCompanyController;
@@ -62,4 +63,6 @@ public abstract class ControllerTestSupport {
 	protected DeliveryCompanyService deliveryCompanyService;
 	@MockBean
 	protected PayService payService;
+	@MockBean
+	protected AuthService authService;
 }
