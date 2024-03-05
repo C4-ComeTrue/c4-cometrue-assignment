@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.controller.ControllerTestSupport;
+import org.c4marathon.assignment.global.constant.MemberType;
 import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,14 +30,8 @@ public class AuthControllerTest extends ControllerTestSupport {
 		@BeforeEach
 		void setUp() {
 			willDoNothing()
-				.given(consumerService)
-				.signup(any(SignUpRequest.class));
-			willDoNothing()
-				.given(sellerService)
-				.signup(any(SignUpRequest.class));
-			willDoNothing()
-				.given(deliveryCompanyService)
-				.signup(any(SignUpRequest.class));
+				.given(authService)
+				.signup(any(SignUpRequest.class), any(MemberType.class));
 		}
 
 		@DisplayName("올바른 request와 memberType을 입력하면 회원가입에 성공한다.")
