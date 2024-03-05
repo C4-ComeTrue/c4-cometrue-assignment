@@ -55,7 +55,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 
 		@DisplayName("IN_DELIVERY가 아닌 상태에서 COMPLETE_DELIVERY로 변경하려하면 실패한다.")
 		@Test
-		void fail_when_updateCOMPLETE_DELIVERYWhenBEFORE_DELIVERY() {
+		void fail_when_updateCompleteDelivery_when_BeforeDelivery() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(COMPLETE_DELIVERY);
 			given(delivery.getDeliveryStatus()).willReturn(BEFORE_DELIVERY);
 
@@ -68,7 +68,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 
 		@DisplayName("BEFORE_DELIVERY가 아닌 상태에서 IN_DELIVERY로 변경하려하면 실패한다.")
 		@Test
-		void fail_when_updateIN_DELIVERYWhenBEFORE_DELIVERY() {
+		void fail_when_updateInDelivery_when_BeforeDelivery() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(IN_DELIVERY);
 			given(delivery.getDeliveryStatus()).willReturn(COMPLETE_DELIVERY);
 
@@ -81,7 +81,7 @@ public class DeliveryCompanyServiceTest extends ServiceTestSupport {
 
 		@DisplayName("변경할 상태가 BEFORE_DELIVERY이면 실패한다.")
 		@Test
-		void fail_when_statusIsBEFORE_DELIVERY() {
+		void fail_when_statusIsBeforeDelivery() {
 			UpdateDeliveryStatusRequest request = new UpdateDeliveryStatusRequest(BEFORE_DELIVERY);
 			given(delivery.getDeliveryStatus()).willReturn(BEFORE_DELIVERY);
 

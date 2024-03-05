@@ -132,7 +132,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 
 		@DisplayName("배송 상태가 BEFORE_DELIVERY가 아니면 실패한다.")
 		@Test
-		void fail_when_deliveryStatusIsNotBEFORE_DELIVRY() {
+		void fail_when_deliveryStatusIsNotBefore_delivery() {
 			given(orderReadService.findByIdJoinFetch(anyLong())).willReturn(order);
 			given(delivery.getDeliveryStatus()).willReturn(DeliveryStatus.IN_DELIVERY);
 			given(order.getConsumer()).willReturn(consumer);

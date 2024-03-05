@@ -50,7 +50,7 @@ public class AuthServiceTest extends ServiceTestSupport {
 
 		@DisplayName("소비자 회원가입 시, 중복된 email이 존재하면 실패한다.")
 		@Test
-		void should_fail_when_consumerEmailISDuplicated() {
+		void should_fail_when_consumerEmailIsDuplicated() {
 			SignUpRequest request = new SignUpRequest("email", "address");
 
 			given(consumerReadService.existsByEmail(anyString()))
