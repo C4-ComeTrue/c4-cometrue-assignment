@@ -9,11 +9,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class PointScheduler {
 
 	private static final int POINT_EVENT_DELAY = 5 * 60 * 1_000;
@@ -29,7 +27,7 @@ public class PointScheduler {
 	public void schedulePointEvent() {
 		List<PointLog> pointLogs = pointLogRepository.findAll();
 		pointLogs.forEach(pointLog -> {
-			if (pointLog.getIsConfirm()) {
+			if (Boolean.TRUE.equals(pointLog.getIsConfirm())) {
 				afterConsumerService.afterConfirm(pointLog);
 			} else {
 				afterConsumerService.afterRefund(pointLog);
