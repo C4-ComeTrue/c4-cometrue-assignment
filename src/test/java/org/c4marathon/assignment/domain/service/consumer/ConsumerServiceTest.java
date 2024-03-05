@@ -16,6 +16,7 @@ import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyReadService;
 import org.c4marathon.assignment.domain.order.entity.Order;
 import org.c4marathon.assignment.domain.order.service.OrderReadService;
+import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductJdbcRepository;
 import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.pointlog.entity.PointLog;
 import org.c4marathon.assignment.domain.product.entity.Product;
@@ -47,6 +48,8 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 	private DeliveryCompanyReadService deliveryCompanyReadService;
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
+	@Mock
+	private OrderProductJdbcRepository orderProductJdbcRepository;
 
 	@DisplayName("상품 구매 시")
 	@Nested
@@ -77,6 +80,9 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			given(productReadService.findById(anyLong()))
 				.willReturn(product);
 			given(product.getProductStatus()).willReturn(IN_STOCK);
+			willDoNothing()
+				.given(orderProductJdbcRepository)
+				.saveAllBatch(anyList());
 
 			assertThatThrownBy(() -> consumerService.purchaseProduct(createRequest(), consumer))
 				.isInstanceOf(BaseException.class)
@@ -108,6 +114,9 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 				.willReturn(deliveryCompany);
 			given(deliveryRepository.save(any(Delivery.class)))
 				.willReturn(delivery);
+			willDoNothing()
+				.given(orderProductJdbcRepository)
+				.saveAllBatch(anyList());
 			consumerService.purchaseProduct(createRequest(), consumer);
 
 			then(order)
