@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
+	public static final String EMAIL_LOG = "email: %s";
 	private final ConsumerReadService consumerReadService;
 	private final ConsumerRepository consumerRepository;
 	private final SellerReadService sellerReadService;
@@ -46,21 +47,21 @@ public class AuthService {
 			throw CONSUMER_NEED_ADDRESS.baseException();
 		}
 		if (Boolean.TRUE.equals(consumerReadService.existsByEmail(request.email()))) {
-			throw ALREADY_CONSUMER_EXISTS.baseException("email: %s", request.email());
+			throw ALREADY_CONSUMER_EXISTS.baseException(EMAIL_LOG, request.email());
 		}
 		saveConsumer(request);
 	}
 
 	private void sellerSignup(SignUpRequest request) {
 		if (Boolean.TRUE.equals(sellerReadService.existsByEmail(request.email()))) {
-			throw ErrorCode.ALREADY_SELLER_EXISTS.baseException("email: %s", request.email());
+			throw ErrorCode.ALREADY_SELLER_EXISTS.baseException(EMAIL_LOG, request.email());
 		}
 		saveSeller(request);
 	}
 
 	private void deliveryCompanySignup(SignUpRequest request) {
 		if (Boolean.TRUE.equals(deliveryCompanyReadService.existsByEmail(request.email()))) {
-			throw ALREADY_DELIVERY_COMPANY_EXISTS.baseException("email: %s", request.email());
+			throw ALREADY_DELIVERY_COMPANY_EXISTS.baseException(EMAIL_LOG, request.email());
 		}
 		saveDeliveryCompany(request);
 	}
