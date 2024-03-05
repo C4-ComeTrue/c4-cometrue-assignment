@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Entity
-@Table(name = "account", indexes = @Index(name = "idx_member_id", columnList = "member_id"))
+@Table(name = "account", indexes = @Index(name = "idx_account_member_id", columnList = "member_id"))
 public class Account extends BaseEntity {
 
     @Id

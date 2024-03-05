@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Entity
-@Table(name = "saving_account", indexes = @Index(name = "idx_member_id", columnList = "member_id"))
+@Table(name = "saving_account", indexes = @Index(name = "idx_saving_account_member_id", columnList = "member_id"))
 public class SavingAccount extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

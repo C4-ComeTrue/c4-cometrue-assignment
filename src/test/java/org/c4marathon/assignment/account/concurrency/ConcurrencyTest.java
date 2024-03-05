@@ -3,7 +3,6 @@ package org.c4marathon.assignment.account.concurrency;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,8 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.entity.Account;
+import org.c4marathon.assignment.account.entity.SavingAccount;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
+import org.c4marathon.assignment.account.repository.SavingAccountRepository;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
@@ -39,6 +40,9 @@ public class ConcurrencyTest {
     private AccountRepository accountRepository;
 
     @Autowired
+    private SavingAccountRepository savingAccountRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -46,28 +50,36 @@ public class ConcurrencyTest {
 
     private Member member;
     private Account mainAccount;
-    private Account savingAccount;
+    private SavingAccount savingAccount;
 
     // 회원가입과 기본 계좌 생성
     @BeforeAll
     void setUp() {
         member = createMember();
         memberRepository.save(member);
-        savingAccount = createAccount(Type.INSTALLMENT_SAVINGS_ACCOUNT, member);
-        mainAccount = createAccount(Type.REGULAR_ACCOUNT, member);
-        accountRepository.saveAll(List.of(mainAccount, savingAccount));
+        savingAccount = createSavingAccount(member);
+        mainAccount = createAccount(member);
+        accountRepository.save(mainAccount);
+        savingAccountRepository.save(savingAccount);
     }
 
     @AfterAll
     void tearDown() {
         accountRepository.deleteAllInBatch();
+        savingAccountRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
     }
 
-    // 계좌 객체 생성
-    private Account createAccount(Type type, Member member) {
+    // 메인 계좌 객체 생성
+    private Account createAccount(Member member) {
 
-        return Account.builder().type(type).member(member).build();
+        return Account.builder().type(Type.REGULAR_ACCOUNT).member(member).build();
+    }
+
+    // 적금 계좌 객체 생성
+    private SavingAccount createSavingAccount(Member member) {
+
+        return SavingAccount.builder().type(Type.INSTALLMENT_SAVINGS_ACCOUNT).member(member).build();
     }
 
     private Member createMember() {
@@ -119,7 +131,7 @@ public class ConcurrencyTest {
             executorService.shutdown();
 
             Account resultMainAccount = accountRepository.findById(mainAccount.getId()).orElseThrow();
-            Account resultSavingAccount = accountRepository.findById(savingAccount.getId()).orElseThrow();
+            SavingAccount resultSavingAccount = savingAccountRepository.findById(savingAccount.getId()).orElseThrow();
 
             // then
             assertEquals(threadCount, successCount.get());

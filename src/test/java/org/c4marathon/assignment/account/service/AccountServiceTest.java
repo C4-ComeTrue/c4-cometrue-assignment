@@ -4,10 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.anyInt;
-import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.*;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
@@ -15,12 +13,10 @@ import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequ
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.SavingAccount;
-import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.account.repository.SavingAccountRepository;
 import org.c4marathon.assignment.auth.service.SecurityService;
 import org.c4marathon.assignment.member.entity.Member;
-import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,16 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
 
-    @Spy
     @InjectMocks
     private AccountService accountService;
 
@@ -72,7 +64,8 @@ public class AccountServiceTest {
             accountService.saveMainAccount(memberId);
 
             // then
-            then(accountService).should().saveMainAccount(memberId);
+            then(memberService).should(times(1)).getMemberById(memberId);
+            then(accountRepository).should(times(1)).save(any(Account.class));
         }
     }
 
@@ -109,7 +102,8 @@ public class AccountServiceTest {
             AccountResponseDto afterAccountResponseDto = accountService.findAccount();
 
             // then
-            then(accountService).should().findAccount();
+            then(securityService).should(times(1)).findMember();
+            then(accountRepository).should(times(1)).findByMemberId(memberId);
             assertEquals(afterAccountResponseDto.id(), accountResponseDto.id());
         }
     }
@@ -162,9 +156,7 @@ public class AccountServiceTest {
             given(account.getBalance()).willReturn(0L);
 
             // when
-            Exception exception = assertThrows(BaseException.class, () -> {
-                accountService.rechargeAccount(requestDto);
-            });
+            Exception exception = assertThrows(BaseException.class, () -> accountService.rechargeAccount(requestDto));
 
             // then
             assertEquals(HttpStatus.BAD_REQUEST.toString(), exception.getMessage());
@@ -190,7 +182,9 @@ public class AccountServiceTest {
             accountService.transferFromRegularAccount(requestDto);
 
             // then
-            then(accountService).should().transferFromRegularAccount(requestDto);
+            then(accountRepository).should(times(1)).findByRegularAccount(memberId);
+            then(savingAccountRepository).should(times(1))
+                .findBySavingAccount(memberId, requestDto.receiverAccountId());
         }
 
         @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 오류가 발생한다.")
@@ -205,9 +199,8 @@ public class AccountServiceTest {
             given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));
 
             // when
-            Exception exception = assertThrows(BaseException.class, () -> {
-                accountService.transferFromRegularAccount(requestDto);
-            });
+            Exception exception = assertThrows(BaseException.class,
+                () -> accountService.transferFromRegularAccount(requestDto));
 
             // then
             assertEquals(HttpStatus.FORBIDDEN.toString(), exception.getMessage());

@@ -7,21 +7,15 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.List;
 import java.util.Objects;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
-import org.c4marathon.assignment.account.entity.Type;
-import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.auth.config.SecurityConfig;
 import org.c4marathon.assignment.auth.jwt.JwtTokenUtil;
-import org.c4marathon.assignment.auth.service.SecurityService;
-import org.c4marathon.assignment.member.entity.Member;
-import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.junit.jupiter.api.AfterAll;
@@ -57,15 +51,6 @@ public class AccountControllerTest {
     @MockBean
     private AccountService accountService;
 
-    @MockBean
-    private AccountRepository accountRepository;
-
-    @MockBean
-    private MemberService memberService;
-
-    @MockBean
-    private SecurityService securityService;
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -93,7 +78,6 @@ public class AccountControllerTest {
     @BeforeAll
     void setUp() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-
         token = createToken();
         mockedStatic = mockStatic(JwtTokenUtil.class);
     }
@@ -111,22 +95,10 @@ public class AccountControllerTest {
         @Test
         void findAccountTest() throws Exception {
             // given
-            Member member = Member.builder()
-                .email("test@naver.com")
-                .password("test")
-                .name("test")
-                .build();
-            Account account = Account.builder()
-                .type(Type.REGULAR_ACCOUNT)
-                .member(member)
-                .build();
-            List<Account> accountList = List.of(account);
-            List<AccountResponseDto> accountResponseDtoList = accountList.stream()
-                .map(AccountResponseDto::entityToDto)
-                .toList();
-            willReturn(0L).given(securityService).findMember();
-            willReturn(accountResponseDtoList).given(accountService).findAccount();
-            willReturn(accountList).given(accountRepository).findByMemberId(0L);
+            Account account = mock(Account.class);
+
+            AccountResponseDto accountResponseDto = AccountResponseDto.entityToDto(account);
+            willReturn(accountResponseDto).given(accountService).findAccount();
 
             // when then
             mockMvc.perform(get(REQUEST_URL).header("Authorization", token)).andExpect(status().isOk()).andReturn();
@@ -177,13 +149,15 @@ public class AccountControllerTest {
         void transferFromRegularAccountTest() throws Exception {
 
             // given
-            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(10000L, 2L);
+            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(
+                10000L, 2L);
             willDoNothing().given(accountService).transferFromRegularAccount(transferToSavingAccountRequestDto);
 
             // when then
             mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(transferToSavingAccountRequestDto))).andExpect(status().isNoContent());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(transferToSavingAccountRequestDto)))
+                .andExpect(status().isNoContent());
         }
 
         @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 오류가 발생한다.")
@@ -191,9 +165,11 @@ public class AccountControllerTest {
         void transferFromRegularAccountErrorTest() throws Exception {
 
             // given
-            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(50000L, 2L);
+            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(
+                50000L, 2L);
             BaseException baseException = ErrorCode.INSUFFICIENT_BALANCE.baseException("잔액이 부족합니다.");
-            willThrow(baseException).given(accountService).transferFromRegularAccount(transferToSavingAccountRequestDto);
+            willThrow(baseException).given(accountService)
+                .transferFromRegularAccount(transferToSavingAccountRequestDto);
 
             // when
             MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
