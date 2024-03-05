@@ -36,5 +36,6 @@ public class AfterConsumerService {
 		Consumer consumer = consumerReadService.findById(pointLog.getConsumerId());
 		consumer.addBalance(pointLog.getTotalAmount() - pointLog.getUsedPoint());
 		consumer.updatePoint(pointLog.getUsedPoint());
+		pointLogRepository.deleteById(pointLog.getId());
 	}
 }
