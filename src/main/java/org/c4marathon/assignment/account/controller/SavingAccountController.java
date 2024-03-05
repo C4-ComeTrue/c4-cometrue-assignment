@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/accounts/saving")
+@RequestMapping("/accounts/savings")
 public class SavingAccountController {
 
     private final SavingAccountService savingAccountService;

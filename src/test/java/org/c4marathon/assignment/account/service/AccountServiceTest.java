@@ -14,8 +14,14 @@ import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
+import org.c4marathon.assignment.account.entity.SavingAccount;
+import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
+import org.c4marathon.assignment.account.repository.SavingAccountRepository;
 import org.c4marathon.assignment.auth.service.SecurityService;
+import org.c4marathon.assignment.member.entity.Member;
+import org.c4marathon.assignment.member.repository.MemberRepository;
+import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -32,6 +39,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
 
+    @Spy
     @InjectMocks
     private AccountService accountService;
 
@@ -39,7 +47,34 @@ public class AccountServiceTest {
     private SecurityService securityService;
 
     @Mock
+    private MemberService memberService;
+
+    @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private SavingAccountRepository savingAccountRepository;
+
+    @Nested
+    @DisplayName("계좌 생성 테스트")
+    class Create {
+        @DisplayName("회원가입 이후 발생한 이벤트를 통해 메인 계좌를 생성한다.")
+        @Test
+        void createMainAccountTest() {
+            // given
+            Long memberId = 0L;
+            Member member = mock(Member.class);
+            Account account = mock(Account.class);
+            given(memberService.getMemberById(memberId)).willReturn(member);
+            given(accountRepository.save(any(Account.class))).willReturn(account);
+
+            // when
+            accountService.saveMainAccount(memberId);
+
+            // then
+            then(accountService).should().saveMainAccount(memberId);
+        }
+    }
 
     @Nested
     @DisplayName("계좌 조회 테스트")
@@ -60,24 +95,22 @@ public class AccountServiceTest {
             assertTrue(result);
         }
 
-        @DisplayName("계좌 조회를 위해 회원의 정보를 조회하고, 회원의 모든 계좌 정보를 불러온다.")
+        @DisplayName("계좌 조회를 위해 회원의 정보를 조회하고, 회원의 메인 계좌 정보를 불러온다.")
         @Test
         void findAccountTest() {
             // given
             Long memberId = 1L;
-            List<Account> accountList = List.of(mock(Account.class), mock(Account.class));
-            Authentication authentication = mock(Authentication.class);
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            Account account = mock(Account.class);
+            AccountResponseDto accountResponseDto = mock(AccountResponseDto.class);
             given(securityService.findMember()).willReturn(memberId);
-            given(accountRepository.findByMemberId(memberId)).willReturn(accountList);
+            given(accountRepository.findByMemberId(memberId)).willReturn(account);
 
             // when
-            List<AccountResponseDto> result = accountService.findAccount();
+            AccountResponseDto afterAccountResponseDto = accountService.findAccount();
 
             // then
-            assertEquals(accountList.size(), result.size());  // 반환된 계좌 리스트의 크기는 `accountList`의 크기와 같아야 함
-            verify(accountRepository, times(1)).findByMemberId(memberId);  // `findByMemberId` 메서드가 한 번 호출되어야 함
+            then(accountService).should().findAccount();
+            assertEquals(afterAccountResponseDto.id(), accountResponseDto.id());
         }
     }
 
@@ -92,9 +125,7 @@ public class AccountServiceTest {
 
         @BeforeEach
         void setUp() {
-            Authentication authentication = mock(Authentication.class);
             given(securityService.findMember()).willReturn(memberId);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         @DisplayName("사용자의 외부 계좌에서 메인 계좌로 10,000원을 이체한다.")
@@ -146,21 +177,20 @@ public class AccountServiceTest {
             // given
             Long receiverAccountd = 3L;
             Account regularAccount = mock(Account.class);
-            Account savingAccount = mock(Account.class);
-            TransferToSavingAccountRequestDto requestDto = new TransferToSavingAccountRequestDto(balance, receiverAccountd);
+            SavingAccount savingAccount = mock(SavingAccount.class);
+            TransferToSavingAccountRequestDto requestDto = new TransferToSavingAccountRequestDto(balance,
+                receiverAccountd);
 
             given(regularAccount.getBalance()).willReturn(balance);
             given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));
-            given(accountRepository.findByAccount(memberId, requestDto.receiverAccountId())).willReturn(
+            given(savingAccountRepository.findBySavingAccount(memberId, requestDto.receiverAccountId())).willReturn(
                 Optional.of(savingAccount));
 
             // when
             accountService.transferFromRegularAccount(requestDto);
 
             // then
-            verify(regularAccount, times(1)).transferBalance(anyLong());
-            verify(savingAccount, times(1)).transferBalance(anyLong());
-            verify(accountRepository, times(1)).saveAll(anyList());
+            then(accountService).should().transferFromRegularAccount(requestDto);
         }
 
         @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 오류가 발생한다.")

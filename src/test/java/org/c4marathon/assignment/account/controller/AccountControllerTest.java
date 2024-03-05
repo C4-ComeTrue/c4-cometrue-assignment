@@ -3,7 +3,6 @@ package org.c4marathon.assignment.account.controller;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -11,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Objects;
 
-import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
@@ -42,7 +40,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -52,7 +49,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Import(SecurityConfig.class)
 @TestInstance(value = PER_CLASS)
 @ActiveProfiles("test")
-public class AccoutControllerTest {
+public class AccountControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -104,41 +101,6 @@ public class AccoutControllerTest {
     @AfterAll
     void afterAll() {
         mockedStatic.close();
-    }
-
-    @Nested
-    @DisplayName("계좌 생성 테스트")
-    class Create {
-
-        @DisplayName("계좌 생성 요청이 들어오면 요청에 따른 타입의 계좌를 생성한다.")
-        @Test
-        void createAccountTest() throws Exception {
-
-            // given
-            Member member = Member.builder()
-                .email("test@naver.com")
-                .password("test")
-                .name("test")
-                .build();
-            Account account = Account.builder()
-                .type(Type.ADDITIONAL_ACCOUNT)
-                .member(member)
-                .build();
-            AccountRequestDto accountRequestDto = new AccountRequestDto(Type.ADDITIONAL_ACCOUNT);
-            willDoNothing().given(accountService).saveAccount(accountRequestDto);
-            willReturn(member).given(memberService).getMemberById(member.getId());
-            willReturn(account).given(accountService).createAccount(Type.ADDITIONAL_ACCOUNT, member);
-            willReturn(true).given(accountService).isMainAccount(0L);
-
-            // when
-            ResultActions resultActions = mockMvc.perform(post(REQUEST_URL).header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(csrf())
-                .content(objectMapper.writeValueAsString(accountRequestDto)));
-
-            // then
-            resultActions.andExpect(status().isNoContent());
-        }
     }
 
     @Nested
