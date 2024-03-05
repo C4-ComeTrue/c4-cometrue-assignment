@@ -73,7 +73,9 @@ public class ConsumerService {
 
 	/**
 	 * 상품 환불
-	 * 환불 시에 사용한 포인트, 결제 금액 변경
+	 * OrderStatus의 상태가 변경되면 transaction commit event를 발생해
+	 * 이후 해당 event에서 사용한 포인트, 결제 금액 환불 진행
+	 * 또한, 이벤트 도중 예기치 못한 에러가 발생 시에도 복구가능해야 하므로 PointLog 엔티티를 저장
 	 * @param orderId 환불하려는 Order PK
 	 * @param consumer 환불하려는 소비자
 	 */
@@ -93,6 +95,8 @@ public class ConsumerService {
 	 * 구매 확정 이전에 포인트를 지급하게 될 경우,
 	 * 물건 구매 -> 포인트 증가 -> 해당 포인트로 다른 물건 구매 -> 이전 물건 환불
 	 * 같은 case가 가능해 포인트가 증식됨
+	 * 따라서 event를 발생시켜 해당 event에서 구매자의 포인트 적립을 수행
+	 * 또한, 이벤트 도중 예기치 못한 에러가 발생 시에도 복구가능해야 하므로 PointLog 엔티티를 저장
 	 * @param orderId 구매 확정하려는 Order PK
 	 * @param consumer 구매 확정하려는 소비자
 	 */

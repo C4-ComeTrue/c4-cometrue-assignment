@@ -9,11 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 환불 또는 구매 확정 이후에 발생되는 이벤트를 정의한 클래스
+ * 환불 트랜잭션 커밋 이벤트 발생 시, 구매자가 사용한 금액과 포인트를 환불
+ * 구매 확정 트랜잭션 커밋 이벤트 발생 시, 구매 포인트를 적립
+ */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AfterConsumerService {
 
 	private final ConsumerReadService consumerReadService;
