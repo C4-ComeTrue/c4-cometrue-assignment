@@ -62,10 +62,11 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@DisplayName("사용할 포인트가 부족하면 실패한다.")
 		@Test
 		void should_fail_when_notEnoughPoint() {
+			PurchaseProductRequest request = createRequest();
 			Consumer consumer = mock(Consumer.class);
 			given(consumer.getPoint()).willReturn(-1L);
 
-			assertThatThrownBy(() -> consumerService.purchaseProduct(createRequest(), consumer))
+			assertThatThrownBy(() -> consumerService.purchaseProduct(request, consumer))
 				.isInstanceOf(BaseException.class)
 				.hasMessage(NOT_ENOUGH_POINT.getMessage());
 		}
@@ -73,6 +74,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@DisplayName("balance가 부족하면 실패한다.")
 		@Test
 		void should_fail_when_notEnoughBalance() {
+			PurchaseProductRequest request = createRequest();
 			Consumer consumer = mock(Consumer.class);
 			given(consumer.getBalance()).willReturn(-1L);
 			given(consumer.getPoint()).willReturn(0L);
@@ -84,7 +86,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 				.given(orderProductJdbcRepository)
 				.saveAllBatch(anyList());
 
-			assertThatThrownBy(() -> consumerService.purchaseProduct(createRequest(), consumer))
+			assertThatThrownBy(() -> consumerService.purchaseProduct(request, consumer))
 				.isInstanceOf(BaseException.class)
 				.hasMessage(NOT_ENOUGH_BALANCE.getMessage());
 		}
