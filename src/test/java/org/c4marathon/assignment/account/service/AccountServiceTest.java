@@ -9,7 +9,7 @@ import static org.mockito.BDDMockito.*;
 import java.util.Optional;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.SavingAccount;
@@ -130,7 +130,7 @@ public class AccountServiceTest {
             Account account = mock(Account.class);
             RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
 
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(0);
             given(account.getBalance()).willReturn(0L);
 
@@ -151,7 +151,7 @@ public class AccountServiceTest {
             Account account = mock(Account.class);
             RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
 
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(DAILY_LIMIT);
             given(account.getBalance()).willReturn(0L);
 
@@ -170,11 +170,11 @@ public class AccountServiceTest {
             Long receiverAccountd = 3L;
             Account regularAccount = mock(Account.class);
             SavingAccount savingAccount = mock(SavingAccount.class);
-            TransferToSavingAccountRequestDto requestDto = new TransferToSavingAccountRequestDto(balance,
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance,
                 receiverAccountd);
 
             given(regularAccount.getBalance()).willReturn(balance);
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(regularAccount));
             given(savingAccountRepository.findBySavingAccount(memberId, requestDto.receiverAccountId())).willReturn(
                 Optional.of(savingAccount));
 
@@ -182,7 +182,7 @@ public class AccountServiceTest {
             accountService.transferFromRegularAccount(requestDto);
 
             // then
-            then(accountRepository).should(times(1)).findByRegularAccount(memberId);
+            then(accountRepository).should(times(1)).findByAccount(memberId);
             then(savingAccountRepository).should(times(1))
                 .findBySavingAccount(memberId, requestDto.receiverAccountId());
         }
@@ -193,10 +193,10 @@ public class AccountServiceTest {
 
             // given
             Account regularAccount = mock(Account.class);
-            TransferToSavingAccountRequestDto requestDto = new TransferToSavingAccountRequestDto(balance, accountId);
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance, accountId);
 
             given(regularAccount.getBalance()).willReturn(0L);
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(regularAccount));
 
             // when
             Exception exception = assertThrows(BaseException.class,

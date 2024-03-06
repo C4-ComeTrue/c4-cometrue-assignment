@@ -24,9 +24,9 @@ public class JwtTokenUtil {
             .compact();
     }
 
-    // Claims에서 memberEmail 꺼내기
-    public static Long getMemberEmail(String token, String secretKey) {
-        return (Long)extractClaims(token, secretKey).get(CLAIM_KEY_MEMBER_ID);
+    // Claims에서 memberId 꺼내기
+    public static Long getMemberId(String token, String secretKey) {
+        return ((Number) extractClaims(token, secretKey).get(CLAIM_KEY_MEMBER_ID)).longValue();
     }
 
     // 발급된 Token이 만료 시간이 지났는지 체크

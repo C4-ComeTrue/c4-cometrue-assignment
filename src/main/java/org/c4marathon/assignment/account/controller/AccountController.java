@@ -1,7 +1,7 @@
 package org.c4marathon.assignment.account.controller;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.springframework.http.HttpStatus;
@@ -49,8 +49,19 @@ public class AccountController {
     public void rechargeAccount(
         @Valid
         @RequestBody
-        TransferToSavingAccountRequestDto transferToSavingAccountRequestDto
+        TransferToOtherAccountRequestDto transferToOtherAccountRequestDto
     ) {
-        accountService.transferFromRegularAccount(transferToSavingAccountRequestDto);
+        accountService.transferFromRegularAccount(transferToOtherAccountRequestDto);
+    }
+
+    @Operation(summary = "사용자의 메인 계좌에서 친구의 메인 계좌로 송금")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/transfer")
+    public void transferToOtherAccount(
+        @Valid
+        @RequestBody
+        TransferToOtherAccountRequestDto transferToOtherAccountRequestDto
+    ) {
+        accountService.transferToOtherAccount(transferToOtherAccountRequestDto);
     }
 }

@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Objects;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.TransferToSavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.service.AccountService;
@@ -149,14 +149,14 @@ public class AccountControllerTest {
         void transferFromRegularAccountTest() throws Exception {
 
             // given
-            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(
+            TransferToOtherAccountRequestDto transferToOtherAccountRequestDto = new TransferToOtherAccountRequestDto(
                 10000L, 2L);
-            willDoNothing().given(accountService).transferFromRegularAccount(transferToSavingAccountRequestDto);
+            willDoNothing().given(accountService).transferFromRegularAccount(transferToOtherAccountRequestDto);
 
             // when then
             mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(transferToSavingAccountRequestDto)))
+                    .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
                 .andExpect(status().isNoContent());
         }
 
@@ -165,16 +165,16 @@ public class AccountControllerTest {
         void transferFromRegularAccountErrorTest() throws Exception {
 
             // given
-            TransferToSavingAccountRequestDto transferToSavingAccountRequestDto = new TransferToSavingAccountRequestDto(
+            TransferToOtherAccountRequestDto transferToOtherAccountRequestDto = new TransferToOtherAccountRequestDto(
                 50000L, 2L);
             BaseException baseException = ErrorCode.INSUFFICIENT_BALANCE.baseException("잔액이 부족합니다.");
             willThrow(baseException).given(accountService)
-                .transferFromRegularAccount(transferToSavingAccountRequestDto);
+                .transferFromRegularAccount(transferToOtherAccountRequestDto);
 
             // when
             MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(transferToSavingAccountRequestDto)))
+                    .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
                 .andExpect(status().isForbidden())
                 .andReturn();
 

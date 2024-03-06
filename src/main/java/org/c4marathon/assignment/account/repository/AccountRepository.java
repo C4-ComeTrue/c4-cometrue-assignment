@@ -23,7 +23,13 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("""
         SELECT a FROM Account a
         WHERE a.member.id = :memberId
-        AND a.type = 'REGULAR_ACCOUNT'
         """)
-    Optional<Account> findByRegularAccount(Long memberId);
+    Optional<Account> findByAccount(Long memberId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT a FROM Account a
+        WHERE a.id = :accountId
+        """)
+    Optional<Account> findByOtherAccount(Long accountId);
 }
