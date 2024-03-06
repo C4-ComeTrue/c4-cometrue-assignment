@@ -182,5 +182,42 @@ public class AccountControllerTest {
             String message = Objects.requireNonNull(mvcResult.getResolvedException()).getMessage();
             assertThat(message).contains("잔액이 부족합니다.");
         }
+
+        @DisplayName("사용자의 메인 계좌에서 친구의 메인 계좌로 송금 시 올바르게 송금이 이루어진다.")
+        @Test
+        void transferToOtherAccountSuccessTest() throws Exception {
+            // given
+            TransferToOtherAccountRequestDto transferToOtherAccountRequestDto = new TransferToOtherAccountRequestDto(
+                50000L, 2L);
+            willDoNothing().given(accountService).transferToOtherAccount(transferToOtherAccountRequestDto);
+
+            // when then
+            mockMvc.perform(post(REQUEST_URL + "/transfer").header("Authorization", token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
+                .andExpect(status().isNoContent());
+        }
+
+        @DisplayName("사용자의 메인 계좌에서 친구의 메인 계좌로 송금 시 없는 계좌를 입력해 실패한다.")
+        @Test
+        void transferToOtherAccountFailedTest() throws Exception {
+            // given
+            TransferToOtherAccountRequestDto transferToOtherAccountRequestDto = new TransferToOtherAccountRequestDto(
+                50000L, 2L);
+            BaseException baseException = ErrorCode.ACCOUNT_DOES_NOT_EXIST.baseException("계좌가 존재하지 않습니다.");
+            willThrow(baseException).given(accountService)
+                .transferToOtherAccount(transferToOtherAccountRequestDto);
+
+            // when
+            MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/transfer").header("Authorization", token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
+                .andExpect(status().isForbidden())
+                .andReturn();
+
+            // then
+            String message = Objects.requireNonNull(mvcResult.getResolvedException()).getMessage();
+            assertThat(message).contains("계좌가 존재하지 않습니다.");
+        }
     }
 }

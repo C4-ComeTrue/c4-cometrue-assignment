@@ -133,7 +133,7 @@ public class AccountService {
         Long memberId = securityService.findMember();
 
         Account account = accountRepository.findByAccount(memberId).orElseThrow(
-            () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+            () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
         // 계좌 잔액이 부족할 때 충전 메서드 호출
         // 부족한 금액을 만원 단위로 충전

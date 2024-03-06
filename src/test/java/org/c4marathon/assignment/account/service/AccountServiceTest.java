@@ -19,6 +19,7 @@ import org.c4marathon.assignment.auth.service.SecurityService;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
+import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -204,6 +205,80 @@ public class AccountServiceTest {
 
             // then
             assertEquals(HttpStatus.FORBIDDEN.toString(), exception.getMessage());
+        }
+
+        @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 송금한다.")
+        @Test
+        void transferToOtherAccountTest() {
+
+            // given
+            Long receiverAccountd = 3L;
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance,
+                receiverAccountd);
+
+            Account account = mock(Account.class);
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+
+            Account otherAccount = mock(Account.class);
+            given(account.getBalance()).willReturn(balance);
+            given(accountRepository.findByOtherAccount(requestDto.receiverAccountId())).willReturn(
+                Optional.of(otherAccount));
+
+            // when
+            accountService.transferToOtherAccount(requestDto);
+
+            // then
+            then(accountRepository).should(times(1)).findByAccount(memberId);
+            then(accountRepository).should(times(1)).findByOtherAccount(requestDto.receiverAccountId());
+        }
+
+        @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 잔액이 부족해 부족한 금액을 충전하고 송금한다.")
+        @Test
+        void transferToOtherAccountAndChargeAccountTest() {
+
+            // given
+            Long receiverAccountd = 3L;
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance * 2,
+                receiverAccountd);
+
+            Account account = mock(Account.class);
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+
+            Account otherAccount = mock(Account.class);
+            given(account.getBalance()).willReturn(balance);
+            given(accountRepository.findByOtherAccount(requestDto.receiverAccountId())).willReturn(
+                Optional.of(otherAccount));
+
+            // when
+            accountService.transferToOtherAccount(requestDto);
+
+            // then
+            then(accountRepository).should(times(2)).findByAccount(memberId);
+            then(accountRepository).should(times(1)).findByOtherAccount(requestDto.receiverAccountId());
+        }
+
+        @DisplayName("친구의 계좌가 존재하지 않거나 잘못 입력해 실패한다.")
+        @Test
+        void transferToOtherAccountFailedTest() {
+
+            // given
+            Long receiverAccountd = 3L;
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance * 2,
+                receiverAccountd);
+
+            Account account = mock(Account.class);
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(account.getBalance()).willReturn(balance);
+
+            BaseException baseException = ErrorCode.ACCOUNT_DOES_NOT_EXIST.baseException("계좌가 존재하지 않습니다.");
+            given(accountRepository.findByOtherAccount(requestDto.receiverAccountId())).willThrow(baseException);
+
+            // when
+            Exception exception = assertThrows(BaseException.class,
+                () -> accountService.transferToOtherAccount(requestDto));
+
+            // then
+            assertEquals(baseException.getMessage(), exception.getMessage());
         }
     }
 }
