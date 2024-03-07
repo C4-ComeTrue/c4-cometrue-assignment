@@ -12,7 +12,8 @@ public enum AccountErrorCode implements ErrorCode {
 	CHARGE_LIMIT_EXCESS(HttpStatus.BAD_REQUEST, "일일 충전 한도를 초과했습니다."),
 	ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 계좌입니다."),
 	PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 적금 상품입니다."),
-	INVALID_MONEY_SEND(HttpStatus.BAD_REQUEST, "잔고가 부족합니다.");
+	INVALID_MONEY_SEND(HttpStatus.BAD_REQUEST, "잔고가 부족합니다."),
+	SEND_ALREADY_UPDATE(HttpStatus.BAD_REQUEST, "이미 완료한 이체 작업입니다.");
 	private final HttpStatus httpStatus;
 	private final String message;
 

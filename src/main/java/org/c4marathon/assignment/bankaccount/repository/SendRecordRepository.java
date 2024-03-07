@@ -13,9 +13,9 @@ public interface SendRecordRepository extends JpaRepository<SendRecord, Long> {
 	@Query("""
 		update SendRecord sr
 		set sr.completion = true
-		where sr.recordPk = :recordPk
+		where sr.recordPk = :recordPk and sr.completion = false
 		""")
-	void checkRecord(@Param("recordPk") long recordPk);
+	int checkRecord(@Param("recordPk") long recordPk);
 
 	@Query("select sa from SendRecord sa where sa.completion = false")
 	List<SendRecord> findNonCompletedDeposit();

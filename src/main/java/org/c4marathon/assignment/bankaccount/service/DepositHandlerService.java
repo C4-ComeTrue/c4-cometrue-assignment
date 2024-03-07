@@ -19,7 +19,9 @@ public class DepositHandlerService {
 	@Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
 	@Async("depositExecutor")
 	public void doDeposit(long accountPk, long money, long recordPk) {
-		mainAccountRepository.deposit(accountPk, money);
-		sendRecordRepository.checkRecord(recordPk);
+		int changeCount = sendRecordRepository.checkRecord(recordPk);
+		if (changeCount == 1) {
+			mainAccountRepository.deposit(accountPk, money);
+		}
 	}
 }
