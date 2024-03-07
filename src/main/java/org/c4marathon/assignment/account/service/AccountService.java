@@ -2,6 +2,10 @@ package org.c4marathon.assignment.account.service;
 
 import static org.springframework.http.HttpStatus.*;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Objects;
+
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
@@ -84,6 +88,10 @@ public class AccountService {
                 FORBIDDEN.toString()));
 
         int dailyLimit = account.getDailyLimit() + rechargeAccountRequestDto.balance().intValue();
+        // 날짜가 다를 땐 일일한도를 초기화 한 뒤 계산
+        if (!Objects.equals(account.getDailyLimitUpdateAt(), LocalDate.now(ZoneId.of("Asia/Seoul")))) {
+            dailyLimit = rechargeAccountRequestDto.balance().intValue();
+        }
         Long balance = account.getBalance() + rechargeAccountRequestDto.balance();
 
         // 충전 한도 확인

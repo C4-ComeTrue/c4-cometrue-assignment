@@ -1,5 +1,8 @@
 package org.c4marathon.assignment.account.entity;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.util.entity.BaseEntity;
 
@@ -39,6 +42,9 @@ public class Account extends BaseEntity {
     @Column(name = "daily_limit", nullable = false)
     private Integer dailyLimit;
 
+    @Column(name = "daily_limit_update_at", nullable = false)
+    private LocalDate dailyLimitUpdateAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private Type type;
@@ -54,10 +60,12 @@ public class Account extends BaseEntity {
         this.dailyLimit = 0;
         this.type = type;
         this.member = member;
+        this.dailyLimitUpdateAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void resetDailyLimit(Integer dailyLimit) {
         this.dailyLimit = dailyLimit;
+        this.dailyLimitUpdateAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void transferBalance(Long balance) {
