@@ -4,18 +4,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.anyInt;
-import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.*;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
+import org.c4marathon.assignment.account.entity.SavingAccount;
 import org.c4marathon.assignment.account.repository.AccountRepository;
+import org.c4marathon.assignment.account.repository.SavingAccountRepository;
+import org.c4marathon.assignment.auth.service.SecurityService;
+import org.c4marathon.assignment.member.entity.Member;
+import org.c4marathon.assignment.member.service.MemberService;
 import org.c4marathon.assignment.util.exceptions.BaseException;
+import org.c4marathon.assignment.util.exceptions.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,8 +31,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
@@ -35,7 +39,38 @@ public class AccountServiceTest {
     private AccountService accountService;
 
     @Mock
+    private SecurityService securityService;
+
+    @Mock
+    private MemberService memberService;
+
+    @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private SavingAccountRepository savingAccountRepository;
+
+    @Nested
+    @DisplayName("계좌 생성 테스트")
+    class Create {
+        @DisplayName("회원가입 이후 발생한 이벤트를 통해 메인 계좌를 생성한다.")
+        @Test
+        void createMainAccountTest() {
+            // given
+            Long memberId = 0L;
+            Member member = mock(Member.class);
+            Account account = mock(Account.class);
+            given(memberService.getMemberById(memberId)).willReturn(member);
+            given(accountRepository.save(any(Account.class))).willReturn(account);
+
+            // when
+            accountService.saveMainAccount(memberId);
+
+            // then
+            then(memberService).should(times(1)).getMemberById(memberId);
+            then(accountRepository).should(times(1)).save(any(Account.class));
+        }
+    }
 
     @Nested
     @DisplayName("계좌 조회 테스트")
@@ -56,25 +91,23 @@ public class AccountServiceTest {
             assertTrue(result);
         }
 
-        @DisplayName("계좌 조회를 위해 회원의 정보를 조회하고, 회원의 모든 계좌 정보를 불러온다.")
+        @DisplayName("계좌 조회를 위해 회원의 정보를 조회하고, 회원의 메인 계좌 정보를 불러온다.")
         @Test
         void findAccountTest() {
             // given
             Long memberId = 1L;
-            List<Account> accountList = List.of(mock(Account.class), mock(Account.class));
-            Authentication authentication = mock(Authentication.class);
-
-            given(authentication.getPrincipal()).willReturn(memberId);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            given(accountService.findMember()).willReturn(memberId);
-            given(accountRepository.findByMemberId(memberId)).willReturn(accountList);
+            Account account = mock(Account.class);
+            AccountResponseDto accountResponseDto = mock(AccountResponseDto.class);
+            given(securityService.findMember()).willReturn(memberId);
+            given(accountRepository.findByMemberId(memberId)).willReturn(account);
 
             // when
-            List<AccountResponseDto> result = accountService.findAccount();
+            AccountResponseDto afterAccountResponseDto = accountService.findAccount();
 
             // then
-            assertEquals(accountList.size(), result.size());  // 반환된 계좌 리스트의 크기는 `accountList`의 크기와 같아야 함
-            verify(accountRepository, times(1)).findByMemberId(memberId);  // `findByMemberId` 메서드가 한 번 호출되어야 함
+            then(securityService).should(times(1)).findMember();
+            then(accountRepository).should(times(1)).findByMemberId(memberId);
+            assertEquals(afterAccountResponseDto.id(), accountResponseDto.id());
         }
     }
 
@@ -89,9 +122,7 @@ public class AccountServiceTest {
 
         @BeforeEach
         void setUp() {
-            Authentication authentication = mock(Authentication.class);
-            given(authentication.getPrincipal()).willReturn(memberId);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            given(securityService.findMember()).willReturn(memberId);
         }
 
         @DisplayName("사용자의 외부 계좌에서 메인 계좌로 10,000원을 이체한다.")
@@ -102,9 +133,31 @@ public class AccountServiceTest {
             Account account = mock(Account.class);
             RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
 
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(0);
             given(account.getBalance()).willReturn(0L);
+
+            // when
+            accountService.rechargeAccount(requestDto);
+
+            // then
+            verify(account, times(1)).resetDailyLimit(anyInt());
+            verify(account, times(1)).transferBalance(anyLong());
+            verify(accountRepository, times(1)).save(account);
+        }
+
+        @DisplayName("사용자의 외부 계좌에서 메인 계좌로 10,000원을 이체할 때 조회한 한도가 기준치를 넘었지만, 직전 입금 날짜가 달라 초기화하고 성공적으로 입금된다.")
+        @Test
+        void transferToRegularAccountUpdateAtTest() {
+
+            // given
+            Account account = mock(Account.class);
+            RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
+
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(account.getDailyLimit()).willReturn(3000000);
+            given(account.getBalance()).willReturn(0L);
+            given(account.getDailyLimitUpdateAt()).willReturn(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1));
 
             // when
             accountService.rechargeAccount(requestDto);
@@ -123,14 +176,13 @@ public class AccountServiceTest {
             Account account = mock(Account.class);
             RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
 
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(DAILY_LIMIT);
             given(account.getBalance()).willReturn(0L);
+            given(account.getDailyLimitUpdateAt()).willReturn(LocalDate.now(ZoneId.of("Asia/Seoul")));
 
             // when
-            Exception exception = assertThrows(BaseException.class, () -> {
-                accountService.rechargeAccount(requestDto);
-            });
+            Exception exception = assertThrows(BaseException.class, () -> accountService.rechargeAccount(requestDto));
 
             // then
             assertEquals(HttpStatus.BAD_REQUEST.toString(), exception.getMessage());
@@ -143,21 +195,22 @@ public class AccountServiceTest {
             // given
             Long receiverAccountd = 3L;
             Account regularAccount = mock(Account.class);
-            Account savingAccount = mock(Account.class);
-            SavingAccountRequestDto requestDto = new SavingAccountRequestDto(balance, receiverAccountd);
+            SavingAccount savingAccount = mock(SavingAccount.class);
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance,
+                receiverAccountd);
 
             given(regularAccount.getBalance()).willReturn(balance);
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));
-            given(accountRepository.findByAccount(memberId, requestDto.receiverAccountId())).willReturn(
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(regularAccount));
+            given(savingAccountRepository.findBySavingAccount(memberId, requestDto.receiverAccountId())).willReturn(
                 Optional.of(savingAccount));
 
             // when
             accountService.transferFromRegularAccount(requestDto);
 
             // then
-            verify(regularAccount, times(1)).transferBalance(anyLong());
-            verify(savingAccount, times(1)).transferBalance(anyLong());
-            verify(accountRepository, times(1)).saveAll(anyList());
+            then(accountRepository).should(times(1)).findByAccount(memberId);
+            then(savingAccountRepository).should(times(1))
+                .findBySavingAccount(memberId, requestDto.receiverAccountId());
         }
 
         @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 오류가 발생한다.")
@@ -166,18 +219,91 @@ public class AccountServiceTest {
 
             // given
             Account regularAccount = mock(Account.class);
-            SavingAccountRequestDto requestDto = new SavingAccountRequestDto(balance, accountId);
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance, accountId);
 
             given(regularAccount.getBalance()).willReturn(0L);
-            given(accountRepository.findByRegularAccount(memberId)).willReturn(Optional.of(regularAccount));
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(regularAccount));
 
             // when
-            Exception exception = assertThrows(BaseException.class, () -> {
-                accountService.transferFromRegularAccount(requestDto);
-            });
+            Exception exception = assertThrows(BaseException.class,
+                () -> accountService.transferFromRegularAccount(requestDto));
 
             // then
             assertEquals(HttpStatus.FORBIDDEN.toString(), exception.getMessage());
+        }
+
+        @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 송금한다.")
+        @Test
+        void transferToOtherAccountTest() {
+
+            // given
+            Long receiverAccountd = 3L;
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance,
+                receiverAccountd);
+
+            Account account = mock(Account.class);
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+
+            Account otherAccount = mock(Account.class);
+            given(account.getBalance()).willReturn(balance);
+            given(accountRepository.findByOtherAccount(requestDto.receiverAccountId())).willReturn(
+                Optional.of(otherAccount));
+
+            // when
+            accountService.transferToOtherAccount(requestDto);
+
+            // then
+            then(accountRepository).should(times(1)).findByAccount(memberId);
+            then(accountRepository).should(times(1)).findByOtherAccount(requestDto.receiverAccountId());
+        }
+
+        @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 잔액이 부족해 부족한 금액을 충전하고 송금한다.")
+        @Test
+        void transferToOtherAccountAndChargeAccountTest() {
+
+            // given
+            Long receiverAccountd = 3L;
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance * 2,
+                receiverAccountd);
+
+            Account account = mock(Account.class);
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+
+            Account otherAccount = mock(Account.class);
+            given(account.getBalance()).willReturn(balance);
+            given(accountRepository.findByOtherAccount(requestDto.receiverAccountId())).willReturn(
+                Optional.of(otherAccount));
+
+            // when
+            accountService.transferToOtherAccount(requestDto);
+
+            // then
+            then(accountRepository).should(times(2)).findByAccount(memberId);
+            then(accountRepository).should(times(1)).findByOtherAccount(requestDto.receiverAccountId());
+        }
+
+        @DisplayName("친구의 계좌가 존재하지 않거나 잘못 입력해 실패한다.")
+        @Test
+        void transferToOtherAccountFailedTest() {
+
+            // given
+            Long receiverAccountd = 3L;
+            TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance * 2,
+                receiverAccountd);
+
+            Account account = mock(Account.class);
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(account.getBalance()).willReturn(balance);
+
+            BaseException baseException = ErrorCode.ACCOUNT_DOES_NOT_EXIST.baseException("계좌가 존재하지 않습니다.");
+            given(accountRepository.findByOtherAccount(requestDto.receiverAccountId())).willThrow(baseException);
+
+            // when
+            Exception exception = assertThrows(BaseException.class,
+                () -> accountService.transferToOtherAccount(requestDto));
+
+            // then
+            assertEquals(baseException.getMessage(), exception.getMessage());
         }
     }
 }
