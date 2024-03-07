@@ -11,6 +11,8 @@ import org.c4marathon.assignment.bankaccount.exception.AccountException;
 import org.c4marathon.assignment.bankaccount.product.ProductManager;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.member.entity.Member;
+import org.c4marathon.assignment.member.exception.MemberErrorCode;
+import org.c4marathon.assignment.member.exception.MemberException;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -76,6 +78,22 @@ class SavingAccountServiceTest {
 
 			// Then
 			assertEquals(AccountErrorCode.PRODUCT_NOT_FOUND.name(), accountException.getErrorName());
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 사용자로 적금 계좌를 생성할 경우 MemberException(Member_NOT_FOUND) 예외가 발생한다.")
+		void request_with_not_exist_member() {
+			// Given
+			String productName = "free";
+			given(memberRepository.findById(anyLong())).willReturn(Optional.empty());
+
+			// When
+			MemberException memberException = assertThrows(MemberException.class, () -> {
+				savingAccountService.create(memberPk, productName);
+			});
+
+			// Then
+			assertEquals(MemberErrorCode.USER_NOT_FOUND.name(), memberException.getErrorName());
 		}
 	}
 

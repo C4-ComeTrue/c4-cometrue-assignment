@@ -22,3 +22,5 @@ logging:
 
         transaction:
           interceptor:
+      c4marathon:
+        assignment: INFO

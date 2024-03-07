@@ -2,7 +2,8 @@ package org.c4marathon.assignment.bankaccount.controller;
 
 import java.nio.charset.StandardCharsets;
 
-import org.c4marathon.assignment.bankaccount.dto.request.SendToSavingRequestDto;
+import org.c4marathon.assignment.bankaccount.dto.request.ChargeMoneyRequestDto;
+import org.c4marathon.assignment.bankaccount.dto.request.SendMoneyRequestDto;
 import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
 import org.c4marathon.assignment.common.utils.ConstValue;
@@ -61,12 +62,16 @@ class MainAccountControllerTest {
 			// Given
 			SessionMemberInfo memberInfo = (SessionMemberInfo)session.getAttribute(SessionConst.MEMBER_INFO);
 			long mainAccountPk = memberInfo.mainAccountPk();
+			ChargeMoneyRequestDto requestDto = new ChargeMoneyRequestDto(money);
 
 			given(mainAccountService.chargeMoney(mainAccountPk, money)).willReturn(baseMoney + money);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(
-				get(REQUEST_URL + "/charge").param("money", String.valueOf(money)).session(session));
+				post(REQUEST_URL + "/charge").session(session)
+					.contentType(MediaType.APPLICATION_JSON)
+					.characterEncoding(StandardCharsets.UTF_8)
+					.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
 			resultActions.andExpect(status().isOk())
@@ -77,11 +82,17 @@ class MainAccountControllerTest {
 		}
 
 		@Test
-		@DisplayName("충전 금액이 음수면 ConstraintViolationException 예외가 발생한다.")
+		@DisplayName("충전 금액이 음수면 예외가 발생한다.")
 		void request_with_minus_money() throws Exception {
+			// Given
+			ChargeMoneyRequestDto requestDto = new ChargeMoneyRequestDto(-1);
+
 			// When
 			ResultActions resultActions = mockMvc.perform(
-				get(REQUEST_URL + "/charge").param("money", String.valueOf(-1)).session(session));
+				post(REQUEST_URL + "/charge").session(session)
+					.contentType(MediaType.APPLICATION_JSON)
+					.characterEncoding(StandardCharsets.UTF_8)
+					.content(objectMapper.writeValueAsString(requestDto)));
 
 			// Then
 			resultActions.andExpect(status().isBadRequest());
@@ -96,7 +107,7 @@ class MainAccountControllerTest {
 		@DisplayName("존재하는 계좌 정보와 1원 이상의 금액으로 요청하면 이체를 성공한다.")
 		void request_with_valid_account_and_valid_money() throws Exception {
 			// Given
-			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 1000);
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(1, 1000);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
@@ -112,7 +123,7 @@ class MainAccountControllerTest {
 		@DisplayName("존재하지 않는 계좌 정보(0 이하의 pk)로 요청하면 실패한다.")
 		void request_with_non_valid_account() throws Exception {
 			// Given
-			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(0, 1000);
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(0, 1000);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
@@ -128,7 +139,7 @@ class MainAccountControllerTest {
 		@DisplayName("이체 금액을 0 이하로 요청하면 실패한다.")
 		void request_with_non_valid_money() throws Exception {
 			// Given
-			SendToSavingRequestDto requestDto = new SendToSavingRequestDto(1, 0);
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(1, 0);
 
 			// When
 			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/saving").session(session)
@@ -149,7 +160,8 @@ class MainAccountControllerTest {
 		@DisplayName("로그인한 사용자는 메인 계좌 조회에 성공한다")
 		void request_with_login_member() throws Exception {
 			// Given
-			MainAccountResponseDto responseDto = new MainAccountResponseDto(1L, ConstValue.LimitConst.CHARGE_LIMIT, 0);
+			MainAccountResponseDto responseDto = new MainAccountResponseDto(1L, ConstValue.LimitConst.CHARGE_LIMIT,
+				ConstValue.LimitConst.CHARGE_LIMIT, 0);
 			given(mainAccountService.getMainAccountInfo(anyLong())).willReturn(responseDto);
 
 			// When
@@ -157,8 +169,60 @@ class MainAccountControllerTest {
 
 			// Then
 			resultActions.andExpectAll(status().isOk(), jsonPath("$.accountPk").value(responseDto.accountPk()),
-				jsonPath("$.chargeLimit").value(responseDto.chargeLimit()),
 				jsonPath("$.money").value(responseDto.money()));
+		}
+	}
+
+	@Nested
+	@DisplayName("메인 계좌 간 이체 테스트")
+	class SendToOtherAccount {
+
+		@Test
+		@DisplayName("올바른 요청 정보로 이체 요청을 한다면 이체에 성공한다.")
+		void request_with_valid_request() throws Exception {
+			// Given
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(2, 1000);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/other").session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions.andExpect(status().isOk());
+		}
+
+		@Test
+		@DisplayName("잘못된 계좌 정보로 이체 요청을 한다면 이체에 실패한다.")
+		void request_with_invalid_account() throws Exception {
+			// Given
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(-1, 1000);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/other").session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions.andExpect(status().isBadRequest());
+		}
+
+		@Test
+		@DisplayName("양이 아닌 수의 돈으로 이체 요청을 한다면 이체에 실패한다.")
+		void request_with_invalid_money() throws Exception {
+			// Given
+			SendMoneyRequestDto requestDto = new SendMoneyRequestDto(1, -1);
+
+			// When
+			ResultActions resultActions = mockMvc.perform(post(REQUEST_URL + "/send/other").session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(StandardCharsets.UTF_8)
+				.content(objectMapper.writeValueAsString(requestDto)));
+
+			// Then
+			resultActions.andExpect(status().isBadRequest());
 		}
 	}
 }
