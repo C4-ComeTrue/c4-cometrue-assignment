@@ -6,6 +6,8 @@ import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.anyInt;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
@@ -144,6 +146,28 @@ public class AccountServiceTest {
             verify(accountRepository, times(1)).save(account);
         }
 
+        @DisplayName("사용자의 외부 계좌에서 메인 계좌로 10,000원을 이체할 때 조회한 한도가 기준치를 넘었지만, 직전 입금 날짜가 달라 초기화하고 성공적으로 입금된다.")
+        @Test
+        void transferToRegularAccountUpdateAtTest() {
+
+            // given
+            Account account = mock(Account.class);
+            RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
+
+            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(account.getDailyLimit()).willReturn(3000000);
+            given(account.getBalance()).willReturn(0L);
+            given(account.getDailyLimitUpdateAt()).willReturn(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1));
+
+            // when
+            accountService.rechargeAccount(requestDto);
+
+            // then
+            verify(account, times(1)).resetDailyLimit(anyInt());
+            verify(account, times(1)).transferBalance(anyLong());
+            verify(accountRepository, times(1)).save(account);
+        }
+
         @DisplayName("메인 계좌에 잔액 충전 요청 시 충전 한도가 넘어 오류가 발생한다.")
         @Test
         void rechargeAccountErrorTest() {
@@ -155,6 +179,7 @@ public class AccountServiceTest {
             given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(DAILY_LIMIT);
             given(account.getBalance()).willReturn(0L);
+            given(account.getDailyLimitUpdateAt()).willReturn(LocalDate.now(ZoneId.of("Asia/Seoul")));
 
             // when
             Exception exception = assertThrows(BaseException.class, () -> accountService.rechargeAccount(requestDto));
