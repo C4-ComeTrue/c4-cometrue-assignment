@@ -1,14 +1,14 @@
 package org.c4marathon.assignment.service;
 
-import org.c4marathon.assignment.api.dto.ChargeAccountDto;
 import org.c4marathon.assignment.api.dto.CreateAccountDto;
+import org.c4marathon.assignment.api.dto.TransferAccountDto;
 import org.c4marathon.assignment.common.exception.ErrorCode;
-import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.Member;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AccountService {
 
+	private final ChargeService chargeService;
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
 
@@ -39,22 +40,39 @@ public class AccountService {
 	}
 
 	/**
-	 * 메인 계좌 충전 API
+	 * 메인 계좌 송금 API
 	 */
 	@Transactional
-	public ChargeAccountDto.Res charge(long accountId, long amount) {
-		// 1. 현재 충전 한도와 잔고가 얼마인지 확인한다.
-		Account account = accountRepository.findByIdWithWriteLock(accountId)
+	public TransferAccountDto.Res transfer(
+		long accountId, String transferAccountNumber, long transferAmount
+	) {
+		Account account = accountRepository.findById(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-		// 2. 1일 충전 한도를 넘지 않는지 확인한다.
-		long chargeLimit = account.getChargeLimit();
-		if (ChargeLimitUtils.doesExceedLimit(chargeLimit, account.getAccumulatedChargeAmount(), amount)) {
-			throw ErrorCode.EXCEED_CHARGE_LIMIT.businessException();
+		// 1. 잔액이 부족할 경우 10000원 단위로 자동 충전한다.
+		if (account.isAmountLackToWithDraw(transferAmount)) {
+			chargeService.autoChargeByUnit(accountId, transferAmount);
 		}
 
-		// 3. 메인 계좌의 잔액을 증가시킨다.
-		account.charge(amount);
-		return new ChargeAccountDto.Res(account.getAmount());
+		// 2. 잔액이 여유로워졌다면, 내 계좌의 잔액을 차감시키고 친구의 메인 계좌로 송금한다.
+		minusMyAccount(accountId, transferAmount);
+		plusTargetAccount(transferAccountNumber, transferAmount);
+
+		long resultAmount = accountRepository.findAmount(accountId);
+		return new TransferAccountDto.Res(resultAmount);
+	}
+
+	private void minusMyAccount(long accountId, long transferAmount) {
+		int effectedRowCnt = accountRepository.withdraw(accountId, transferAmount);
+		if (effectedRowCnt == 0) {
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
+		}
+	}
+
+	private void plusTargetAccount(String accountNumber, long transferAmount) {
+		Account transferAccount = accountRepository.findByAccountNumber(accountNumber)
+			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
+
+		accountRepository.deposit(transferAccount.getId(), transferAmount);
 	}
 }

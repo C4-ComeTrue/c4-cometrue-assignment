@@ -11,7 +11,6 @@ import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.SavingsAccountRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -47,29 +46,27 @@ public class SavingsAccountService {
 
 	/**
 	 * 정기 적금 API -> 매일 오전 8시에 자동 출금
-	 * TODO: @schedule
-	 * TODO: 실패된 적금 트랜잭션 관리 (FAILED QUEUE)
+	 * 범위 좁히기 : 충전 <-> 송금 트랜잭션을 분리?
 	 */
-	@Transactional(isolation = Isolation.READ_COMMITTED)
+	@Transactional
 	public void transferForRegularSavings(long memberId) {
 		// 1. 사용자의 메인 계좌와 저축 계좌를 불러온다.
-		Account account = accountRepository.findByMemberIdWithWriteLock(memberId)
+		Account account = accountRepository.findByMemberId(memberId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-		SavingsAccount savingsAccount = savingsAccountRepository.findByMemberIdWithWriteLock(memberId)
+		SavingsAccount savingsAccount = savingsAccountRepository.findByMemberId(memberId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		// 2. 잔고가 요청된 인출 금액 이상 남아있는지 확인한다.
-		long withDrawAmount = savingsAccount.getWithdrawAmount();
-		long totalAmount = account.getAmount();
-
-		if (isAmountEnoughToWithdraw(totalAmount, withDrawAmount)) {
-			throw ErrorCode.MAIN_ACCOUNT_LACK_OF_AMOUNT.businessException();
+		long withdrawAmount = savingsAccount.getWithdrawAmount();
+		if (account.isAmountLackToWithDraw(withdrawAmount)) {
+			// TODO : 정기 적금 실패 로그 파일에 기록, 오전 8시 전에 불러와서 재수행
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
 		}
 
 		// 3. 메인 계좌의 잔액을 차감시키고, 저축 계좌의 잔액을 증가시킨다.
-		account.withdraw(withDrawAmount);
-		savingsAccount.charge(withDrawAmount);
+		minusMyAccount(account.getId(), withdrawAmount);
+		savingsAccountRepository.charge(savingsAccount.getId(), withdrawAmount);
 	}
 
 	/**
@@ -86,13 +83,17 @@ public class SavingsAccountService {
 			throw ErrorCode.INVALID_SAVINGS_TRANSFER.businessException();
 		}
 
-		// 2. 계좌에 돈을 충전한다.
+		// 3. 계좌에 돈을 충전한다.
 		savingsAccount.charge(amount);
 		return new ChargeSavingsAccountDto.Res(savingsAccount.getAmount());
 	}
 
-	private boolean isAmountEnoughToWithdraw(long totalAmount, long withDrawAmount) {
-		return totalAmount < withDrawAmount;
+	private void minusMyAccount(long accountId, long withDrawAmount) {
+		int effectedRowCnt = accountRepository.withdraw(accountId, withDrawAmount);
+		// 만약 해당 로직 사이에 송금이 일어나서 잔액이 부족해지면 예외를 던진다. (UPDATE 시에만 락을 건다)
+		if (effectedRowCnt == 0) {
+			throw ErrorCode.ACCOUNT_LACK_OF_AMOUNT.businessException();
+		}
 	}
 
 	private boolean isNotFreeSavingsAccount(SavingsType savingsType) {

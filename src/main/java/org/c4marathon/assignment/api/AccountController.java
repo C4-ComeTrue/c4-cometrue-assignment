@@ -1,7 +1,7 @@
 package org.c4marathon.assignment.api;
 
-import org.c4marathon.assignment.api.dto.ChargeAccountDto;
 import org.c4marathon.assignment.api.dto.CreateAccountDto;
+import org.c4marathon.assignment.api.dto.TransferAccountDto;
 import org.c4marathon.assignment.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,9 +26,9 @@ public class AccountController {
 		return accountService.createAccount(req.memberId(), req.name(), req.accountNumber());
 	}
 
-	@PostMapping("/charge")
+	@PostMapping("/transfer")
 	@ResponseStatus(HttpStatus.OK)
-	public ChargeAccountDto.Res charge(@Valid @RequestBody ChargeAccountDto.Req req) {
-		return accountService.charge(req.accountId(), req.amount());
+	public TransferAccountDto.Res transfer(@Valid @RequestBody TransferAccountDto.Req req) {
+		return accountService.transfer(req.accountId(), req.accountNumber(), req.transferAmount());
 	}
 }

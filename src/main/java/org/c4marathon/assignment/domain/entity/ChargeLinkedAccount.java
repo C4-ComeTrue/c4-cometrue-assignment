@@ -1,10 +1,6 @@
 package org.c4marathon.assignment.domain.entity;
 
-import org.c4marathon.assignment.domain.SavingsType;
-
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +9,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
@@ -20,45 +17,45 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
-@Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
 @Table(
-	indexes = {@Index(name = "savings_account_member_index", columnList = "member_id")}
+	indexes = {@Index(name = "charge_link_account_index", columnList = "account_id")}
 )
-public class SavingsAccount extends BaseEntity {
+public class ChargeLinkedAccount {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String name;
-
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Member member;
+	@JoinColumn(name = "account_id")
+	private Account account;
+
+	@NotBlank
+	private String bank;
+
+	@NotBlank
+	private String accountNumber;
 
 	@NotNull
-	@PositiveOrZero
-	private long amount;                // 현재 보유하고 있는 잔고의 양
-
-	@Enumerated(EnumType.STRING)
-	private SavingsType savingsType;    // 들고 있는 적금 종류
+	private boolean main;       // 주 연동 계좌 여부
 
 	@PositiveOrZero
-	private long withdrawAmount;        // 고정된 출금액
+	private long amount;        // 임시 잔액 TODO: 외부 계좌 조회 API 연동
 
 	@Builder
-	public SavingsAccount(Member member, String name, SavingsType savingsType, long withdrawAmount) {
-		this.member = member;
-		this.name = name;
-		this.savingsType = savingsType;
-		this.withdrawAmount = withdrawAmount;
+	public ChargeLinkedAccount(Account account, String bank, String accountNumber, boolean main, long amount) {
+		this.account = account;
+		this.bank = bank;
+		this.accountNumber = accountNumber;
+		this.main = main;
+		this.amount = amount;
 	}
 
-	public void charge(long chargeAmount) {
-		this.amount += chargeAmount;
+	public void withdraw(long amount) {
+		this.amount -= amount;
 	}
 
 	public boolean isAmountLackToWithDraw(long withDrawAmount) {

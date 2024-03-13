@@ -59,22 +59,29 @@ class SavingsAccountServiceTest {
 	@Test
 	void 메인_에서_적금_계좌로_이체에_성공한다() {
 		// given
+		var accountId = 1L;
+		var savingsAccountId = 2L;
 		var withdrawAmount = 10000L;
 		var mainAccountAmount = 50000L;
 		var account = mock(Account.class);
 		var savingsAccount = mock(SavingsAccount.class);
 
-		given(accountRepository.findByMemberIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
-		given(savingsAccountRepository.findByMemberIdWithWriteLock(anyLong())).willReturn(Optional.of(savingsAccount));
+		given(accountRepository.findByMemberId(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.withdraw(anyLong(), anyLong())).willReturn(1);
+		given(savingsAccountRepository.findByMemberId(anyLong())).willReturn(Optional.of(savingsAccount));
+
+		given(savingsAccount.getId()).willReturn(savingsAccountId);
 		given(savingsAccount.getWithdrawAmount()).willReturn(withdrawAmount);
-		given(account.getAmount()).willReturn(mainAccountAmount);
+
+		given(account.getId()).willReturn(accountId);
+		given(account.isAmountLackToWithDraw(withdrawAmount)).willReturn(false);
 
 		// when
 		savingsAccountService.transferForRegularSavings(1L);
 
 		// then
-		verify(account, times(1)).withdraw(withdrawAmount);
-		verify(savingsAccount, times(1)).charge(withdrawAmount);
+		verify(accountRepository, times(1)).withdraw(accountId, withdrawAmount);
+		verify(savingsAccountRepository, times(1)).charge(savingsAccountId, withdrawAmount);
 	}
 
 	@Test
@@ -109,15 +116,16 @@ class SavingsAccountServiceTest {
 		var account = mock(Account.class);
 		var savingsAccount = mock(SavingsAccount.class);
 
-		given(accountRepository.findByMemberIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
-		given(savingsAccountRepository.findByMemberIdWithWriteLock(anyLong())).willReturn(Optional.of(savingsAccount));
+		given(accountRepository.findByMemberId(anyLong())).willReturn(Optional.of(account));
+		given(savingsAccountRepository.findByMemberId(anyLong())).willReturn(Optional.of(savingsAccount));
+
+		given(account.isAmountLackToWithDraw(withdrawAmount)).willReturn(true);
 		given(savingsAccount.getWithdrawAmount()).willReturn(withdrawAmount);
-		given(account.getAmount()).willReturn(mainAccountAmount);
 
 		// when + then
 		assertThatThrownBy(() -> savingsAccountService.transferForRegularSavings(memberId))
 			.isInstanceOf(BusinessException.class)
-			.hasMessageContaining(ErrorCode.MAIN_ACCOUNT_LACK_OF_AMOUNT.getMessage());
+			.hasMessageContaining(ErrorCode.ACCOUNT_LACK_OF_AMOUNT.getMessage());
 	}
 
 	@Test

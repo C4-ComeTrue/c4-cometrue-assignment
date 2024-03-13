@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import org.c4marathon.assignment.common.exception.BusinessException;
 import org.c4marathon.assignment.common.exception.ErrorCode;
-import org.c4marathon.assignment.common.utils.ChargeLimitUtils;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.Member;
 import org.c4marathon.assignment.repository.AccountRepository;
@@ -26,6 +25,9 @@ class AccountServiceTest {
 
 	@Mock
 	MemberRepository memberRepository;
+
+	@Mock
+	ChargeService chargeService;
 
 	@InjectMocks
 	AccountService accountService;
@@ -49,53 +51,101 @@ class AccountServiceTest {
 	}
 
 	@Test
-	void 계좌_충전에_성공한다() {
+	void 계좌_송금에_성공한다() {
 		// given
 		var accountId = 1L;
-		var chargeAmount = 1000L;
-		var accumulatedChargeAmount = 100000L;
-		var totalAmount = 1000L;
+		var transferAccountId = 2L;
+		var transferAccountNumber = "11-22";
+		var amount = 10000L;
+		var transferAmount = 1000L;
 		var account = mock(Account.class);
+		var transferAccount = mock(Account.class);
 
-		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
-		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
-		given(account.getAccumulatedChargeAmount()).willReturn(accumulatedChargeAmount);
-		given(account.getAmount()).willReturn(totalAmount);
+		given(account.isAmountLackToWithDraw(anyLong())).willReturn(false);
+		given(transferAccount.getId()).willReturn(transferAccountId);
+
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.findByAccountNumber(anyString())).willReturn(Optional.of(transferAccount));
+		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(1);
 
 		// when
-		var result = accountService.charge(accountId, chargeAmount);
+		accountService.transfer(accountId, transferAccountNumber, transferAmount);
 
 		// then
-		assertThat(result.totalAmount()).isEqualTo(totalAmount);
+		verify(accountRepository, times(1)).withdraw(accountId, transferAmount);
+		verify(accountRepository, times(1)).deposit(transferAccountId, transferAmount);
+	}
+
+
+	@Test
+	void 잔액이_부족하다면_자동_충전이_발생한다() {
+		var accountId = 1L;
+		var transferAccountNumber = "11-22";
+		var transferAmount = 1000L;
+		var account = mock(Account.class);
+		var transferAccount = mock(Account.class);
+
+		given(account.isAmountLackToWithDraw(anyLong())).willReturn(true);
+
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(1);
+		given(accountRepository.findByAccountNumber(anyString())).willReturn(Optional.of(transferAccount));
+
+		// when
+		accountService.transfer(accountId, transferAccountNumber, transferAmount);
+
+		// then
+		verify(chargeService, times(1)).autoChargeByUnit(anyLong(), anyLong());
 	}
 
 	@Test
-	void 계좌가_존재하지_않는_경우_실패한다() {
+	void 계좌가_없다면_송금에_실패한다() {
 		// given
 		var accountId = 1L;
-		var chargeAmount = 1000L;
+		var transferAccountNumber = "11-22";
+		var transferAmount = 10000L;
 
 		// when + then
-		assertThatThrownBy(() -> accountService.charge(accountId,chargeAmount))
+		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
 	}
 
-
 	@Test
-	void 충전_한도를_넘는_경우_실패한다() {
+	void 송금_대상의_계좌가_없다면_송금에_실패한다() {
 		// given
 		var accountId = 1L;
+		var transferAccountNumber = "11-22";
+		var amount = 100000L;
+		var transferAmount = 10000L;
 		var account = mock(Account.class);
-		var chargeAmount = 10000L;
 
-		given(accountRepository.findByIdWithWriteLock(anyLong())).willReturn(Optional.of(account));
-		given(account.getChargeLimit()).willReturn(ChargeLimitUtils.BASIC_LIMIT);
-		given(account.getAccumulatedChargeAmount()).willReturn(3000001L);
+		// when
+		given(account.isAmountLackToWithDraw(anyLong())).willReturn(false);
 
-		// when + then
-		assertThatThrownBy(() -> accountService.charge(accountId, chargeAmount))
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(1);
+
+		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
-			.hasMessageContaining(ErrorCode.EXCEED_CHARGE_LIMIT.getMessage());
+			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
+	}
+
+	@Test
+	void 송금_도중_잔액이_부족해진다면_실패한다() {
+		var accountId = 1L;
+		var transferAccountNumber = "11-22";
+		var transferAmount = 10000L;
+		var account = mock(Account.class);
+
+		// when
+		given(account.isAmountLackToWithDraw(anyLong())).willReturn(false);
+
+		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(0);
+
+		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
+			.isInstanceOf(BusinessException.class)
+			.hasMessageContaining(ErrorCode.ACCOUNT_LACK_OF_AMOUNT.getMessage());
 	}
 }
