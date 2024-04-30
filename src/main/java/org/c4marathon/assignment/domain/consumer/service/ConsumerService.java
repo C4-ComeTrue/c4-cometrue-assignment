@@ -62,10 +62,10 @@ public class ConsumerService {
 	 */
 	@Transactional
 	public void purchaseProduct(PurchaseProductRequest request, Consumer consumer) {
-		throwIfNotEnoughPoint(consumer, request.point());
+		decreasePoint(consumer, request.point());
 		Order order = saveOrder(consumer, request.point());
 		long totalAmount = saveOrderProduct(request, order);
-		throwIfNotEnoughBalance(consumer, totalAmount - request.point());
+		decreaseBalance(consumer, totalAmount - request.point());
 		order.updateEarnedPoint(getPurchasePoint(totalAmount - request.point()));
 		order.updateTotalAmount(totalAmount);
 		order.updateDelivery(saveDelivery(consumer));
@@ -122,7 +122,7 @@ public class ConsumerService {
 		List<OrderProduct> orderProducts = new ArrayList<>();
 		for (PurchaseProductEntry purchaseProductEntry : request.purchaseProducts()) {
 			Product product = productReadService.findById(purchaseProductEntry.productId());
-			throwIfNotEnoughStock(purchaseProductEntry, product);
+			decreaseStock(purchaseProductEntry, product);
 			OrderProduct orderProduct = createOrderProduct(order, purchaseProductEntry, product);
 			orderProducts.add(orderProduct);
 		}
@@ -207,7 +207,7 @@ public class ConsumerService {
 	/**
 	 * 재고가 부족할 시 예외를 반환하고, 아니면 재고를 감소
 	 */
-	private void throwIfNotEnoughStock(PurchaseProductEntry purchaseProductEntry, Product product) {
+	private void decreaseStock(PurchaseProductEntry purchaseProductEntry, Product product) {
 		if (product.getProductStatus().equals(OUT_OF_STOCK) || product.getStock() < purchaseProductEntry.quantity()) {
 			throw NOT_ENOUGH_PRODUCT_STOCK.baseException(
 				"current stock: %d, request stock: %d", product.getStock(), purchaseProductEntry.quantity());
@@ -218,7 +218,7 @@ public class ConsumerService {
 	/**
 	 * 잔고가 부족할 시 예외를 반환하고, 아니면 잔고를 감소
 	 */
-	private void throwIfNotEnoughBalance(Consumer consumer, long totalAmount) {
+	private void decreaseBalance(Consumer consumer, long totalAmount) {
 		if (consumer.getBalance() < totalAmount) {
 			throw NOT_ENOUGH_BALANCE.baseException("total amount: %d", totalAmount);
 		}
@@ -228,7 +228,7 @@ public class ConsumerService {
 	/**
 	 * 포인트가 부족할 시 예외를 반환하고, 아니면 포인트를 감소
 	 */
-	private void throwIfNotEnoughPoint(Consumer consumer, long point) {
+	private void decreasePoint(Consumer consumer, long point) {
 		if (consumer.getPoint() < point) {
 			throw NOT_ENOUGH_POINT.baseException("current point: %d, request point: %d", consumer.getPoint(), point);
 		}
