@@ -2,7 +2,6 @@ package org.c4marathon.assignment.domain.consumer.service;
 
 import static org.c4marathon.assignment.global.constant.DeliveryStatus.*;
 import static org.c4marathon.assignment.global.constant.OrderStatus.*;
-import static org.c4marathon.assignment.global.constant.ProductStatus.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
 import java.time.LocalDateTime;
@@ -208,7 +207,7 @@ public class ConsumerService {
 	 * 재고가 부족할 시 예외를 반환하고, 아니면 재고를 감소
 	 */
 	private void decreaseStock(PurchaseProductEntry purchaseProductEntry, Product product) {
-		if (product.getProductStatus().equals(OUT_OF_STOCK) || product.getStock() < purchaseProductEntry.quantity()) {
+		if (product.isSoldOut() || product.getStock() < purchaseProductEntry.quantity()) {
 			throw NOT_ENOUGH_PRODUCT_STOCK.baseException(
 				"current stock: %d, request stock: %d", product.getStock(), purchaseProductEntry.quantity());
 		}
