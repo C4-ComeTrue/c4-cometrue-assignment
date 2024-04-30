@@ -6,7 +6,6 @@ import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ObjLongConsumer;
 
@@ -63,11 +62,12 @@ public class ConsumerService {
 	public void purchaseProduct(PurchaseProductRequest request, Consumer consumer) {
 		decreasePoint(consumer, request.point());
 		Order order = saveOrder(consumer, request.point());
-		long totalAmount = saveOrderProduct(request, order);
+		List<OrderProduct> orderProducts = getOrderProducts(request, order);
+		long totalAmount = orderProducts.stream()
+			.mapToLong(OrderProduct::getAmount)
+			.sum();
 		decreaseBalance(consumer, totalAmount - request.point());
-		order.updateEarnedPoint(getPurchasePoint(totalAmount - request.point()));
-		order.updateTotalAmount(totalAmount);
-		order.updateDelivery(saveDelivery(consumer));
+		saveOrderInfo(request, consumer, order, orderProducts, totalAmount);
 	}
 
 	/**
@@ -111,24 +111,28 @@ public class ConsumerService {
 		applicationEventPublisher.publishEvent(pointLog);
 	}
 
+	private void saveOrderInfo(PurchaseProductRequest request, Consumer consumer, Order order,
+		List<OrderProduct> orderProducts, long totalAmount) {
+		orderProductJdbcRepository.saveAllBatch(orderProducts);
+		order.updateEarnedPoint(getPurchasePoint(totalAmount - request.point()));
+		order.updateTotalAmount(totalAmount);
+		order.updateDelivery(saveDelivery(consumer));
+	}
+
 	/**
 	 * Product의 stock 감소
 	 * Product에 Pessimistic lock을 걸어 다중 스레드 환경에서도 stock을 안전하게 관리
 	 * Order에 대한 OrderProduct를 저장
-	 * @return 총 주문 금액
+	 * @return orderProducts
 	 */
-	private long saveOrderProduct(PurchaseProductRequest request, Order order) {
-		List<OrderProduct> orderProducts = new ArrayList<>();
-		for (PurchaseProductEntry purchaseProductEntry : request.purchaseProducts()) {
-			Product product = productReadService.findById(purchaseProductEntry.productId());
-			decreaseStock(purchaseProductEntry, product);
-			OrderProduct orderProduct = createOrderProduct(order, purchaseProductEntry, product);
-			orderProducts.add(orderProduct);
-		}
-		orderProductJdbcRepository.saveAllBatch(orderProducts);
-		return orderProducts.stream()
-			.mapToLong(OrderProduct::getAmount)
-			.sum();
+	private List<OrderProduct> getOrderProducts(PurchaseProductRequest request, Order order) {
+		return request.purchaseProducts().stream()
+			.map(purchaseProductEntry -> {
+				Product product = productReadService.findById(purchaseProductEntry.productId());
+				decreaseStock(purchaseProductEntry, product);
+				return createOrderProduct(order, purchaseProductEntry, product);
+			})
+			.toList();
 	}
 
 	/**
