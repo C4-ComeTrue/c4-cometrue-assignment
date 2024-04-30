@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class PointScheduler {
 
 	private static final int POINT_EVENT_DELAY = 5 * 60 * 1_000;
+	private static final int PAGINATION_SIZE = 10;
 
 	private final PointLogRepository pointLogRepository;
 	private final AfterConsumerService afterConsumerService;
@@ -25,13 +26,21 @@ public class PointScheduler {
 	 */
 	@Scheduled(fixedDelay = POINT_EVENT_DELAY)
 	public void schedulePointEvent() {
-		List<PointLog> pointLogs = pointLogRepository.findAll();
-		pointLogs.forEach(pointLog -> {
-			if (Boolean.TRUE.equals(pointLog.getIsConfirm())) {
-				afterConsumerService.afterConfirm(pointLog);
+		Long lastId = 0L;
+		while (true) {
+			List<PointLog> pointLogs = pointLogRepository.findByIdWithPaging(lastId, PAGINATION_SIZE);
+			if (pointLogs.isEmpty()) {
+				break;
 			} else {
-				afterConsumerService.afterRefund(pointLog);
+				pointLogs.forEach(pointLog -> {
+					if (Boolean.TRUE.equals(pointLog.getIsConfirm())) {
+						afterConsumerService.afterConfirm(pointLog);
+					} else {
+						afterConsumerService.afterRefund(pointLog);
+					}
+				});
+				lastId = pointLogs.get(pointLogs.size() - 1).getId();
 			}
-		});
+		}
 	}
 }
