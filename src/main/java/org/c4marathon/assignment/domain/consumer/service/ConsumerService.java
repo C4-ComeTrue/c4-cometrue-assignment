@@ -128,8 +128,8 @@ public class ConsumerService {
 		}
 		orderProductJdbcRepository.saveAllBatch(orderProducts);
 		return orderProducts.stream()
-			.map(OrderProduct::getAmount)
-			.reduce(0L, Long::sum);
+			.mapToLong(OrderProduct::getAmount)
+			.sum();
 	}
 
 	/**
