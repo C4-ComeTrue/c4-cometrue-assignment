@@ -6,12 +6,10 @@ import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -55,7 +53,7 @@ public class Order extends BaseEntity {
 	private Consumer consumer;
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "delivery_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+	@JoinColumn(name = "delivery_id")
 	private Delivery delivery;
 
 	@Builder
