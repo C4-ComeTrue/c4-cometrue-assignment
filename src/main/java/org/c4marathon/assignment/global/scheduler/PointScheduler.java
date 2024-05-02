@@ -2,11 +2,13 @@ package org.c4marathon.assignment.global.scheduler;
 
 import java.util.List;
 
-import org.c4marathon.assignment.domain.consumer.service.AfterConsumerService;
+import org.c4marathon.assignment.domain.consumer.entity.Consumer;
+import org.c4marathon.assignment.domain.consumer.service.ConsumerReadService;
 import org.c4marathon.assignment.domain.pointlog.entity.PointLog;
 import org.c4marathon.assignment.domain.pointlog.repository.PointLogRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,13 +20,14 @@ public class PointScheduler {
 	private static final int PAGINATION_SIZE = 10;
 
 	private final PointLogRepository pointLogRepository;
-	private final AfterConsumerService afterConsumerService;
+	private final ConsumerReadService consumerReadService;
 
 	/**
 	 * 환불, 또는 구매 확정 이벤트 도중 예외가 발생해도, 5분마다 수행되는 스케줄러에 의해
 	 * 수행하지 못한 PointLog의 작업을 수행
 	 */
 	@Scheduled(fixedDelay = POINT_EVENT_DELAY)
+	@Transactional
 	public void schedulePointEvent() {
 		Long lastId = 0L;
 		while (true) {
@@ -34,13 +37,26 @@ public class PointScheduler {
 			} else {
 				pointLogs.forEach(pointLog -> {
 					if (Boolean.TRUE.equals(pointLog.getIsConfirm())) {
-						afterConsumerService.afterConfirm(pointLog);
+						afterConfirm(pointLog);
 					} else {
-						afterConsumerService.afterRefund(pointLog);
+						afterRefund(pointLog);
 					}
 				});
 				lastId = pointLogs.get(pointLogs.size() - 1).getId();
 			}
 		}
+	}
+
+	private void afterConfirm(PointLog pointLog) {
+		Consumer consumer = consumerReadService.findById(pointLog.getConsumerId());
+		consumer.updatePoint(pointLog.getEarnedPoint());
+		pointLogRepository.deleteById(pointLog.getId());
+	}
+
+	private void afterRefund(PointLog pointLog) {
+		Consumer consumer = consumerReadService.findById(pointLog.getConsumerId());
+		consumer.addBalance(pointLog.getTotalAmount() - pointLog.getUsedPoint());
+		consumer.updatePoint(pointLog.getUsedPoint());
+		pointLogRepository.deleteById(pointLog.getId());
 	}
 }

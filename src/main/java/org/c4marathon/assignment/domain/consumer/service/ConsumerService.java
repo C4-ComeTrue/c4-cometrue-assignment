@@ -27,7 +27,6 @@ import org.c4marathon.assignment.domain.pointlog.repository.PointLogRepository;
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +49,6 @@ public class ConsumerService {
 	private final OrderProductReadService orderProductReadService;
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
 	private final PointLogRepository pointLogRepository;
-	private final ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * 상품 구매
@@ -84,8 +82,7 @@ public class ConsumerService {
 		validateRefundRequest(consumer, order);
 
 		updateStatusWhenRefund(order);
-		PointLog pointLog = savePointLog(consumer, order, false);
-		applicationEventPublisher.publishEvent(pointLog);
+		savePointLog(consumer, order, false);
 	}
 
 	/**
@@ -107,8 +104,7 @@ public class ConsumerService {
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProductAndSeller(orderId);
 		addSellerBalance(orderProducts);
 
-		PointLog pointLog = savePointLog(consumer, order, true);
-		applicationEventPublisher.publishEvent(pointLog);
+		savePointLog(consumer, order, true);
 	}
 
 	private void saveOrderInfo(PurchaseProductRequest request, Consumer consumer, Order order,
@@ -282,8 +278,8 @@ public class ConsumerService {
 			.build());
 	}
 
-	private PointLog savePointLog(Consumer consumer, Order order, Boolean isConfirm) {
-		return pointLogRepository.save(
+	private void savePointLog(Consumer consumer, Order order, Boolean isConfirm) {
+		pointLogRepository.save(
 			PointLog.builder()
 				.consumerId(consumer.getId())
 				.usedPoint(order.getUsedPoint())
