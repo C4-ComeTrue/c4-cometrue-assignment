@@ -53,8 +53,8 @@ public class DeliveryCompanyService {
 	 * 변경할 상태가 BEFORE_DELIVERY 이거나, 상태를 두 단계 이상 건너뛰어 변경하려 한다면 실패
 	 */
 	private boolean isInvalidChangeStatus(DeliveryStatus future, DeliveryStatus current) {
-		return future.equals(DeliveryStatus.BEFORE_DELIVERY)
-			|| (future.equals(DeliveryStatus.IN_DELIVERY) && !current.equals(DeliveryStatus.BEFORE_DELIVERY))
-			|| (future.equals(DeliveryStatus.COMPLETE_DELIVERY) && !current.equals(DeliveryStatus.IN_DELIVERY));
+		return future.isPending()
+			|| (future.isDelivering() && !current.isPending())
+			|| (future.isDelivered() && !current.isDelivering());
 	}
 }

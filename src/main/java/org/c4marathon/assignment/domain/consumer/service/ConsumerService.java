@@ -186,8 +186,7 @@ public class ConsumerService {
 		if (!order.getConsumer().getId().equals(consumer.getId())) {
 			throw NO_PERMISSION.baseException();
 		}
-		if (!order.getOrderStatus().equals(COMPLETE_PAYMENT)
-			|| !delivery.getDeliveryStatus().equals(COMPLETE_DELIVERY)) {
+		if (!order.getOrderStatus().isPayedUp() || !delivery.getDeliveryStatus().isDelivered()) {
 			throw CONFIRM_NOT_AVAILABLE.baseException("current status: %s", order.getOrderStatus());
 		}
 	}
@@ -201,7 +200,7 @@ public class ConsumerService {
 		if (!order.getConsumer().getId().equals(consumer.getId())) {
 			throw NO_PERMISSION.baseException();
 		}
-		if (!delivery.getDeliveryStatus().equals(BEFORE_DELIVERY)) {
+		if (!delivery.getDeliveryStatus().isPending()) {
 			throw REFUND_NOT_AVAILABLE.baseException("delivery status: %s",
 				delivery.getDeliveryStatus().toString());
 		}
