@@ -2,7 +2,6 @@ package org.c4marathon.assignment.domain.order.entity;
 
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
-import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 
 import jakarta.persistence.Column;
@@ -15,7 +14,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -52,9 +50,8 @@ public class Order extends BaseEntity {
 	@JoinColumn(name = "consumer_id", nullable = false)
 	private Consumer consumer;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "delivery_id")
-	private Delivery delivery;
+	@Column(name = "delivery_id", columnDefinition = "BIGINT")
+	private Long deliveryId;
 
 	@Builder
 	public Order(OrderStatus orderStatus, Consumer consumer, long usedPoint) {
@@ -67,8 +64,8 @@ public class Order extends BaseEntity {
 		this.orderStatus = orderStatus;
 	}
 
-	public void updateDelivery(Delivery delivery) {
-		this.delivery = delivery;
+	public void updateDeliveryId(Long deliveryId) {
+		this.deliveryId = deliveryId;
 	}
 
 	public void updateEarnedPoint(long earnedPoint) {

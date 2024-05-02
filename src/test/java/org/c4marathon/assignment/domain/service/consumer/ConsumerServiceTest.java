@@ -12,6 +12,7 @@ import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductRequ
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.consumer.service.ConsumerService;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
+import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyReadService;
 import org.c4marathon.assignment.domain.order.entity.Order;
 import org.c4marathon.assignment.domain.order.service.OrderReadService;
@@ -46,6 +47,8 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 	private DeliveryCompanyReadService deliveryCompanyReadService;
 	@Mock
 	private OrderProductJdbcRepository orderProductJdbcRepository;
+	@Mock
+	private DeliveryReadService deliveryReadService;
 
 	@DisplayName("상품 구매 시")
 	@Nested
@@ -102,7 +105,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 				.updateTotalAmount(anyLong());
 			willDoNothing()
 				.given(order)
-				.updateDelivery(any(Delivery.class));
+				.updateDeliveryId(anyLong());
 			given(deliveryCompanyReadService.findMinimumCountOfDelivery())
 				.willReturn(deliveryCompany);
 			given(deliveryRepository.save(any(Delivery.class)))
@@ -120,7 +123,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 				.updateTotalAmount(anyLong());
 			then(order)
 				.should(times(1))
-				.updateDelivery(any(Delivery.class));
+				.updateDeliveryId(anyLong());
 		}
 
 		private PurchaseProductRequest createRequest() {
@@ -135,10 +138,10 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@DisplayName("배송 상태가 BEFORE_DELIVERY가 아니면 실패한다.")
 		@Test
 		void fail_when_deliveryStatusIsNotBefore_delivery() {
-			given(orderReadService.findByIdJoinFetch(anyLong())).willReturn(order);
+			given(orderReadService.findById(anyLong())).willReturn(order);
+			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(delivery);
 			given(delivery.getDeliveryStatus()).willReturn(DeliveryStatus.IN_DELIVERY);
 			given(order.getConsumer()).willReturn(consumer);
-			given(order.getDelivery()).willReturn(delivery);
 			given(consumer.getId()).willReturn(1L);
 
 			ErrorCode errorCode = REFUND_NOT_AVAILABLE;
@@ -152,9 +155,9 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@Test
 		void updateOrderStatusAndDeliveryStatusAndBalance_when_refundOrder() {
 			PointLog pointLog = mock(PointLog.class);
-			given(orderReadService.findByIdJoinFetch(anyLong())).willReturn(order);
+			given(orderReadService.findById(anyLong())).willReturn(order);
+			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(delivery);
 			given(delivery.getDeliveryStatus()).willReturn(DeliveryStatus.BEFORE_DELIVERY);
-			given(order.getDelivery()).willReturn(delivery);
 			given(order.getConsumer()).willReturn(consumer);
 			given(consumer.getId()).willReturn(1L);
 			given(pointLogRepository.save(any(PointLog.class)))
@@ -175,11 +178,12 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@DisplayName("권한이 있으면서 올바른 배송, 주문 상태이면 성공한다.")
 		@Test
 		void confirmOrder_when_withPermissionAndValidStatus() {
-			given(orderReadService.findByIdJoinFetch(anyLong())).willReturn(order);
+			given(orderReadService.findById(anyLong())).willReturn(order);
+			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(delivery);
 			given(order.getConsumer()).willReturn(consumer);
 			given(consumer.getId()).willReturn(1L);
 			given(order.getOrderStatus()).willReturn(COMPLETE_PAYMENT);
-			given(order.getDelivery()).willReturn(delivery);
+			given(order.getDeliveryId()).willReturn(1L);
 			given(delivery.getDeliveryStatus()).willReturn(COMPLETE_DELIVERY);
 			given(orderProduct.getProduct()).willReturn(product);
 			given(product.getSeller()).willReturn(seller);
@@ -203,7 +207,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@DisplayName("권한이 없으면 실패한다.")
 		@Test
 		void throwException_when_noPermission() {
-			given(orderReadService.findByIdJoinFetch(anyLong())).willReturn(order);
+			given(orderReadService.findById(anyLong())).willReturn(order);
 			given(order.getConsumer()).willReturn(consumer);
 			given(consumer.getId()).willReturn(1L);
 			Consumer mock = mock(Consumer.class);
@@ -219,7 +223,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@DisplayName("올바르지 않은 주문 상태이면 실패한다.")
 		@Test
 		void fail_when_invalidOrderStatus() {
-			given(orderReadService.findByIdJoinFetch(anyLong())).willReturn(order);
+			given(orderReadService.findById(anyLong())).willReturn(order);
 			given(order.getConsumer()).willReturn(consumer);
 			given(consumer.getId()).willReturn(1L);
 			given(order.getOrderStatus()).willReturn(CONFIRM);
@@ -234,12 +238,13 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 		@DisplayName("올바르지 않은 배송 상태이면 실패한다.")
 		@Test
 		void fail_when_invalidDeliveryStatus() {
-			given(orderReadService.findByIdJoinFetch(anyLong())).willReturn(order);
+			given(orderReadService.findById(anyLong())).willReturn(order);
+			given(deliveryReadService.findByIdJoinFetch(anyLong())).willReturn(delivery);
 			given(order.getConsumer()).willReturn(consumer);
 			given(consumer.getId()).willReturn(1L);
 			given(order.getOrderStatus()).willReturn(COMPLETE_PAYMENT);
 			given(delivery.getDeliveryStatus()).willReturn(IN_DELIVERY);
-			given(order.getDelivery()).willReturn(delivery);
+			given(order.getDeliveryId()).willReturn(1L);
 
 			ErrorCode errorCode = CONFIRM_NOT_AVAILABLE;
 			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());

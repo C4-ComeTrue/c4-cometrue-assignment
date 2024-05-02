@@ -15,6 +15,7 @@ import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
+import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyReadService;
 import org.c4marathon.assignment.domain.order.entity.Order;
 import org.c4marathon.assignment.domain.order.repository.OrderRepository;
@@ -49,6 +50,7 @@ public class ConsumerService {
 	private final OrderProductReadService orderProductReadService;
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
 	private final PointLogRepository pointLogRepository;
+	private final DeliveryReadService deliveryReadService;
 
 	/**
 	 * 상품 구매
@@ -78,10 +80,11 @@ public class ConsumerService {
 	 */
 	@Transactional
 	public void refundOrder(Long orderId, Consumer consumer) {
-		Order order = orderReadService.findByIdJoinFetch(orderId);
-		validateRefundRequest(consumer, order);
+		Order order = orderReadService.findById(orderId);
+		Delivery delivery = deliveryReadService.findByIdJoinFetch(order.getDeliveryId());
+		validateRefundRequest(consumer, order, delivery);
 
-		updateStatusWhenRefund(order);
+		updateStatusWhenRefund(order, delivery);
 		savePointLog(consumer, order, false);
 	}
 
@@ -98,8 +101,9 @@ public class ConsumerService {
 	 */
 	@Transactional
 	public void confirmOrder(Long orderId, Consumer consumer) {
-		Order order = orderReadService.findByIdJoinFetch(orderId);
-		validateConfirmRequest(consumer, order);
+		Order order = orderReadService.findById(orderId);
+		Delivery delivery = deliveryReadService.findByIdJoinFetch(order.getDeliveryId());
+		validateConfirmRequest(consumer, order, delivery);
 		order.updateOrderStatus(CONFIRM);
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProductAndSeller(orderId);
 		addSellerBalance(orderProducts);
@@ -112,7 +116,7 @@ public class ConsumerService {
 		orderProductJdbcRepository.saveAllBatch(orderProducts);
 		order.updateEarnedPoint(getPurchasePoint(totalAmount - request.point()));
 		order.updateTotalAmount(totalAmount);
-		order.updateDelivery(saveDelivery(consumer));
+		order.updateDeliveryId(saveDelivery(consumer).getId());
 	}
 
 	/**
@@ -164,8 +168,8 @@ public class ConsumerService {
 	 * 환불 시 Order, Delivery의 상태를 변경
 	 * @param order 환불할 Order
 	 */
-	private void updateStatusWhenRefund(Order order) {
-		order.getDelivery().updateDeliveryStatus(COMPLETE_DELIVERY);
+	private void updateStatusWhenRefund(Order order, Delivery delivery) {
+		delivery.updateDeliveryStatus(COMPLETE_DELIVERY);
 		order.updateOrderStatus(REFUND);
 	}
 
@@ -178,12 +182,12 @@ public class ConsumerService {
 	 * 1. 주문한 소비자가 현재 로그인한 소비자인지
 	 * 2. 올바른 주문, 배송 상태인지
 	 */
-	private void validateConfirmRequest(Consumer consumer, Order order) {
+	private void validateConfirmRequest(Consumer consumer, Order order, Delivery delivery) {
 		if (!order.getConsumer().getId().equals(consumer.getId())) {
 			throw NO_PERMISSION.baseException();
 		}
 		if (!order.getOrderStatus().equals(COMPLETE_PAYMENT)
-			|| !order.getDelivery().getDeliveryStatus().equals(COMPLETE_DELIVERY)) {
+			|| !delivery.getDeliveryStatus().equals(COMPLETE_DELIVERY)) {
 			throw CONFIRM_NOT_AVAILABLE.baseException("current status: %s", order.getOrderStatus());
 		}
 	}
@@ -193,13 +197,13 @@ public class ConsumerService {
 	 * 1. 주문한 소비자가 현재 로그인한 소비자인지
 	 * 2. 올바른 배송 상태인지
 	 */
-	private void validateRefundRequest(Consumer consumer, Order order) {
+	private void validateRefundRequest(Consumer consumer, Order order, Delivery delivery) {
 		if (!order.getConsumer().getId().equals(consumer.getId())) {
 			throw NO_PERMISSION.baseException();
 		}
-		if (!order.getDelivery().getDeliveryStatus().equals(BEFORE_DELIVERY)) {
+		if (!delivery.getDeliveryStatus().equals(BEFORE_DELIVERY)) {
 			throw REFUND_NOT_AVAILABLE.baseException("delivery status: %s",
-				order.getDelivery().getDeliveryStatus().toString());
+				delivery.getDeliveryStatus().toString());
 		}
 	}
 
