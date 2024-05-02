@@ -3,7 +3,6 @@ package org.c4marathon.assignment.domain.service.consumer;
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.constant.DeliveryStatus.*;
 import static org.c4marathon.assignment.global.constant.OrderStatus.*;
-import static org.c4marathon.assignment.global.constant.ProductStatus.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationEventPublisher;
 
 public class ConsumerServiceTest extends ServiceTestSupport {
 
@@ -46,8 +44,6 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 	private OrderProductReadService orderProductReadService;
 	@Mock
 	private DeliveryCompanyReadService deliveryCompanyReadService;
-	@Mock
-	private ApplicationEventPublisher applicationEventPublisher;
 	@Mock
 	private OrderProductJdbcRepository orderProductJdbcRepository;
 
@@ -81,10 +77,6 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			Product product = mock(Product.class);
 			given(productReadService.findById(anyLong()))
 				.willReturn(product);
-			given(product.getProductStatus()).willReturn(IN_STOCK);
-			willDoNothing()
-				.given(orderProductJdbcRepository)
-				.saveAllBatch(anyList());
 
 			assertThatThrownBy(() -> consumerService.purchaseProduct(request, consumer))
 				.isInstanceOf(BaseException.class)
@@ -100,7 +92,6 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			Product product = mock(Product.class);
 			given(productReadService.findById(anyLong()))
 				.willReturn(product);
-			given(product.getProductStatus()).willReturn(IN_STOCK);
 			given(orderRepository.save(any(Order.class)))
 				.willReturn(order);
 			willDoNothing()
@@ -157,7 +148,7 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 				.hasMessage(exception.getMessage());
 		}
 
-		@DisplayName("orderStatus가 수정되고 event를 발행한다.")
+		@DisplayName("orderStatus가 수정되고 로그가 저장된다.")
 		@Test
 		void updateOrderStatusAndDeliveryStatusAndBalance_when_refundOrder() {
 			PointLog pointLog = mock(PointLog.class);
@@ -168,18 +159,12 @@ public class ConsumerServiceTest extends ServiceTestSupport {
 			given(consumer.getId()).willReturn(1L);
 			given(pointLogRepository.save(any(PointLog.class)))
 				.willReturn(pointLog);
-			willDoNothing()
-				.given(applicationEventPublisher)
-				.publishEvent(any(PointLog.class));
 
 			consumerService.refundOrder(order.getId(), consumer);
 
 			then(order)
 				.should(times(1))
 				.updateOrderStatus(any(OrderStatus.class));
-			then(applicationEventPublisher)
-				.should(times(1))
-				.publishEvent(any((PointLog.class)));
 		}
 	}
 
