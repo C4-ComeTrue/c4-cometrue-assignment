@@ -13,7 +13,7 @@ public interface PointLogRepository extends JpaRepository<PointLog, Long> {
 		nativeQuery = true,
 		value = """
 			SELECT *
-			FROM point_log pl
+			FROM point_log
 			WHERE point_log_id > :id
 			ORDER BY point_log_id
 			LIMIT :pageSize
