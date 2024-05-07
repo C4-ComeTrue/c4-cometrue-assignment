@@ -2,12 +2,10 @@ package org.c4marathon.assignment.domain.deliverycompany.service;
 
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 
-import org.c4marathon.assignment.domain.auth.dto.request.SignUpRequest;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
 import org.c4marathon.assignment.domain.deliverycompany.dto.request.UpdateDeliveryStatusRequest;
 import org.c4marathon.assignment.domain.deliverycompany.entity.DeliveryCompany;
-import org.c4marathon.assignment.domain.deliverycompany.repository.DeliveryCompanyRepository;
 import org.c4marathon.assignment.global.constant.DeliveryStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,20 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class DeliveryCompanyService {
 
-	private final DeliveryCompanyRepository deliveryCompanyRepository;
-	private final DeliveryCompanyReadService deliveryCompanyReadService;
 	private final DeliveryReadService deliveryReadService;
-
-	/**
-	 * 회원 가입
-	 */
-	@Transactional
-	public void signup(SignUpRequest request) {
-		if (Boolean.TRUE.equals(deliveryCompanyReadService.existsByEmail(request.email()))) {
-			throw ALREADY_DELIVERY_COMPANY_EXISTS.baseException("email: %s", request.email());
-		}
-		saveDeliveryCompany(request);
-	}
 
 	/**
 	 * 배송 상태 변경
@@ -68,15 +53,8 @@ public class DeliveryCompanyService {
 	 * 변경할 상태가 BEFORE_DELIVERY 이거나, 상태를 두 단계 이상 건너뛰어 변경하려 한다면 실패
 	 */
 	private boolean isInvalidChangeStatus(DeliveryStatus future, DeliveryStatus current) {
-		return future.equals(DeliveryStatus.BEFORE_DELIVERY)
-			|| (future.equals(DeliveryStatus.IN_DELIVERY) && !current.equals(DeliveryStatus.BEFORE_DELIVERY))
-			|| (future.equals(DeliveryStatus.COMPLETE_DELIVERY) && !current.equals(DeliveryStatus.IN_DELIVERY));
-	}
-
-	/**
-	 * DeliveryCompany 저장
-	 */
-	private void saveDeliveryCompany(SignUpRequest request) {
-		deliveryCompanyRepository.save(new DeliveryCompany(request.email()));
+		return future.isPending()
+			|| (future.isDelivering() && !current.isPending())
+			|| (future.isDelivered() && !current.isDelivering());
 	}
 }

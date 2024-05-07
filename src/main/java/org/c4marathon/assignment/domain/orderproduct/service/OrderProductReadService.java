@@ -30,12 +30,4 @@ public class OrderProductReadService {
 	public List<OrderProduct> findByOrderJoinFetchProductAndSeller(Long orderId) {
 		return orderProductRepository.findByOrderJoinFetchProductAndSeller(orderId);
 	}
-
-	/**
-	 * orderId에 해당하는 OrderProduct list의 amount의 합을 반환
-	 */
-	@Transactional(readOnly = true)
-	public Long findTotalAmountByOrderId(Long orderId) {
-		return orderProductRepository.findTotalAmountByOrderId(orderId);
-	}
 }

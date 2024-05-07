@@ -18,8 +18,8 @@ public class OrderReadService {
 	 * Consumer와 Delivery와 조인한 Order를 조회
 	 */
 	@Transactional(readOnly = true)
-	public Order findByIdJoinFetch(Long id) {
-		return orderRepository.findByIdJoinFetch(id)
+	public Order findById(Long id) {
+		return orderRepository.findById(id)
 			.orElseThrow(() -> ErrorCode.ORDER_NOT_FOUND.baseException("id: %d", id));
 	}
 }

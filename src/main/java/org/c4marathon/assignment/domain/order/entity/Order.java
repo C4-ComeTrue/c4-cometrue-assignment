@@ -2,7 +2,6 @@ package org.c4marathon.assignment.domain.order.entity;
 
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
-import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.global.constant.OrderStatus;
 
 import jakarta.persistence.Column;
@@ -15,7 +14,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -39,22 +37,42 @@ public class Order extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
 
+	@Column(name = "used_point", columnDefinition = "BIGINT DEFAULT 0")
+	private Long usedPoint;
+
+	@Column(name = "earned_point", columnDefinition = "BIGINT DEFAULT 0")
+	private Long earnedPoint;
+
+	@Column(name = "total_amount", columnDefinition = "BIGINT DEFAULT 0")
+	private Long totalAmount;
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "consumer_id", nullable = false)
 	private Consumer consumer;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "delivery_id", nullable = false)
-	private Delivery delivery;
+	@Column(name = "delivery_id", columnDefinition = "BIGINT")
+	private Long deliveryId;
 
 	@Builder
-	public Order(OrderStatus orderStatus, Consumer consumer, Delivery delivery) {
+	public Order(OrderStatus orderStatus, Consumer consumer, long usedPoint) {
 		this.orderStatus = orderStatus;
 		this.consumer = consumer;
-		this.delivery = delivery;
+		this.usedPoint = usedPoint;
 	}
 
 	public void updateOrderStatus(OrderStatus orderStatus) {
 		this.orderStatus = orderStatus;
+	}
+
+	public void updateDeliveryId(Long deliveryId) {
+		this.deliveryId = deliveryId;
+	}
+
+	public void updateEarnedPoint(long earnedPoint) {
+		this.earnedPoint = earnedPoint;
+	}
+
+	public void updateTotalAmount(long totalAmount) {
+		this.totalAmount = totalAmount;
 	}
 }

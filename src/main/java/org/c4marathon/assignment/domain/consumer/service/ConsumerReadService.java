@@ -1,6 +1,8 @@
 package org.c4marathon.assignment.domain.consumer.service;
 
+import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
+import org.c4marathon.assignment.global.error.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,5 +20,11 @@ public class ConsumerReadService {
 	@Transactional(readOnly = true)
 	public Boolean existsByEmail(String email) {
 		return consumerRepository.existsByEmail(email);
+	}
+
+	@Transactional(readOnly = true)
+	public Consumer findById(Long id) {
+		return consumerRepository.findById(id)
+			.orElseThrow(() -> ErrorCode.CONSUMER_NOT_FOUND_BY_ID.baseException("id: %s", id));
 	}
 }
