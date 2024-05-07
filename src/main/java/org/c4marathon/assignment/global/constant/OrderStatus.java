@@ -7,6 +7,6 @@ public enum OrderStatus {
 	REFUND;
 
 	public boolean isPayedUp() {
-		return this.equals(OrderStatus.COMPLETE_PAYMENT);
+		return this == COMPLETE_PAYMENT;
 	}
 }

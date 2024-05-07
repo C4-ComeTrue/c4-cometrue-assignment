@@ -7,14 +7,14 @@ public enum DeliveryStatus {
 	COMPLETE_DELIVERY;
 
 	public boolean isPending() {
-		return this.equals(BEFORE_DELIVERY);
+		return this == BEFORE_DELIVERY;
 	}
 
 	public boolean isDelivering() {
-		return this.equals(IN_DELIVERY);
+		return this == IN_DELIVERY;
 	}
 
 	public boolean isDelivered() {
-		return this.equals(COMPLETE_DELIVERY);
+		return this == COMPLETE_DELIVERY;
 	}
 }

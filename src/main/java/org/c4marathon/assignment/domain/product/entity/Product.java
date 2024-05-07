@@ -88,6 +88,6 @@ public class Product extends BaseEntity {
 	}
 
 	public boolean isSoldOut() {
-		return this.productStatus.equals(OUT_OF_STOCK);
+		return this.productStatus == OUT_OF_STOCK;
 	}
 }
