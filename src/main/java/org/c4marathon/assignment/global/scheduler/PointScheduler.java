@@ -34,16 +34,15 @@ public class PointScheduler {
 			List<PointLog> pointLogs = pointLogRepository.findByIdWithPaging(lastId, PAGINATION_SIZE);
 			if (pointLogs.isEmpty()) {
 				break;
-			} else {
-				pointLogs.forEach(pointLog -> {
-					if (Boolean.TRUE.equals(pointLog.getIsConfirm())) {
-						afterConfirm(pointLog);
-					} else {
-						afterRefund(pointLog);
-					}
-				});
-				lastId = pointLogs.get(pointLogs.size() - 1).getId();
 			}
+			pointLogs.forEach(pointLog -> {
+				if (Boolean.TRUE.equals(pointLog.getIsConfirm())) {
+					afterConfirm(pointLog);
+				} else {
+					afterRefund(pointLog);
+				}
+			});
+			lastId = pointLogs.get(pointLogs.size() - 1).getId();
 		}
 	}
 
