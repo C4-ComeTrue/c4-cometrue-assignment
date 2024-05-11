@@ -20,11 +20,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     // 회원의 메인 계좌 조회
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("""
-        SELECT a FROM Account a
-        WHERE a.member.id = :memberId
-        """)
-    Optional<Account> findByAccount(Long memberId);
+    Optional<Account> findAccountByMemberId(Long memberId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

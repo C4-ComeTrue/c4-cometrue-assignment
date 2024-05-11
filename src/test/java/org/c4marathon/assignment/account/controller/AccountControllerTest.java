@@ -154,7 +154,7 @@ public class AccountControllerTest {
             willDoNothing().given(accountService).transferFromRegularAccount(transferToOtherAccountRequestDto);
 
             // when then
-            mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
+            mockMvc.perform(post(REQUEST_URL + "/transfer/saving").header("Authorization", token)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
                 .andExpect(status().isNoContent());
@@ -172,7 +172,7 @@ public class AccountControllerTest {
                 .transferFromRegularAccount(transferToOtherAccountRequestDto);
 
             // when
-            MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/saving").header("Authorization", token)
+            MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/transfer/saving").header("Authorization", token)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
                 .andExpect(status().isForbidden())
@@ -192,7 +192,7 @@ public class AccountControllerTest {
             willDoNothing().given(accountService).transferToOtherAccount(transferToOtherAccountRequestDto);
 
             // when then
-            mockMvc.perform(post(REQUEST_URL + "/transfer").header("Authorization", token)
+            mockMvc.perform(post(REQUEST_URL + "/transfer/regular").header("Authorization", token)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
                 .andExpect(status().isNoContent());
@@ -209,7 +209,7 @@ public class AccountControllerTest {
                 .transferToOtherAccount(transferToOtherAccountRequestDto);
 
             // when
-            MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/transfer").header("Authorization", token)
+            MvcResult mvcResult = mockMvc.perform(post(REQUEST_URL + "/transfer/regular").header("Authorization", token)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(transferToOtherAccountRequestDto)))
                 .andExpect(status().isForbidden())

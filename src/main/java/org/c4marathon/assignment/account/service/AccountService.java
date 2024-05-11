@@ -40,6 +40,8 @@ public class AccountService {
     public static final int DAILY_LIMIT = 3_000_000;
     public static final long CHARGING_UNIT = 10_000;
 
+    public static final String TIME_ZONE = "Asia/Seoul";
+
     // 회원 가입 시 메인 계좌 생성
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void saveMainAccount(Long memberId) {
@@ -83,13 +85,13 @@ public class AccountService {
         Long memberId = securityService.findMember();
 
         // 계좌 정보 조회
-        Account account = accountRepository.findByAccount(memberId)
+        Account account = accountRepository.findAccountByMemberId(memberId)
             .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(),
                 FORBIDDEN.toString()));
 
         int dailyLimit = account.getDailyLimit() + rechargeAccountRequestDto.balance().intValue();
         // 날짜가 다를 땐 일일한도를 초기화 한 뒤 계산
-        if (!Objects.equals(account.getDailyLimitUpdateAt(), LocalDate.now(ZoneId.of("Asia/Seoul")))) {
+        if (!Objects.equals(account.getDailyLimitUpdateAt(), LocalDate.now(ZoneId.of(TIME_ZONE)))) {
             dailyLimit = rechargeAccountRequestDto.balance().intValue();
         }
         Long balance = account.getBalance() + rechargeAccountRequestDto.balance();
@@ -114,9 +116,13 @@ public class AccountService {
         Long memberId = securityService.findMember();
 
         // 메인 계좌 및 적금 계좌 조회
-        Account regularAccount = accountRepository.findByAccount(memberId)
+        Account regularAccount = accountRepository.findAccountByMemberId(memberId)
             .orElseThrow(
                 () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+
+        SavingAccount savingAccount = savingAccountRepository.findBySavingAccount(memberId,
+                transferToOtherAccountRequestDto.receiverAccountId())
+            .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
         // 잔액이 부족하다면 예외 처리
         if (regularAccount.getBalance() < transferToOtherAccountRequestDto.balance()) {
@@ -124,11 +130,6 @@ public class AccountService {
         }
 
         regularAccount.transferBalance(regularAccount.getBalance() - transferToOtherAccountRequestDto.balance());
-
-        SavingAccount savingAccount = savingAccountRepository.findBySavingAccount(memberId,
-                transferToOtherAccountRequestDto.receiverAccountId())
-            .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
-
         savingAccount.transferBalance(savingAccount.getBalance() + transferToOtherAccountRequestDto.balance());
 
         accountRepository.save(regularAccount);
@@ -140,7 +141,7 @@ public class AccountService {
         // 회원 정보 조회
         Long memberId = securityService.findMember();
 
-        Account account = accountRepository.findByAccount(memberId).orElseThrow(
+        Account account = accountRepository.findAccountByMemberId(memberId).orElseThrow(
             () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
         // 계좌 잔액이 부족할 때 충전 메서드 호출

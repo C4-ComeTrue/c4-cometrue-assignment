@@ -133,7 +133,7 @@ public class AccountServiceTest {
             Account account = mock(Account.class);
             RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
 
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(0);
             given(account.getBalance()).willReturn(0L);
 
@@ -154,7 +154,7 @@ public class AccountServiceTest {
             Account account = mock(Account.class);
             RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
 
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(3000000);
             given(account.getBalance()).willReturn(0L);
             given(account.getDailyLimitUpdateAt()).willReturn(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1));
@@ -176,7 +176,7 @@ public class AccountServiceTest {
             Account account = mock(Account.class);
             RechargeAccountRequestDto requestDto = new RechargeAccountRequestDto(accountId, balance);
 
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(account));
             given(account.getDailyLimit()).willReturn(DAILY_LIMIT);
             given(account.getBalance()).willReturn(0L);
             given(account.getDailyLimitUpdateAt()).willReturn(LocalDate.now(ZoneId.of("Asia/Seoul")));
@@ -200,7 +200,7 @@ public class AccountServiceTest {
                 receiverAccountd);
 
             given(regularAccount.getBalance()).willReturn(balance);
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(regularAccount));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(regularAccount));
             given(savingAccountRepository.findBySavingAccount(memberId, requestDto.receiverAccountId())).willReturn(
                 Optional.of(savingAccount));
 
@@ -208,7 +208,7 @@ public class AccountServiceTest {
             accountService.transferFromRegularAccount(requestDto);
 
             // then
-            then(accountRepository).should(times(1)).findByAccount(memberId);
+            then(accountRepository).should(times(1)).findAccountByMemberId(memberId);
             then(savingAccountRepository).should(times(1))
                 .findBySavingAccount(memberId, requestDto.receiverAccountId());
         }
@@ -221,8 +221,7 @@ public class AccountServiceTest {
             Account regularAccount = mock(Account.class);
             TransferToOtherAccountRequestDto requestDto = new TransferToOtherAccountRequestDto(balance, accountId);
 
-            given(regularAccount.getBalance()).willReturn(0L);
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(regularAccount));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(regularAccount));
 
             // when
             Exception exception = assertThrows(BaseException.class,
@@ -242,7 +241,7 @@ public class AccountServiceTest {
                 receiverAccountd);
 
             Account account = mock(Account.class);
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(account));
 
             Account otherAccount = mock(Account.class);
             given(account.getBalance()).willReturn(balance);
@@ -253,7 +252,7 @@ public class AccountServiceTest {
             accountService.transferToOtherAccount(requestDto);
 
             // then
-            then(accountRepository).should(times(1)).findByAccount(memberId);
+            then(accountRepository).should(times(1)).findAccountByMemberId(memberId);
             then(accountRepository).should(times(1)).findByOtherAccount(requestDto.receiverAccountId());
         }
 
@@ -267,7 +266,7 @@ public class AccountServiceTest {
                 receiverAccountd);
 
             Account account = mock(Account.class);
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(account));
 
             Account otherAccount = mock(Account.class);
             given(account.getBalance()).willReturn(balance);
@@ -278,7 +277,7 @@ public class AccountServiceTest {
             accountService.transferToOtherAccount(requestDto);
 
             // then
-            then(accountRepository).should(times(2)).findByAccount(memberId);
+            then(accountRepository).should(times(2)).findAccountByMemberId(memberId);
             then(accountRepository).should(times(1)).findByOtherAccount(requestDto.receiverAccountId());
         }
 
@@ -292,7 +291,7 @@ public class AccountServiceTest {
                 receiverAccountd);
 
             Account account = mock(Account.class);
-            given(accountRepository.findByAccount(memberId)).willReturn(Optional.of(account));
+            given(accountRepository.findAccountByMemberId(memberId)).willReturn(Optional.of(account));
             given(account.getBalance()).willReturn(balance);
 
             BaseException baseException = ErrorCode.ACCOUNT_DOES_NOT_EXIST.baseException("계좌가 존재하지 않습니다.");

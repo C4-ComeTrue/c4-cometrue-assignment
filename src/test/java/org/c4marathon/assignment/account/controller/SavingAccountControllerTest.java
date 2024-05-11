@@ -45,7 +45,7 @@ public class SavingAccountControllerTest {
     @MockBean
     private SavingAccountService savingAccountService;
 
-    private final String REQUEST_URL = "/accounts/savings";
+    private final String REQUEST_URL = "/accounts/saving";
 
     @Autowired
     private ObjectMapper objectMapper;

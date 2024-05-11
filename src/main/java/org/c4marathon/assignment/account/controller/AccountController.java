@@ -33,35 +33,35 @@ public class AccountController {
     }
 
     @Operation(summary = "메인 계좌 충전")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("/recharge")
-    public void rechargeAccount(
+    public ResponseEntity rechargeAccount(
         @Valid
         @RequestBody
         RechargeAccountRequestDto rechargeAccountRequestDto
     ) {
         accountService.rechargeAccount(rechargeAccountRequestDto);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "메인 계좌에서 적금 계좌로 이체")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PostMapping("/saving")
-    public void rechargeAccount(
+    @PostMapping("/transfer/saving")
+    public ResponseEntity rechargeAccount(
         @Valid
         @RequestBody
         TransferToOtherAccountRequestDto transferToOtherAccountRequestDto
     ) {
         accountService.transferFromRegularAccount(transferToOtherAccountRequestDto);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "사용자의 메인 계좌에서 친구의 메인 계좌로 송금")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PostMapping("/transfer")
-    public void transferToOtherAccount(
+    @PostMapping("/transfer/regular")
+    public ResponseEntity transferToOtherAccount(
         @Valid
         @RequestBody
         TransferToOtherAccountRequestDto transferToOtherAccountRequestDto
     ) {
         accountService.transferToOtherAccount(transferToOtherAccountRequestDto);
+        return ResponseEntity.noContent().build();
     }
 }
