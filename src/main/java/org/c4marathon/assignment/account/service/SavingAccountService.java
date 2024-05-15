@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.SavingAccountResponseDto;
-import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.SavingAccount;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.SavingAccountRepository;

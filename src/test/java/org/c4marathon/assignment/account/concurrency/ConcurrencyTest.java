@@ -180,9 +180,6 @@ public class ConcurrencyTest {
             Account resultMainAccount = accountRepository.findById(mainAccount.getId()).orElseThrow();
             Account resultOtherAccount = accountRepository.findById(otherAccount.getId()).orElseThrow();
 
-            System.out.println(resultMainAccount.getBalance());
-            System.out.println(resultOtherAccount.getBalance());
-
             // then
             assertEquals(threadCount, successCount.get());
             assertEquals(0, failCount.get());

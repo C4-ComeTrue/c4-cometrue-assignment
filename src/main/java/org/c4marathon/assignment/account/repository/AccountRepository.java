@@ -1,12 +1,12 @@
 package org.c4marathon.assignment.account.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.c4marathon.assignment.account.entity.Account;
 import org.c4marathon.assignment.account.entity.Type;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import jakarta.persistence.LockModeType;
@@ -20,12 +20,21 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     // 회원의 메인 계좌 조회
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<Account> findAccountByMemberId(Long memberId);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT a FROM Account a
-        WHERE a.id = :accountId
+        WHERE a.member.id = :memberId AND a.type = :type
         """)
-    Optional<Account> findByOtherAccount(Long accountId);
+    Optional<Account> findAccountByMemberId(Long memberId, Type type);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Account> findAccountById(Long accountId);
+
+    boolean existsAccountById(Long id);
+
+    @Modifying
+    @Query("""
+            UPDATE Account a SET a.balance = a.balance - :balance
+            WHERE a.member.id = :memberId AND a.type = :type AND a.balance >= :balance
+        """)
+    void transferAccount(Long memberId, Long balance, Type type);
 }

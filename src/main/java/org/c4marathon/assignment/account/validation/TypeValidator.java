@@ -10,7 +10,7 @@ import jakarta.validation.ConstraintValidatorContext;
 public class TypeValidator implements ConstraintValidator<ValidType, Type> {
     @Override
     public boolean isValid(Type value, ConstraintValidatorContext context) {
-        return value == null || EnumSet.of(
+        return EnumSet.of(
             Type.REGULAR_ACCOUNT,
             Type.INSTALLMENT_SAVINGS_ACCOUNT,
             Type.FREEDOM_INSTALLMENT_SAVINGS_ACCOUNT

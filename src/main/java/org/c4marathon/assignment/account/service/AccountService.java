@@ -10,7 +10,6 @@ import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
-import org.c4marathon.assignment.account.entity.SavingAccount;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.account.repository.SavingAccountRepository;
@@ -25,9 +24,11 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class AccountService {
     private final AccountRepository accountRepository;
 
@@ -85,7 +86,7 @@ public class AccountService {
         Long memberId = securityService.findMember();
 
         // 계좌 정보 조회
-        Account account = accountRepository.findAccountByMemberId(memberId)
+        Account account = accountRepository.findAccountByMemberId(memberId, Type.REGULAR_ACCOUNT)
             .orElseThrow(() -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(),
                 FORBIDDEN.toString()));
 
@@ -115,25 +116,26 @@ public class AccountService {
         // 회원 정보 조회
         Long memberId = securityService.findMember();
 
-        // 메인 계좌 및 적금 계좌 조회
-        Account regularAccount = accountRepository.findAccountByMemberId(memberId)
-            .orElseThrow(
-                () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+        Long balance = transferToOtherAccountRequestDto.balance();
+        Long receiverAccountId = transferToOtherAccountRequestDto.receiverAccountId();
 
-        SavingAccount savingAccount = savingAccountRepository.findBySavingAccount(memberId,
-                transferToOtherAccountRequestDto.receiverAccountId())
-            .orElseThrow(() -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
-
-        // 잔액이 부족하다면 예외 처리
-        if (regularAccount.getBalance() < transferToOtherAccountRequestDto.balance()) {
-            throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), FORBIDDEN.toString());
+        // 메인 계좌 및 적금 계좌 존재 확인
+        if (!accountRepository.existsAccountByMemberIdAndType(memberId, Type.REGULAR_ACCOUNT)) {
+            throw new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.getMessage(), FORBIDDEN.toString());
         }
 
-        regularAccount.transferBalance(regularAccount.getBalance() - transferToOtherAccountRequestDto.balance());
-        savingAccount.transferBalance(savingAccount.getBalance() + transferToOtherAccountRequestDto.balance());
+        if (!accountRepository.existsAccountById(receiverAccountId)) {
+            throw new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.getMessage(), FORBIDDEN.toString());
+        }
 
-        accountRepository.save(regularAccount);
-        savingAccountRepository.save(savingAccount);
+        // 잔액이 부족하다면 예외 처리
+        try {
+            accountRepository.transferAccount(memberId, balance, Type.REGULAR_ACCOUNT);
+        } catch (Exception e) {
+            log.error("잔액 부족 예외: " + e.getMessage());
+            throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), FORBIDDEN.toString());
+        }
+        savingAccountRepository.transferSavingAccount(receiverAccountId, balance);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -141,7 +143,7 @@ public class AccountService {
         // 회원 정보 조회
         Long memberId = securityService.findMember();
 
-        Account account = accountRepository.findAccountByMemberId(memberId).orElseThrow(
+        Account account = accountRepository.findAccountByMemberId(memberId, Type.REGULAR_ACCOUNT).orElseThrow(
             () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
 
         // 계좌 잔액이 부족할 때 충전 메서드 호출
@@ -160,7 +162,7 @@ public class AccountService {
 
         accountRepository.save(account);
 
-        Account otherAccount = accountRepository.findByOtherAccount(
+        Account otherAccount = accountRepository.findAccountById(
                 transferToOtherAccountRequestDto.receiverAccountId())
             .orElseThrow(
                 () -> new BaseException(ErrorCode.REGULAR_ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
