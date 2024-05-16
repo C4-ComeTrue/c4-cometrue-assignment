@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
+import org.c4marathon.assignment.bankaccount.message.util.RedisOperator;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
@@ -48,6 +49,9 @@ public class MoneySendConcurrencyTest {
 	@Autowired
 	@Qualifier("depositExecutor")
 	ThreadPoolTaskExecutor executor;
+
+	@Autowired
+	RedisOperator redisOperator;
 
 	private Member[] member;
 	private MainAccount mainAccount;
@@ -200,16 +204,15 @@ public class MoneySendConcurrencyTest {
 			countDownLatch.await();
 			executorService.shutdown();
 
-			// long start = System.currentTimeMillis();
-			// // 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
-			// while (executor.getActiveCount() != 0) {
-			// 	long now = System.currentTimeMillis();
-			// 	// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
-			// 	if ((now - start) / 1000 > 10) {
-			// 		break;
-			// 	}
-			// }
-			Thread.sleep(10);
+			long start = System.currentTimeMillis();
+			// 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
+			while (executor.getActiveCount() != 0) {
+				long now = System.currentTimeMillis();
+				// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
+				if ((now - start) / 1000 > 10) {
+					break;
+				}
+			}
 
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
@@ -262,16 +265,15 @@ public class MoneySendConcurrencyTest {
 			countDownLatch.await();
 			executorService.shutdown();
 
-			// long start = System.currentTimeMillis();
-			// // 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
-			// while (executor.getActiveCount() != 0) {
-			// 	long now = System.currentTimeMillis();
-			// 	// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
-			// 	if ((now - start) / 1000 > 10) {
-			// 		break;
-			// 	}
-			// }
-			Thread.sleep(10);
+			long start = System.currentTimeMillis();
+			// 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
+			while (executor.getActiveCount() != 0) {
+				long now = System.currentTimeMillis();
+				// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
+				if ((now - start) / 1000 > 10) {
+					break;
+				}
+			}
 
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
@@ -324,16 +326,15 @@ public class MoneySendConcurrencyTest {
 			countDownLatch.await();
 			executorService.shutdown();
 
-			// long start = System.currentTimeMillis();
-			// // 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
-			// while (executor.getActiveCount() != 0) {
-			// 	long now = System.currentTimeMillis();
-			// 	// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
-			// 	if ((now - start) / 1000 > 10) {
-			// 		break;
-			// 	}
-			// }
-			Thread.sleep(10);
+			long start = System.currentTimeMillis();
+			// 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
+			while (executor.getActiveCount() != 0) {
+				long now = System.currentTimeMillis();
+				// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
+				if ((now - start) / 1000 > 10) {
+					break;
+				}
+			}
 
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
