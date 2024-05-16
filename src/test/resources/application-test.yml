@@ -24,3 +24,9 @@ logging:
           interceptor:
       c4marathon:
         assignment: INFO
+
+redis-stream:
+  stream-key: send-stream
+  consumer-group-name: send-group
+  consumer-name: send-consumer
+  claim-consumer-name: claim-consumer

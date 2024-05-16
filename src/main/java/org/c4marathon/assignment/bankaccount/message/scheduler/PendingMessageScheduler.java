@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.bankaccount.message.scheduler;
 
+import java.util.Arrays;
+
 import org.c4marathon.assignment.bankaccount.message.util.RedisOperator;
 import org.c4marathon.assignment.bankaccount.service.DepositHandlerService;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +42,8 @@ public class PendingMessageScheduler {
 			// streamKey와 id에 해당하는 sned-pk, deposit-pk, money를 차례대로 담은 Long 배열을 조회한다.
 			Long[] data = redisOperator.findMessageById(streamKey,
 				pendingMessage.getIdAsString());
+
+			System.out.println("pending data = " + Arrays.toString(data));
 
 			// 처리되지 않은 이체 로그는 롤백을 시켜준다.
 			if (data != null) {
