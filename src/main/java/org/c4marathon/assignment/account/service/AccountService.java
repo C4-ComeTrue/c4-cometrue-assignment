@@ -128,13 +128,21 @@ public class AccountService {
             throw new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.getMessage(), FORBIDDEN.toString());
         }
 
-        // 잔액이 부족하다면 예외 처리
-        try {
-            accountRepository.transferAccount(memberId, balance, Type.REGULAR_ACCOUNT);
-        } catch (Exception e) {
-            log.error("잔액 부족 예외: " + e.getMessage());
-            throw new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), FORBIDDEN.toString());
+        // 계좌 잔액이 부족할 때 충전 메서드 호출
+        if (accountRepository.transferAccount(memberId, balance, Type.REGULAR_ACCOUNT) == 0) {
+            Account account = accountRepository.findAccountByMemberId(memberId, Type.REGULAR_ACCOUNT).orElseThrow(
+                () -> new BaseException(ErrorCode.ACCOUNT_DOES_NOT_EXIST.toString(), FORBIDDEN.toString()));
+
+            // 부족한 금액을 만원 단위로 충전
+            long money = account.getBalance() - balance;
+            if (money < 0) {
+                // (부족한 금액을 10,000원으로 나눈 몫의 + 1) * 10000 만큼 충전
+                long rechargeMoney = calculate(money);
+                rechargeAccount(new RechargeAccountRequestDto(account.getId(), rechargeMoney));
+                accountRepository.transferAccount(memberId, balance, Type.REGULAR_ACCOUNT);
+            }
         }
+
         savingAccountRepository.transferSavingAccount(receiverAccountId, balance);
     }
 
@@ -151,7 +159,7 @@ public class AccountService {
         long money = account.getBalance() - transferToOtherAccountRequestDto.balance();
         if (money < 0) {
             // (부족한 금액을 10,000원으로 나눈 몫의 + 1) * 10000 만큼 충전
-            long balance = ((Math.abs(money) / CHARGING_UNIT) + 1) * 10000;
+            long balance = calculate(money);
             rechargeAccount(new RechargeAccountRequestDto(account.getId(), balance));
             // 새롭게 충전한 금액 - 부족한 금액
             account.transferBalance(balance + money);
@@ -170,5 +178,10 @@ public class AccountService {
         otherAccount.transferBalance(otherAccount.getBalance() + transferToOtherAccountRequestDto.balance());
 
         accountRepository.save(otherAccount);
+    }
+
+    // 계좌 잔액이 부족할 때 충전 메서드 호출
+    public long calculate(long money) {
+        return ((long)Math.ceil((double)Math.abs(money) / CHARGING_UNIT)) * 10000;
     }
 }

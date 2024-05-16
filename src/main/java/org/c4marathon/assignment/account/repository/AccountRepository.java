@@ -36,5 +36,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             UPDATE Account a SET a.balance = a.balance - :balance
             WHERE a.member.id = :memberId AND a.type = :type AND a.balance >= :balance
         """)
-    void transferAccount(Long memberId, Long balance, Type type);
+    int transferAccount(Long memberId, Long balance, Type type);
 }
