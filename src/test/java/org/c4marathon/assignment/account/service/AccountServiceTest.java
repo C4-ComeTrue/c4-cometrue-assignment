@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.anyInt;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.http.HttpStatus.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -193,7 +192,7 @@ public class AccountServiceTest {
             assertEquals(HttpStatus.BAD_REQUEST.toString(), exception.getMessage());
         }
 
-        @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 입력한 금액만큼 충전된다.")
+        @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 입력한 금액만큼 이체된다.")
         @Test
         void transferFromRegularAccountTest() {
 
@@ -204,6 +203,7 @@ public class AccountServiceTest {
 
             given(accountRepository.existsAccountByMemberIdAndType(memberId, Type.REGULAR_ACCOUNT)).willReturn(true);
             given(accountRepository.existsAccountById(receiverAccountId)).willReturn(true);
+            given(accountRepository.transferAccount(memberId, balance, Type.REGULAR_ACCOUNT)).willReturn(1);
 
             // when
             accountService.transferFromRegularAccount(requestDto);
@@ -216,7 +216,7 @@ public class AccountServiceTest {
                 .transferSavingAccount(receiverAccountId, balance);
         }
 
-        @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 오류가 발생한다.")
+        @DisplayName("메인 계좌에서 적금 계좌로 입금 시 잔액 부족하다면 부족한 금액을 10000원 단위로 충전 후 이체된다.")
         @Test
         void transferFromRegularAccountErrorTest() {
 
@@ -225,15 +225,22 @@ public class AccountServiceTest {
 
             given(accountRepository.existsAccountByMemberIdAndType(memberId, Type.REGULAR_ACCOUNT)).willReturn(true);
             given(accountRepository.existsAccountById(accountId)).willReturn(true);
-            willThrow(new BaseException(ErrorCode.INSUFFICIENT_BALANCE.toString(), FORBIDDEN.toString())).given(
-                accountRepository).transferAccount(memberId, balance, Type.REGULAR_ACCOUNT);
+            given(accountRepository.transferAccount(memberId, balance, Type.REGULAR_ACCOUNT)).willReturn(0);
+
+            Account account = mock(Account.class);
+            given(accountRepository.findAccountByMemberId(memberId, Type.REGULAR_ACCOUNT)).willReturn(
+                Optional.of(account));
+            given(account.getBalance()).willReturn(0L);
 
             // when
-            Exception exception = assertThrows(BaseException.class,
-                () -> accountService.transferFromRegularAccount(requestDto));
+            accountService.transferFromRegularAccount(requestDto);
 
             // then
-            assertEquals(FORBIDDEN.toString(), exception.getMessage());
+            then(accountRepository).should(times(1)).existsAccountByMemberIdAndType(memberId, Type.REGULAR_ACCOUNT);
+            then(accountRepository).should(times(1)).existsAccountById(accountId);
+            then(accountRepository).should(times(2)).transferAccount(memberId, balance, Type.REGULAR_ACCOUNT);
+            then(savingAccountRepository).should(times(1))
+                .transferSavingAccount(accountId, balance);
         }
 
         @DisplayName("메인 계좌에서 적금 계좌로 이체 요청 시 송금한다.")
