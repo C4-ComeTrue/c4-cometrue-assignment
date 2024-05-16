@@ -2,6 +2,7 @@ package org.c4marathon.assignment.bankaccount.config;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -11,6 +12,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableAsync
 public class DepositConfig {
 
+	@Value("${bank-account.deposit.core-pool-size}")
+	private int corePoolSize;
+	@Value("${bank-account.deposit.max-pool-size}")
+	private int maxPoolSize;
+	@Value("${bank-account.deposit.queue-capacity}")
+	private int queueCapacity;
+	@Value("${bank-account.deposit.complete-on-shutdown}")
+	private boolean completeOnShutdown;
+
 	/**
 	 *
 	 * 메인 계좌 입금 작업을 처리할 스레드 풀입니다.
@@ -19,11 +29,6 @@ public class DepositConfig {
 	 */
 	@Bean
 	public ThreadPoolTaskExecutor depositExecutor() {
-		final int corePoolSize = 10;
-		final int maxPoolSize = 20;
-		final int queueCapacity = 10;
-		final boolean completeOnShutdown = true;
-
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(corePoolSize); // 기본 스레드 수
 		executor.setMaxPoolSize(maxPoolSize); // 큐에 대기하는 스레드가 가득차면 최대로 생성할 스레드 수

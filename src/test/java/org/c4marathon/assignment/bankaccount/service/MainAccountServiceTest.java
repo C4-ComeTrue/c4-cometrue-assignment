@@ -8,9 +8,9 @@ import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.exception.AccountErrorCode;
 import org.c4marathon.assignment.bankaccount.exception.AccountException;
+import org.c4marathon.assignment.bankaccount.message.util.RedisOperator;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
-import org.c4marathon.assignment.bankaccount.repository.SendRecordRepository;
 import org.c4marathon.assignment.common.utils.ConstValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,9 +35,9 @@ class MainAccountServiceTest {
 	@Mock
 	SavingAccountRepository savingAccountRepository;
 	@Mock
-	SendRecordRepository sendRecordRepository;
-	@Mock
 	DepositHandlerService depositHandlerService;
+	@Mock
+	RedisOperator redisOperator;
 
 	@Nested
 	@DisplayName("메인 계좌 충전 테스트")
@@ -166,9 +166,7 @@ class MainAccountServiceTest {
 			// When
 			MainAccountResponseDto mainAccountInfo = mainAccountService.getMainAccountInfo(anyLong());
 			Optional<MainAccount> byId = mainAccountRepository.findById(0L);
-			System.out.println(byId.get().getMoney());
-			System.out.println(mainAccount.getMoney());
-			System.out.println(mainAccountInfo);
+
 			// Then
 			assertEquals(mainAccountInfo.money(), mainAccount.getMoney());
 		}
@@ -209,8 +207,7 @@ class MainAccountServiceTest {
 			// Then
 			then(mainAccountRepository).should(times(1)).findByPkForUpdate(anyLong());
 			then(mainAccountRepository).should(times(1)).save(any());
-			then(sendRecordRepository).should(times(1)).save(any());
-			then(depositHandlerService).should(times(1)).doDeposit(anyLong(), anyLong(), anyLong());
+			then(redisOperator).should(times(1)).addStream(any(), anyLong(), anyLong(), anyLong());
 		}
 
 		@Test
@@ -242,7 +239,7 @@ class MainAccountServiceTest {
 			mainAccount.setUpdatedAt(LocalDateTime.now());
 			mainAccount.charge(ConstValue.LimitConst.CHARGE_LIMIT);
 			mainAccount.minusMoney(ConstValue.LimitConst.CHARGE_LIMIT);
-			
+
 			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.of(mainAccount));
 
 			// When

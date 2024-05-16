@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.common.entity.BaseEntity;
 import org.c4marathon.assignment.common.utils.ConstValue;
+import org.hibernate.annotations.ColumnDefault;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,6 +31,7 @@ public class MainAccount extends BaseEntity {
 
 	// 최대 충전 한도
 	@Column(name = "charge_money", nullable = false)
+	@ColumnDefault("3000000")
 	private long chargeLimit;
 
 	// 추가로 충전할 수 있는 금액
@@ -46,6 +48,9 @@ public class MainAccount extends BaseEntity {
 		this.money -= money;
 	}
 
+	/**
+	 * 최근 충전 일자가 당일이 아니라면 한도 갱신하는 메소드
+	 */
 	public void chargeCheck() {
 		int lastDay = this.getUpdatedAt().getDayOfMonth();
 		LocalDateTime now = LocalDateTime.now();
@@ -57,10 +62,20 @@ public class MainAccount extends BaseEntity {
 		}
 	}
 
-	public boolean charge(long money) {
+	public boolean canCharge(long money) {
 		if (this.spareMoney >= money) {
-			this.spareMoney -= money;
-			this.money += money;
+			return true;
+		}
+		return false;
+	}
+
+	public void charge(long money) {
+		this.spareMoney -= money;
+		this.money += money;
+	}
+
+	public boolean canSend(long money) {
+		if (this.money >= money) {
 			return true;
 		}
 		return false;
