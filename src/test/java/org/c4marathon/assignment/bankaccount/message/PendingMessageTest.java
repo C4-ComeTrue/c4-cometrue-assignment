@@ -113,6 +113,23 @@ public class PendingMessageTest {
 			assertEquals(rollBackMember.getMoney() - originMoney, money);
 		}
 
+		@Test
+		@DisplayName("처리하지 못한 pending 메세지가 있으면 롤백한다.")
+		void not_consumed_pending_message_will_rollback() throws InterruptedException {
+			// Given
+			MainAccount sendAccount = mainAccountRepository.findById(mainAccountPk[0]).get();
+			long originMoney = sendAccount.getMoney();
+
+			// When
+			executor.initialize();
+			pendingMessageScheduler.consumeClaimMessage();
+			executor.getThreadPoolExecutor().awaitTermination(10, TimeUnit.SECONDS);
+
+			// Then
+			MainAccount rollBackMember = mainAccountRepository.findById(mainAccountPk[0]).get();
+			assertEquals(rollBackMember.getMoney() - originMoney, money);
+		}
+
 	}
 
 	void createPendingMessage() {
