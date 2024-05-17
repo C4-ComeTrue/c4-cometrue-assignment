@@ -74,7 +74,7 @@ public class PendingMessageTest {
 	class SendToSavingAccount {
 
 		@BeforeEach
-		void accountInit() throws InterruptedException {
+		void accountInit() {
 			createAccount();
 		}
 
@@ -118,10 +118,8 @@ public class PendingMessageTest {
 				if (pendingMessages.isEmpty()) {
 					return true;
 				}
-				// System.out.println(pendingMessages);
 				for (PendingMessage pendingMessage : pendingMessages) {
 					redisOperator.claimMessage(pendingMessage, streamKey, claimConsumerName);
-					// System.out.println("pending message = " + pendingMessage);
 				}
 				return false;
 			});
@@ -138,7 +136,7 @@ public class PendingMessageTest {
 
 	}
 
-	void makePendingMessage() throws InterruptedException {
+	void makePendingMessage() {
 		executor.shutdown();
 		redisOperator.addStream(streamKey, mainAccountPk[0], mainAccountPk[1], 1000);
 		// 이벤트 발생으로 스레드 풀에 들어간 작업 제거

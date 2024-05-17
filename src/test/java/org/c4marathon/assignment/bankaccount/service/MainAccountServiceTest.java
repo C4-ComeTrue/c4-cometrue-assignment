@@ -217,7 +217,7 @@ class MainAccountServiceTest {
 			long senderPk = 1L;
 			long depositPk = 2L;
 			long money = 1000;
-			long chargeLimitPk = 1L;
+			
 			given(mainAccountRepository.findByPkForUpdate(anyLong())).willReturn(Optional.empty());
 
 			// When
