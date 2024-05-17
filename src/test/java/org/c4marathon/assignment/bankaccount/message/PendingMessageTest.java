@@ -117,6 +117,12 @@ public class PendingMessageTest {
 			// 3초 이상 된 메세지만 claim 처리를 하므로 3초 기다린다
 			executor.getThreadPoolExecutor().awaitTermination(3, TimeUnit.SECONDS);
 
+			// claim처리 안된 메세지 claim 처리
+			PendingMessages pendingMessages = redisOperator.findPendingMessages(streamKey, consumerGroup, consumerName);
+			for (PendingMessage pendingMessage : pendingMessages) {
+				redisOperator.claimMessage(pendingMessage, streamKey, claimConsumerName);
+			}
+
 			// When
 			executor.initialize();
 			pendingMessageScheduler.consumeClaimMessage();
