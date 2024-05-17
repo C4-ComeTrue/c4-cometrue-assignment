@@ -206,7 +206,6 @@ public class MoneySendConcurrencyTest {
 			executorService.shutdown();
 
 			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
-			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
 
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
