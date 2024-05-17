@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.bankaccount.message;
 
+import java.util.concurrent.TimeUnit;
+
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
 import org.c4marathon.assignment.bankaccount.message.scheduler.PendingMessageScheduler;
@@ -104,16 +106,7 @@ public class PendingMessageTest {
 			// When
 			executor.initialize();
 			pendingMessageScheduler.consumePendingMessage();
-			// long start = System.currentTimeMillis();
-			// // 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
-			// while (executor.getActiveCount() != 0) {
-			// 	long now = System.currentTimeMillis();
-			// 	// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
-			// 	if ((now - start) / 1000 > 10) {
-			// 		break;
-			// 	}
-			// }
-			Thread.sleep(10000);
+			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
 
 			// Then
 			MainAccount rollBackMember = mainAccountRepository.findById(mainAccountPk[0]).get();

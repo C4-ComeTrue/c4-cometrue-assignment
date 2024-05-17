@@ -3,6 +3,7 @@ package org.c4marathon.assignment.bankaccount.concurrency;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
@@ -204,15 +205,8 @@ public class MoneySendConcurrencyTest {
 			countDownLatch.await();
 			executorService.shutdown();
 
-			long start = System.currentTimeMillis();
-			// 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
-			while (executor.getActiveCount() != 0) {
-				long now = System.currentTimeMillis();
-				// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
-				if ((now - start) / 1000 > 10) {
-					break;
-				}
-			}
+			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
+			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
 
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
@@ -265,16 +259,7 @@ public class MoneySendConcurrencyTest {
 			countDownLatch.await();
 			executorService.shutdown();
 
-			// long start = System.currentTimeMillis();
-			// // 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
-			// while (executor.getActiveCount() != 0) {
-			// 	long now = System.currentTimeMillis();
-			// 	// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
-			// 	if ((now - start) / 1000 > 10) {
-			// 		break;
-			// 	}
-			// }
-			Thread.sleep(10000);
+			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
 
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
@@ -327,15 +312,7 @@ public class MoneySendConcurrencyTest {
 			countDownLatch.await();
 			executorService.shutdown();
 
-			long start = System.currentTimeMillis();
-			// 입금 로직은 백그라운드에서 진행되니 해당 작업이 완료될 때까지 기다린다.
-			while (executor.getActiveCount() != 0) {
-				long now = System.currentTimeMillis();
-				// 어떤 문제로 영원히 executor에 있을 수 있으니 10초 뒤엔 반복문을 탈출한다.
-				if ((now - start) / 1000 > 10) {
-					break;
-				}
-			}
+			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
 
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();

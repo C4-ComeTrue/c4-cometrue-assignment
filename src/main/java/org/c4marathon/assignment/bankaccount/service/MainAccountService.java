@@ -37,7 +37,7 @@ public class MainAccountService {
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public long chargeMoney(long mainAccountPk, long money) {
 		MainAccount mainAccount = mainAccountRepository.findByPkForUpdate(mainAccountPk)
-			.orElseThrow(() -> AccountErrorCode.ACCOUNT_NOT_FOUND.accountException());
+			.orElseThrow(AccountErrorCode.ACCOUNT_NOT_FOUND::accountException);
 		checkAndCharge(money, mainAccount);
 		mainAccountRepository.save(mainAccount);
 

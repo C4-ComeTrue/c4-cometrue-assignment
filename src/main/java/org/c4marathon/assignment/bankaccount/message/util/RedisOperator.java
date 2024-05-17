@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -32,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class RedisOperator {
+
 	private final RedisTemplate<String, Object> redisTemplate;
 
 	public void ackStream(String streamKey, String consumerGroup, String id) {
@@ -47,9 +50,12 @@ public class RedisOperator {
 	 * @param money 이체할 금액
 	 */
 	public void addStream(String streamKey, long sendPk, long depositPk, long money) {
-		RedisAsyncCommands commands = (RedisAsyncCommands)redisTemplate.getConnectionFactory()
-			.getConnection()
-			.getNativeConnection();
+		RedisConnection connection = getRedisConnection();
+		if (connection == null) {
+			return;
+		}
+
+		RedisAsyncCommands commands = (RedisAsyncCommands)connection.getNativeConnection();
 
 		CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).addKey(streamKey)
 			.add("*") // id 자동 생성
@@ -57,7 +63,7 @@ public class RedisOperator {
 			.add("deposit-pk").add(depositPk)
 			.add("money").add(money);
 
-		commands.dispatch(CommandType.XADD, new StatusOutput(StringCodec.UTF8), commandArgs);
+		commands.dispatch(CommandType.XADD, new StatusOutput<>(StringCodec.UTF8), commandArgs);
 	}
 
 	public PendingMessages findPendingMessages(String streamKey, String consumerGroupName, String consumerName) {
@@ -71,32 +77,29 @@ public class RedisOperator {
 	 * 0번 인덱스에 send-pk, 1번 인덱스에 deposit-pk, 2번 인덱스에 money를 넣은 Long 타입 배열을 리턴한다.
 	 */
 	public Long[] findMessageById(String streamKey, String id) {
-		RedisStreamCommands command = redisTemplate.getConnectionFactory()
-			.getConnection();
+		RedisStreamCommands command = getRedisConnection();
 
 		// deserialize가 안돼서 직접 타입을 맞춰줌
 		// command.range()를 하면 왜인지 모르겠지만 Map형태로 데이터가 나오지 않아서 생기는 문제 같음.
+		Long[] values = new Long[3];
 		try {
-			List<ByteRecord> byteRecords = command.xRange(streamKey.getBytes("UTF-8"), Range.closed(id, id));
+			List<ByteRecord> byteRecords = command.xRange(streamKey.getBytes(StandardCharsets.UTF_8),
+				Range.closed(id, id));
 			ByteRecord entries = byteRecords.get(0);
 
-			Long[] values = new Long[3];
 			int index = 0;
 
 			for (Map.Entry<byte[], byte[]> entry : entries) {
-				String key = new String(entry.getKey(), StandardCharsets.UTF_8);
 				String value = new String(entry.getValue(), StandardCharsets.UTF_8);
 				values[index++] = Long.valueOf(value);
 			}
-
-			return values;
 		} catch (Exception e) {
 			// 뭔가 로그 파일로 남기거나 메일로 에러가 발생했다고 알려줘야 할 것 같음
 			log.error("[{}] streamKey: {} | id: {} | message: {}", e.getClass().getSimpleName(), streamKey, id,
 				e.getMessage());
 		}
 
-		return null;
+		return values;
 	}
 
 	/**
@@ -105,9 +108,12 @@ public class RedisOperator {
 	 * 기존 consumer에서 pending된 메세지를 처리하지 않도록 한다.
 	 */
 	public void claimMessage(PendingMessage pendingMessage, String streamKey, String consumerName) {
-		RedisAsyncCommands commands = (RedisAsyncCommands)redisTemplate.getConnectionFactory()
-			.getConnection()
-			.getNativeConnection();
+		RedisConnection connection = getRedisConnection();
+		if (connection == null) {
+			return;
+		}
+
+		RedisAsyncCommands commands = (RedisAsyncCommands)connection.getNativeConnection();
 
 		CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).addKey(streamKey)
 			.add(pendingMessage.getGroupName())
@@ -115,15 +121,18 @@ public class RedisOperator {
 			.add("3000") // 3초 이상 pending된 메세지만 처리한다
 			.add(pendingMessage.getIdAsString());
 
-		commands.dispatch(CommandType.XCLAIM, new StatusOutput(StringCodec.UTF8), commandArgs);
+		commands.dispatch(CommandType.XCLAIM, new StatusOutput<>(StringCodec.UTF8), commandArgs);
 	}
 
 	public void createStreamConsumerGroup(String streamKey, String consumerGroupName) {
 		// Stream이 존재하지 않는 경우 생성
-		if (!redisTemplate.hasKey(streamKey)) {
-			RedisAsyncCommands commands = (RedisAsyncCommands)redisTemplate.getConnectionFactory()
-				.getConnection()
-				.getNativeConnection();
+		if (Boolean.FALSE.equals(redisTemplate.hasKey(streamKey))) {
+			RedisConnection connection = getRedisConnection();
+			if (connection == null) {
+				return;
+			}
+
+			RedisAsyncCommands commands = (RedisAsyncCommands)connection.getNativeConnection();
 
 			// 사용할 명령어 생성
 			CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).add(CommandKeyword.CREATE)
@@ -132,7 +141,7 @@ public class RedisOperator {
 				.add("0") // <id | $> 0을 사용하면 처음부터 전체 스트림을 가져오도록 한다.
 				.add("MKSTREAM"); // 스트림이 존재하지 않는 경우 스트림을 0의 길이로 자동 생성
 
-			commands.dispatch(CommandType.XGROUP, new StatusOutput(StringCodec.UTF8), commandArgs);
+			commands.dispatch(CommandType.XGROUP, new StatusOutput<>(StringCodec.UTF8), commandArgs);
 
 		} else {
 			if (!isStreamConsumerGroupExist(streamKey, consumerGroupName)) {
@@ -165,5 +174,13 @@ public class RedisOperator {
 				.hashValueSerializer(new StringRedisSerializer())
 				.pollTimeout(Duration.ofMillis(20))
 				.build());
+	}
+
+	public RedisConnection getRedisConnection() {
+		RedisConnectionFactory connectionFactory = redisTemplate.getConnectionFactory();
+		if (connectionFactory != null) {
+			return connectionFactory.getConnection();
+		}
+		return null;
 	}
 }

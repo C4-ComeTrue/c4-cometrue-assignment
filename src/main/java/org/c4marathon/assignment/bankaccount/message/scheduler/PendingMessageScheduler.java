@@ -1,7 +1,5 @@
 package org.c4marathon.assignment.bankaccount.message.scheduler;
 
-import java.util.Arrays;
-
 import org.c4marathon.assignment.bankaccount.message.util.RedisOperator;
 import org.c4marathon.assignment.bankaccount.service.DepositHandlerService;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,10 +41,8 @@ public class PendingMessageScheduler {
 			Long[] data = redisOperator.findMessageById(streamKey,
 				pendingMessage.getIdAsString());
 
-			System.out.println("pending data = " + Arrays.toString(data));
-
 			// 처리되지 않은 이체 로그는 롤백을 시켜준다.
-			if (data != null) {
+			if (data != null && data[2] != 0) {
 				// 롤백을 하므로 send-pk에 money를 추가해준다.
 				depositHandlerService.doDeposit(data[0], data[2], pendingMessage.getIdAsString());
 			}
@@ -66,7 +62,7 @@ public class PendingMessageScheduler {
 			Long[] data = redisOperator.findMessageById(streamKey,
 				pendingMessage.getIdAsString());
 
-			if (data != null) {
+			if (data != null && data[2] != 0) {
 				depositHandlerService.doDeposit(data[0], data[2], pendingMessage.getIdAsString());
 			}
 		}

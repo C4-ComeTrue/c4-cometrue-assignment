@@ -12,7 +12,6 @@ spring:
     hibernate:
       ddl-auto: update
 
-
 logging:
   level:
     org:

@@ -63,10 +63,11 @@ public class MainAccount extends BaseEntity {
 	}
 
 	public boolean canCharge(long money) {
+		boolean result = false;
 		if (this.spareMoney >= money) {
-			return true;
+			result = true;
 		}
-		return false;
+		return result;
 	}
 
 	public void charge(long money) {
@@ -75,9 +76,10 @@ public class MainAccount extends BaseEntity {
 	}
 
 	public boolean canSend(long money) {
+		boolean result = false;
 		if (this.money >= money) {
-			return true;
+			result = true;
 		}
-		return false;
+		return result;
 	}
 }
