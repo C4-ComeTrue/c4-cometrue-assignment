@@ -118,7 +118,7 @@ public class RedisOperator {
 		CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).addKey(streamKey)
 			.add(pendingMessage.getGroupName())
 			.add(consumerName)
-			.add("3000") // 3초 이상 pending된 메세지만 처리한다
+			.add("3000")
 			.add(pendingMessage.getIdAsString());
 
 		commands.dispatch(CommandType.XCLAIM, new StatusOutput<>(StringCodec.UTF8), commandArgs);

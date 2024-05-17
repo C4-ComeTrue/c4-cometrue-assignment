@@ -78,11 +78,6 @@ public class PendingMessageTest {
 			createPendingMessage();
 		}
 
-		// @BeforeEach()
-		// void initPendingMessage() {
-		// 	createPendingMessage();
-		// }
-
 		@AfterEach
 		void accountClear() {
 			clearAccount();
@@ -119,11 +114,13 @@ public class PendingMessageTest {
 			// Given
 			MainAccount sendAccount = mainAccountRepository.findById(mainAccountPk[0]).get();
 			long originMoney = sendAccount.getMoney();
+			// 3초 이상 된 메세지만 claim 처리를 하므로 3초 기다린다
+			executor.getThreadPoolExecutor().awaitTermination(3, TimeUnit.SECONDS);
 
 			// When
 			executor.initialize();
 			pendingMessageScheduler.consumeClaimMessage();
-			executor.getThreadPoolExecutor().awaitTermination(15, TimeUnit.SECONDS);
+			executor.getThreadPoolExecutor().awaitTermination(10, TimeUnit.SECONDS);
 
 			// Then
 			MainAccount rollBackMember = mainAccountRepository.findById(mainAccountPk[0]).get();
