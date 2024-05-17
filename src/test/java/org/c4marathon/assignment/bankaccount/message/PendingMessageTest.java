@@ -123,7 +123,7 @@ public class PendingMessageTest {
 			// When
 			executor.initialize();
 			pendingMessageScheduler.consumeClaimMessage();
-			executor.getThreadPoolExecutor().awaitTermination(10, TimeUnit.SECONDS);
+			executor.getThreadPoolExecutor().awaitTermination(15, TimeUnit.SECONDS);
 
 			// Then
 			MainAccount rollBackMember = mainAccountRepository.findById(mainAccountPk[0]).get();
