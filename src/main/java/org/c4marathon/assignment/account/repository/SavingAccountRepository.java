@@ -28,6 +28,6 @@ public interface SavingAccountRepository extends JpaRepository<SavingAccount, Lo
     @Query("""
         UPDATE SavingAccount sa SET sa.balance = sa.balance + :balance
         WHERE sa.id = :id
-    """)
+        """)
     void transferSavingAccount(Long id, Long balance);
 }

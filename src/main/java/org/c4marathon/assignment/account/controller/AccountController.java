@@ -32,7 +32,7 @@ public class AccountController {
 
     @Operation(summary = "메인 계좌 충전")
     @PostMapping("/recharge")
-    public ResponseEntity rechargeAccount(
+    public ResponseEntity<Void> rechargeAccount(
         @Valid
         @RequestBody
         RechargeAccountRequestDto rechargeAccountRequestDto
@@ -43,7 +43,7 @@ public class AccountController {
 
     @Operation(summary = "메인 계좌에서 적금 계좌로 이체")
     @PostMapping("/transfer/saving")
-    public ResponseEntity rechargeAccount(
+    public ResponseEntity<Void> rechargeAccount(
         @Valid
         @RequestBody
         TransferToOtherAccountRequestDto transferToOtherAccountRequestDto
@@ -54,7 +54,7 @@ public class AccountController {
 
     @Operation(summary = "사용자의 메인 계좌에서 친구의 메인 계좌로 송금")
     @PostMapping("/transfer/regular")
-    public ResponseEntity transferToOtherAccount(
+    public ResponseEntity<Void> transferToOtherAccount(
         @Valid
         @RequestBody
         TransferToOtherAccountRequestDto transferToOtherAccountRequestDto

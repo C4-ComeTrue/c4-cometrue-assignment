@@ -25,7 +25,7 @@ public class SavingAccountController {
 
     @Operation(summary = "적금 계좌 생성")
     @PostMapping("")
-    public ResponseEntity createAccount(
+    public ResponseEntity<Void> createAccount(
         @Valid
         @RequestBody
         AccountRequestDto accountRequestDto

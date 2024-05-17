@@ -14,7 +14,6 @@ import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.entity.Account;
-import org.c4marathon.assignment.account.entity.SavingAccount;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
 import org.c4marathon.assignment.account.repository.SavingAccountRepository;
