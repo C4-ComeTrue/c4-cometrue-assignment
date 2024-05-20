@@ -64,21 +64,11 @@ jacocoTestReport {
     }
 }
 
-//sonar {
-//    properties {
-//        property "sonar.projectKey", "C4-ComeTrue_c4-cometrue-assignment"
-//        property "sonar.organization", "c4-cometrue"
-//        property "sonar.host.url", "https://sonarcloud.io"
-//        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
-//        property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml"
-//    }
-//}
-
 sonar {
     properties {
-        property "sonar.projectKey", "minipay"
-        property "sonar.host.url", "http://localhost:9000"
-        property "sonar.login", "squ_539c8dfaf3c63cef6480b7260f958529af24e66a"
+        property "sonar.projectKey", "C4-ComeTrue_c4-cometrue-assignment"
+        property "sonar.organization", "c4-cometrue"
+        property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
         property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml"
     }
