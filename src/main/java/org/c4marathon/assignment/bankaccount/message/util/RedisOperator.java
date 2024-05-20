@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.c4marathon.assignment.bankaccount.service.SendRollbackHandlerService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -21,6 +23,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.stereotype.Component;
 
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.output.StatusOutput;
@@ -36,9 +39,13 @@ import lombok.extern.slf4j.Slf4j;
 public class RedisOperator {
 
 	private final RedisTemplate<String, Object> redisTemplate;
+	private final SendRollbackHandlerService sendRollbackHandlerService;
 
-	public void ackStream(String streamKey, String consumerGroup, String id) {
-		redisTemplate.opsForStream().acknowledge(streamKey, consumerGroup, id);
+	@Value("${redis-stream.pending-time}")
+	private int pendingTime;
+
+	public Long ackStream(String streamKey, String consumerGroup, String id) {
+		return redisTemplate.opsForStream().acknowledge(streamKey, consumerGroup, id);
 	}
 
 	/**
@@ -63,7 +70,14 @@ public class RedisOperator {
 			.add("deposit-pk").add(depositPk)
 			.add("money").add(money);
 
-		commands.dispatch(CommandType.XADD, new StatusOutput<>(StringCodec.UTF8), commandArgs);
+		RedisFuture dispatch = commands.dispatch(CommandType.XADD, new StatusOutput<>(StringCodec.UTF8), commandArgs);
+		dispatch.handle((result, exception) -> {
+			// 예외가 발생하면 이체 롤백 요청을 보낸다.
+			if (exception != null) {
+				sendRollbackHandlerService.rollBackDeposit(sendPk, depositPk, money);
+			}
+			return result;
+		});
 	}
 
 	public PendingMessages findPendingMessages(String streamKey, String consumerGroupName, String consumerName) {
@@ -118,7 +132,7 @@ public class RedisOperator {
 		CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).addKey(streamKey)
 			.add(pendingMessage.getGroupName())
 			.add(consumerName)
-			.add("3000")
+			.add(pendingTime)
 			.add(pendingMessage.getIdAsString());
 
 		commands.dispatch(CommandType.XCLAIM, new StatusOutput<>(StringCodec.UTF8), commandArgs);

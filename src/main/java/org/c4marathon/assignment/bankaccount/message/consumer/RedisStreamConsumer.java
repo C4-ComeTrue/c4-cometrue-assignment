@@ -34,13 +34,15 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 	private String consumerGroupName;
 	@Value("${redis-stream.consumer-name}")
 	private String consumerName;
+	@Value("${redis-stream.is-test}")
+	private boolean isTest;
 
 	private final RedisOperator redisOperator;
 
 	private final DepositHandlerService depositHandlerService;
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (subscription != null) {
 			subscription.cancel();
 		}
@@ -63,7 +65,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 			this
 		);
 
-		// 2초마다 message를 얻는다.
 		subscription.await(Duration.ofSeconds(2));
 
 		listenerContainer.start();
@@ -72,20 +73,28 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 	/**
 	 *
 	 * Redis Stream 메세지를 처리하는 메소드
+	 * XADD된 메세지를 먼저 처리한다. 처리와 동시에 consumer-group에 pending 한다.
 	 */
 	@Override
 	public void onMessage(MapRecord<String, Object, Object> message) {
+		// 테스트에서 ack 처리 되지 않도록 처리
+		if (isTest) {
+			return;
+		}
 		Set<Map.Entry<Object, Object>> entries = message.getValue().entrySet();
-		Long[] depositData = new Long[3];
+		Long[] accountData = new Long[3];
 		int index = 0;
 
 		// depositData에 send-pk, deposit-pk, money를 차례대로 담는다.
 		for (Map.Entry<Object, Object> entry : entries) {
 			String value = (String)entry.getValue();
-			depositData[index++] = Long.valueOf(value);
+			accountData[index++] = Long.valueOf(value);
 		}
 
 		// deposit-pk에 money를 추가하는 task 추가
-		depositHandlerService.doDeposit(depositData[1], depositData[2], message.getId().toString());
+		Long ackResult = redisOperator.ackStream(streamKey, consumerGroupName, message.getId().toString());
+		if (ackResult != 0) {
+			depositHandlerService.doDeposit(accountData[0], accountData[1], accountData[2]);
+		}
 	}
 }

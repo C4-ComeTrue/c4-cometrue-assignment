@@ -1,13 +1,13 @@
-package org.c4marathon.assignment.bankaccount.message;
+package org.c4marathon.assignment.bankaccount.async.deposit;
 
 import java.util.concurrent.TimeUnit;
 
+import org.c4marathon.assignment.bankaccount.dto.response.MainAccountResponseDto;
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
-import org.c4marathon.assignment.bankaccount.message.scheduler.PendingMessageScheduler;
-import org.c4marathon.assignment.bankaccount.message.util.RedisOperator;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
+import org.c4marathon.assignment.bankaccount.service.MainAccountService;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -17,23 +17,22 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.connection.stream.PendingMessage;
-import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.org.awaitility.Awaitility;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-public class PendingMessageTest {
+class DepositHandlerServiceTest {
+
+	@Autowired
+	MainAccountService mainAccountService;
 
 	@Autowired
 	MemberRepository memberRepository;
@@ -48,33 +47,17 @@ public class PendingMessageTest {
 	@Qualifier("depositExecutor")
 	ThreadPoolTaskExecutor executor;
 
-	@Autowired
-	RedisOperator redisOperator;
-
-	@Autowired
-	PendingMessageScheduler pendingMessageScheduler;
-
 	private Member[] member;
 	private MainAccount mainAccount;
 	private SavingAccount savingAccount;
 	private long[] mainAccountPk;
 	private long[] savingAccountPk;
 
-	@Value("${redis-stream.stream-key}")
-	private String streamKey;
-	@Value("${redis-stream.consumer-group-name}")
-	private String consumerGroup;
-	@Value("${redis-stream.consumer-name}")
-	private String consumerName;
-	@Value("${redis-stream.claim-consumer-name}")
-	private String claimConsumerName;
-
 	@Nested
-	@DisplayName("Pending 메세지 테스트")
-	class SendToSavingAccount {
-
+	@DisplayName("이체 실패 테스트")
+	class SendToMainAccount {
 		@BeforeEach
-		void accountInit() {
+		void init() {
 			createAccount();
 		}
 
@@ -83,66 +66,26 @@ public class PendingMessageTest {
 			clearAccount();
 		}
 
-		int money = 1000;
+		long money = 1000;
 
 		@Test
-		@DisplayName("Pending된 메세지가 있으면 롤백한다")
-		void pending_message_will_rollback() throws InterruptedException {
+		@DisplayName("어떤 계좌에 입금이 실패한 경우, 롤백한다.")
+		void if_deposit_fail_then_rollback() throws InterruptedException {
 			// Given
-			MainAccount sendAccount = mainAccountRepository.findById(mainAccountPk[0]).get();
-			long originMoney = sendAccount.getMoney();
-			makePendingMessage();
+			long wrongAccountPk = 5;
+			MainAccountResponseDto originMainAccount = mainAccountService.getMainAccountInfo(mainAccountPk[0]);
 
 			// When
-			executor.initialize();
-			pendingMessageScheduler.consumePendingMessage();
+			mainAccountService.sendToOtherAccount(mainAccountPk[0], wrongAccountPk, money);
 			executor.getThreadPoolExecutor().awaitTermination(2, TimeUnit.SECONDS);
 
 			// Then
-			MainAccount rollBackMember = mainAccountRepository.findById(mainAccountPk[0]).get();
-			assertEquals(rollBackMember.getMoney() - originMoney, money);
+			MainAccountResponseDto resultMainAccount = mainAccountService.getMainAccountInfo(mainAccountPk[0]);
+			MainAccountResponseDto resultMainAccount1 = mainAccountService.getMainAccountInfo(mainAccountPk[1]);
+			MainAccountResponseDto resultMainAccount2 = mainAccountService.getMainAccountInfo(mainAccountPk[2]);
+
+			assertEquals(originMainAccount.money(), resultMainAccount.money());
 		}
-
-		@Test
-		@DisplayName("처리하지 못한 pending 메세지가 있으면 롤백한다.")
-		void not_consumed_pending_message_will_rollback() throws InterruptedException {
-			// Given
-			MainAccount sendAccount = mainAccountRepository.findById(mainAccountPk[0]).get();
-			long originMoney = sendAccount.getMoney();
-			makePendingMessage();
-
-			// claim처리 안된 메세지 claim 처리
-			Awaitility.await().atLeast(3, TimeUnit.SECONDS).until(() -> {
-				PendingMessages pendingMessages = redisOperator.findPendingMessages(streamKey, consumerGroup,
-					consumerName);
-				if (pendingMessages.isEmpty()) {
-					return true;
-				}
-				for (PendingMessage pendingMessage : pendingMessages) {
-					redisOperator.claimMessage(pendingMessage, streamKey, claimConsumerName);
-				}
-				return false;
-			});
-
-			// When
-			executor.initialize();
-			pendingMessageScheduler.consumeClaimMessage();
-			executor.getThreadPoolExecutor().awaitTermination(2, TimeUnit.SECONDS);
-
-			// Then
-			MainAccount rollBackMember = mainAccountRepository.findById(mainAccountPk[0]).get();
-			assertEquals(rollBackMember.getMoney() - originMoney, money);
-		}
-
-	}
-
-	void makePendingMessage() {
-		executor.shutdown();
-		redisOperator.addStream(streamKey, mainAccountPk[0], mainAccountPk[1], 1000);
-		// 이벤트 발생으로 스레드 풀에 들어간 작업 제거
-		executor.getThreadPoolExecutor().remove(() -> {
-
-		});
 	}
 
 	void createAccount() {
@@ -182,4 +125,5 @@ public class PendingMessageTest {
 			memberRepository.delete(member[i]);
 		}
 	}
+
 }

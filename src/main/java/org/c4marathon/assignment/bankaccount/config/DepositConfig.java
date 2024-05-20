@@ -2,15 +2,18 @@ package org.c4marathon.assignment.bankaccount.config;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.c4marathon.assignment.bankaccount.exception.async.AccountAsyncExceptionHandler;
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 @EnableAsync
-public class DepositConfig {
+public class DepositConfig implements AsyncConfigurer {
 
 	@Value("${bank-account.deposit.core-pool-size}")
 	private int corePoolSize;
@@ -39,5 +42,28 @@ public class DepositConfig {
 		executor.initialize();
 
 		return executor;
+	}
+
+	@Bean
+	public ThreadPoolTaskExecutor rollbackExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(corePoolSize);
+		executor.setMaxPoolSize(maxPoolSize);
+		executor.setQueueCapacity(queueCapacity);
+		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+		executor.setWaitForTasksToCompleteOnShutdown(completeOnShutdown);
+		executor.setThreadNamePrefix("RB_THREAD_");
+		executor.initialize();
+
+		return executor;
+	}
+
+	/**
+	 *
+	 * doDeposit() 메소드 예외 처리 핸들러
+	 */
+	@Override
+	public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+		return new AccountAsyncExceptionHandler();
 	}
 }

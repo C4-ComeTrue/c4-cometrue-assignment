@@ -29,3 +29,4 @@ redis-stream:
   consumer-group-name: send-group
   consumer-name: send-consumer
   claim-consumer-name: claim-consumer
+  is-test: false

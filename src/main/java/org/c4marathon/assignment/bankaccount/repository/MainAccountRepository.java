@@ -16,11 +16,12 @@ public interface MainAccountRepository extends JpaRepository<MainAccount, Long> 
 	@Query("select ma from MainAccount ma where ma.accountPk = :accountPk")
 	Optional<MainAccount> findByPkForUpdate(@Param("accountPk") long accountPk);
 
-	@Modifying
+	@Modifying(clearAutomatically = true) // 영속성 컨텍스트와 동기화가 필요하다.
 	@Query("""
 		update MainAccount ma
 		set ma.money = ma.money + :chargeMoney
 		where ma.accountPk = :accountPk
 		""")
-	void deposit(@Param("accountPk") long accountPk, @Param("chargeMoney") long chargeMoney);
+	int deposit(@Param("accountPk") long accountPk, @Param("chargeMoney") long chargeMoney);
+
 }

@@ -21,30 +21,37 @@ public class PendingMessageScheduler {
 	private String consumerName;
 	@Value("${redis-stream.claim-consumer-name}")
 	private String claimConsumerName; // xclaim에 사용할 새로운 소비자 이름
+	@Value("${redis-stream.pending-time}")
+	private int pendingTime;
+
 	private final RedisOperator redisOperator;
 	private final DepositHandlerService depositHandlerService;
 
 	/**
 	 *
-	 * 어떠한 문제로 처리되지 않은 메세지를 처리하는 메소드
-	 * 기존 consumer가 중복하여 처리하지 않도록 consumer-name을 변경
-	 * 이후 doDeposit 메소드로
+	 * 어떠한 문제로 처리되지 않은 pending 메세지를 처리하는 메소드
+	 * 기존 consumer가 중복하여 처리하지 않도록 consumer-name을 변경한다.
 	 */
 	@Scheduled(fixedRate = 5000)
 	public void consumePendingMessage() {
 		PendingMessages pendingMessages = redisOperator.findPendingMessages(streamKey, consumerGroupName, consumerName);
 		for (PendingMessage pendingMessage : pendingMessages) {
-			// 기존 consumer가 처리하지 못하도록 consumer name을 claim-consumer로 변경한다.
+			// StreamListener가 처리중인 메세지일 수 있으므로 pendingTime보다 작은 시간이면 처리하지 않는다.
+			if (pendingMessage.getElapsedTimeSinceLastDelivery().toMillis() < pendingTime) {
+				break;
+			}
+			// 기존 consumer가 중복하여 처리하지 못하도록 consumer name을 claim-consumer로 변경한다.
 			redisOperator.claimMessage(pendingMessage, streamKey, claimConsumerName);
 
 			// streamKey와 id에 해당하는 sned-pk, deposit-pk, money를 차례대로 담은 Long 배열을 조회한다.
 			Long[] data = redisOperator.findMessageById(streamKey,
 				pendingMessage.getIdAsString());
 
+			Long ackResult = redisOperator.ackStream(streamKey, consumerGroupName, pendingMessage.getIdAsString());
 			// 처리되지 않은 이체 로그는 롤백을 시켜준다.
-			if (data != null && data[2] != 0) {
+			if (data != null && data[2] != 0 && ackResult == 1) {
 				// 롤백을 하므로 send-pk에 money를 추가해준다.
-				depositHandlerService.doDeposit(data[0], data[2], pendingMessage.getIdAsString());
+				depositHandlerService.doDeposit(data[1], data[0], data[2]);
 			}
 		}
 	}
@@ -62,8 +69,9 @@ public class PendingMessageScheduler {
 			Long[] data = redisOperator.findMessageById(streamKey,
 				pendingMessage.getIdAsString());
 
-			if (data != null && data[2] != 0) {
-				depositHandlerService.doDeposit(data[0], data[2], pendingMessage.getIdAsString());
+			Long ackResult = redisOperator.ackStream(streamKey, consumerGroupName, pendingMessage.getIdAsString());
+			if (data != null && data[2] != 0 && ackResult == 1) {
+				depositHandlerService.doDeposit(data[1], data[0], data[2]);
 			}
 		}
 	}

@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
 import org.c4marathon.assignment.bankaccount.entity.SavingAccount;
+import org.c4marathon.assignment.bankaccount.message.consumer.RedisStreamConsumer;
 import org.c4marathon.assignment.bankaccount.message.util.RedisOperator;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
@@ -54,6 +55,9 @@ public class MoneySendConcurrencyTest {
 	@Autowired
 	RedisOperator redisOperator;
 
+	@Autowired
+	RedisStreamConsumer redisStreamConsumer;
+
 	private Member[] member;
 	private MainAccount mainAccount;
 	private SavingAccount savingAccount;
@@ -65,7 +69,7 @@ public class MoneySendConcurrencyTest {
 	class SendToSavingAccount {
 
 		@BeforeEach
-		void accountInit() {
+		void accountInit() throws IllegalAccessException {
 			createAccount();
 		}
 
@@ -259,7 +263,7 @@ public class MoneySendConcurrencyTest {
 			executorService.shutdown();
 
 			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
-
+			
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
 			MainAccount resultMainAccount3 = mainAccountRepository.findById(mainAccountPk[2]).get();
@@ -293,7 +297,6 @@ public class MoneySendConcurrencyTest {
 			for (int i = 0; i < threadCount; i++) {
 				executorService.submit(() -> {
 					try {
-						// j번째 사람은 다음 순서의 사용자 메인 계좌에 이체 작업을 수행한다
 						for (int j = 0; j < 2; j++) {
 							mainAccountService.sendToOtherAccount(mainAccountPk[j], mainAccountPk[2],
 								sendMoney[j]);
@@ -316,6 +319,7 @@ public class MoneySendConcurrencyTest {
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
 			MainAccount resultMainAccount3 = mainAccountRepository.findById(mainAccountPk[2]).get();
+
 			long resultTotalMoney =
 				resultMainAccount1.getMoney() + resultMainAccount2.getMoney() + resultMainAccount3.getMoney();
 
