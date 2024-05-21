@@ -40,7 +40,7 @@ public class Review extends BaseEntity {
 	private Long productId;
 
 	@NotNull
-	@Column(name = "score", columnDefinition = "TINYINT default 3")
+	@Column(name = "score", columnDefinition = "INTEGER default 3")
 	private int score;
 
 	@Column(name = "comment", columnDefinition = "VARCHAR(100)")
