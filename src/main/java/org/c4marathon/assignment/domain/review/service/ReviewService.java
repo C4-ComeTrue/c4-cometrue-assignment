@@ -25,7 +25,8 @@ public class ReviewService {
 	/**
 	 * score, comment를 입력받아 Review entity 생성
 	 * product avgScore update
-	 * @throws org.c4marathon.assignment.global.error.BaseException 이미 해당 product에 대한 리뷰를 작성한 경우
+	 * @throws org.c4marathon.assignment.global.error.BaseException 이미 해당 product에 대한 리뷰를 작성한 경우,
+	 * productId에 해당하는 구매 이력이 존재하지 않는 경우
 	 */
 	@Transactional
 	public void createReview(Consumer consumer, ReviewCreateRequest request) {
