@@ -97,24 +97,24 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 		@Autowired
 		private ProductRepository productRepository;
 
-		@DisplayName("")
+		@DisplayName("정렬된 순서로 조회된다.")
 		@ParameterizedTest
 		@EnumSource(value = SortType.class)
-		void test(SortType sortType) {
+		void returnSortedList_when_searchProduct(SortType sortType) {
 			List<Product> result = switch (sortType) {
-				case TopRated -> productRepository.findByTopRated("%ab%", 0.0, 0L, 100);
-				case Newest -> productRepository.findByNewest("%ab%", LocalDateTime.now(), 0L, 100);
-				case PriceAsc -> productRepository.findByPriceAsc("%ab%", 0L, 0L, 100);
-				case PriceDesc -> productRepository.findByPriceDesc("%ab%", 0L, 0L, 100);
-				case Popularity -> productRepository.findByPopularity("%ab%", 0L, 0L, 100);
+				case TOP_RATED -> productRepository.findByTopRated("%ab%", 0.0, 0L, 100);
+				case NEWEST -> productRepository.findByNewest("%ab%", LocalDateTime.now(), 0L, 100);
+				case PRICE_ASC -> productRepository.findByPriceAsc("%ab%", 0L, 0L, 100);
+				case PRICE_DESC -> productRepository.findByPriceDesc("%ab%", 0L, 0L, 100);
+				case POPULARITY -> productRepository.findByPopularity("%ab%", 0L, 0L, 100);
 			};
 
 			switch (sortType) {
-				case TopRated -> assertThat(result).isSortedAccordingTo(comparing(Product::getAvgScore).reversed());
-				case Newest -> assertThat(result).isSortedAccordingTo(comparing(Product::getCreatedAt).reversed());
-				case PriceAsc -> assertThat(result).isSortedAccordingTo(comparing(Product::getAmount));
-				case PriceDesc -> assertThat(result).isSortedAccordingTo(comparing(Product::getAmount).reversed());
-				case Popularity -> assertThat(result).isSortedAccordingTo(comparing(Product::getOrderCount).reversed());
+				case TOP_RATED -> assertThat(result).isSortedAccordingTo(comparing(Product::getAvgScore).reversed());
+				case NEWEST -> assertThat(result).isSortedAccordingTo(comparing(Product::getCreatedAt).reversed());
+				case PRICE_ASC -> assertThat(result).isSortedAccordingTo(comparing(Product::getAmount));
+				case PRICE_DESC -> assertThat(result).isSortedAccordingTo(comparing(Product::getAmount).reversed());
+				case POPULARITY -> assertThat(result).isSortedAccordingTo(comparing(Product::getOrderCount).reversed());
 			}
 		}
 	}

@@ -45,6 +45,6 @@ public record ProductSearchRequest(
 	}
 
 	private Long getDefaultLastAmount(SortType sortType) {
-		return sortType == SortType.PriceAsc ? 0L : Long.MAX_VALUE;
+		return sortType == SortType.PRICE_ASC ? 0L : Long.MAX_VALUE;
 	}
 }

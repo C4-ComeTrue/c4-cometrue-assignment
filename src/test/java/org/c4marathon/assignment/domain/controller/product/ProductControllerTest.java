@@ -40,7 +40,7 @@ public class ProductControllerTest extends ControllerTestSupport {
 		void success_when_validRequest() throws Exception {
 			mockMvc.perform(get(REQUEST_URL)
 					.param("keyword", "ab")
-					.param("sortType", SortType.Newest.name())
+					.param("sortType", SortType.NEWEST.name())
 					.param("pageSize", "1"))
 				.andExpectAll(
 					status().isOk(),
@@ -59,7 +59,7 @@ public class ProductControllerTest extends ControllerTestSupport {
 		void fail_when_keywordIsNullOrLessThanTwo(String keyword) throws Exception {
 			mockMvc.perform(get(REQUEST_URL)
 					.param("keyword", keyword)
-					.param("sortType", SortType.Newest.name())
+					.param("sortType", SortType.NEWEST.name())
 					.param("pageSize", "1"))
 				.andExpectAll(
 					status().isBadRequest()

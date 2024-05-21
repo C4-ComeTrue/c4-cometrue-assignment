@@ -2,9 +2,9 @@ package org.c4marathon.assignment.global.constant;
 
 public enum SortType {
 
-	Popularity,
-	TopRated,
-	PriceAsc,
-	PriceDesc,
-	Newest;
+	POPULARITY,
+	TOP_RATED,
+	PRICE_ASC,
+	PRICE_DESC,
+	NEWEST;
 }
