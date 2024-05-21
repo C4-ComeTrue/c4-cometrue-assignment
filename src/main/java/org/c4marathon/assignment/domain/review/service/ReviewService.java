@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.domain.review.service;
 
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
+import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.review.dto.request.ReviewCreateRequest;
@@ -19,6 +20,7 @@ public class ReviewService {
 	private final ReviewRepository reviewRepository;
 	private final ReviewFactory reviewFactory;
 	private final ProductReadService productReadService;
+	private final OrderProductReadService orderProductReadService;
 
 	/**
 	 * score, comment를 입력받아 Review entity 생성
@@ -27,6 +29,9 @@ public class ReviewService {
 	 */
 	@Transactional
 	public void createReview(Consumer consumer, ReviewCreateRequest request) {
+		if (!orderProductReadService.existsByConsumerIdAndProductId(consumer.getId(), request.productId())) {
+			throw ErrorCode.NOT_POSSIBLE_CREATE_REVIEW.baseException();
+		}
 		if (reviewRepository.existsByConsumerIdAndProductId(consumer.getId(), request.productId())) {
 			throw ErrorCode.REVIEW_ALREADY_EXISTS.baseException();
 		}

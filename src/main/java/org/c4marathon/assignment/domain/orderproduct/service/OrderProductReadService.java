@@ -30,4 +30,13 @@ public class OrderProductReadService {
 	public List<OrderProduct> findByOrderJoinFetchProductAndSeller(Long orderId) {
 		return orderProductRepository.findByOrderJoinFetchProductAndSeller(orderId);
 	}
+
+	/**
+	 * consumer id와 product id로 구매 이력 조회
+	 */
+	@Transactional(readOnly = true)
+	public boolean existsByConsumerIdAndProductId(Long consumerId, Long productId) {
+		List<Long> orderIds = orderProductRepository.findOrderIdByProductId(productId);
+		return orderProductRepository.countByIdsAndConsumerId(orderIds, consumerId) > 0;
+	}
 }

@@ -14,4 +14,15 @@ public interface OrderProductRepository extends JpaRepository<OrderProduct, Long
 
 	@Query("select op from OrderProduct op join fetch op.product join fetch op.product.seller where op.order.id = :id")
 	List<OrderProduct> findByOrderJoinFetchProductAndSeller(@Param("id") Long orderId);
+
+	@Query(value = "select order_id from order_product_tbl op where op.product_id = :product_id", nativeQuery = true)
+	List<Long> findOrderIdByProductId(@Param("product_id") Long id);
+
+	@Query(value = """
+		select count(*)
+		from order_tbl o
+		where consumer_id = :consumer_id
+		  and order_id in (:ids)
+		""", nativeQuery = true)
+	Long countByIdsAndConsumerId(@Param("ids") List<Long> ids, @Param("consumer_id") Long consumerId);
 }
