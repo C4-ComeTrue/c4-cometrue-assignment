@@ -107,8 +107,16 @@ public class ConsumerService {
 		order.updateOrderStatus(CONFIRM);
 		List<OrderProduct> orderProducts = orderProductReadService.findByOrderJoinFetchProductAndSeller(orderId);
 		addSellerBalance(orderProducts);
+		addOrderCount(orderProducts);
 
 		savePointLog(consumer, order, true);
+	}
+
+	/**
+	 * 주문 시 product에 대한 구매 횟수를 증가함
+	 */
+	private void addOrderCount(List<OrderProduct> orderProducts) {
+		orderProducts.forEach(orderProduct -> orderProduct.getProduct().increaseOrderCount());
 	}
 
 	private void saveOrderInfo(PurchaseProductRequest request, Consumer consumer, Order order,
