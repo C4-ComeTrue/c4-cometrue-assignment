@@ -11,6 +11,10 @@ import org.c4marathon.assignment.domain.deliverycompany.controller.DeliveryCompa
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyService;
 import org.c4marathon.assignment.domain.pay.controller.PayController;
 import org.c4marathon.assignment.domain.pay.service.PayService;
+import org.c4marathon.assignment.domain.product.controller.ProductController;
+import org.c4marathon.assignment.domain.product.service.ProductReadService;
+import org.c4marathon.assignment.domain.review.controller.ReviewController;
+import org.c4marathon.assignment.domain.review.service.ReviewService;
 import org.c4marathon.assignment.domain.seller.controller.SellerController;
 import org.c4marathon.assignment.domain.seller.service.SellerService;
 import org.c4marathon.assignment.global.interceptor.ConsumerInterceptor;
@@ -30,7 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @WebMvcTest(controllers = {AuthController.class, ConsumerController.class, DeliveryCompanyController.class,
-	PayController.class, SellerController.class})
+	PayController.class, SellerController.class, ProductController.class, ReviewController.class})
 @MockBean(JpaMetamodelMappingContext.class)
 public abstract class ControllerTestSupport {
 
@@ -65,4 +69,8 @@ public abstract class ControllerTestSupport {
 	protected PayService payService;
 	@MockBean
 	protected AuthService authService;
+	@MockBean
+	protected ProductReadService productReadService;
+	@MockBean
+	protected ReviewService reviewService;
 }
