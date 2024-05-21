@@ -2,8 +2,6 @@ package org.c4marathon.assignment.domain.review.dto.request;
 
 import org.hibernate.validator.constraints.Range;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 public record ReviewCreateRequest(
