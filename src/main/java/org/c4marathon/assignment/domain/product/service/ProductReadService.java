@@ -51,17 +51,16 @@ public class ProductReadService {
 	 */
 	@Transactional(readOnly = true)
 	public ProductSearchResponse searchProduct(ProductSearchRequest request) {
+		String keyword = toQueryKeyword(request.keyword());
+		Long productId = request.productId();
+		int pageSize = request.pageSize();
+
 		List<Product> products = switch (request.sortType()) {
-			case NEWEST -> productRepository.findByNewest(toQueryKeyword(request.keyword()), request.lastCreatedAt(),
-				request.lastProductId(), request.pageSize());
-			case PRICE_ASC -> productRepository.findByPriceAsc(toQueryKeyword(request.keyword()), request.lastAmount(),
-				request.lastProductId(), request.pageSize());
-			case PRICE_DESC -> productRepository.findByPriceDesc(
-				toQueryKeyword(request.keyword()), request.lastAmount(), request.lastProductId(), request.pageSize());
-			case POPULARITY -> productRepository.findByPopularity(toQueryKeyword(
-				request.keyword()), request.lastOrderCount(), request.lastProductId(), request.pageSize());
-			case TOP_RATED -> productRepository.findByTopRated(toQueryKeyword(request.keyword()), request.lastScore(),
-				request.lastProductId(), request.pageSize());
+			case NEWEST -> productRepository.findByNewest(keyword, request.createdAt(), productId, pageSize);
+			case PRICE_ASC -> productRepository.findByPriceAsc(keyword, request.amount(), productId, pageSize);
+			case PRICE_DESC -> productRepository.findByPriceDesc(keyword, request.amount(), productId, pageSize);
+			case POPULARITY -> productRepository.findByPopularity(keyword, request.orderCount(), productId, pageSize);
+			case TOP_RATED -> productRepository.findByTopRated(keyword, request.score(), productId, pageSize);
 		};
 		return ProductSearchResponse.of(products);
 	}

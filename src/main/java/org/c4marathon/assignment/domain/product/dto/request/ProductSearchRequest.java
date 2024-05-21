@@ -11,11 +11,11 @@ import lombok.Builder;
 public record ProductSearchRequest(
 	@NotNull @Size(min = 2, message = "keyword length less than 2") String keyword,
 	@NotNull SortType sortType,
-	LocalDateTime lastCreatedAt,
-	Long lastProductId,
-	Long lastAmount,
-	Long lastOrderCount,
-	Double lastScore,
+	LocalDateTime createdAt,
+	Long productId,
+	Long amount,
+	Long orderCount,
+	Double score,
 	int pageSize
 ) {
 
@@ -23,20 +23,20 @@ public record ProductSearchRequest(
 	public ProductSearchRequest(
 		String keyword,
 		SortType sortType,
-		LocalDateTime lastCreatedAt,
-		Long lastProductId,
-		Long lastAmount,
-		Long lastOrderCount,
-		Double lastScore,
+		LocalDateTime createdAt,
+		Long productId,
+		Long amount,
+		Long orderCount,
+		Double score,
 		int pageSize
 	) {
 		this.keyword = keyword;
 		this.sortType = sortType;
-		this.lastCreatedAt = setDefaultValue(lastCreatedAt, LocalDateTime.now());
-		this.lastProductId = setDefaultValue(lastProductId, 0L);
-		this.lastAmount = setDefaultValue(lastAmount, getDefaultLastAmount(sortType));
-		this.lastOrderCount = setDefaultValue(lastOrderCount, Long.MAX_VALUE);
-		this.lastScore = setDefaultValue(lastScore, 5.0);
+		this.createdAt = setDefaultValue(createdAt, LocalDateTime.now());
+		this.productId = setDefaultValue(productId, 0L);
+		this.amount = setDefaultValue(amount, getDefaultAmount(sortType));
+		this.orderCount = setDefaultValue(orderCount, Long.MAX_VALUE);
+		this.score = setDefaultValue(score, 5.0);
 		this.pageSize = pageSize;
 	}
 
@@ -44,7 +44,7 @@ public record ProductSearchRequest(
 		return value != null ? value : defaultValue;
 	}
 
-	private Long getDefaultLastAmount(SortType sortType) {
+	private Long getDefaultAmount(SortType sortType) {
 		return sortType == SortType.PRICE_ASC ? 0L : Long.MAX_VALUE;
 	}
 }
