@@ -54,7 +54,7 @@ public class DeliveryCompanyService {
 	 */
 	private boolean isInvalidChangeStatus(DeliveryStatus future, DeliveryStatus current) {
 		return future.isPending()
-			|| (future.isDelivering() && !current.isPending())
-			|| (future.isDelivered() && !current.isDelivering());
+			   || (future.isDelivering() && !current.isPending())
+			   || (future.isDelivered() && !current.isDelivering());
 	}
 }

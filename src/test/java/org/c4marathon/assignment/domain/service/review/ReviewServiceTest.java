@@ -5,7 +5,6 @@ import static org.mockito.BDDMockito.*;
 
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.review.dto.request.ReviewCreateRequest;
-import org.c4marathon.assignment.domain.review.entity.ReviewFactory;
 import org.c4marathon.assignment.domain.review.service.ReviewService;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
 import org.c4marathon.assignment.global.error.BaseException;
