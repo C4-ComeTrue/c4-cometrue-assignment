@@ -5,12 +5,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.c4marathon.assignment.domain.product.entity.Product;
-import org.c4marathon.assignment.domain.product.repository.ProductRepository;
+import org.c4marathon.assignment.domain.product.dto.request.ProductSearchRequest;
+import org.c4marathon.assignment.domain.product.dto.response.ProductSearchEntry;
+import org.c4marathon.assignment.domain.product.dto.response.ProductSearchResponse;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 public class ProductReadServiceTest extends ServiceTestSupport {
@@ -94,27 +93,24 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 	@SpringBootTest
 	class SearchProduct {
 
-		@Autowired
-		private ProductRepository productRepository;
-
 		@DisplayName("정렬된 순서로 조회된다.")
 		@ParameterizedTest
 		@EnumSource(value = SortType.class)
 		void returnSortedList_when_searchProduct(SortType sortType) {
-			List<Product> result = switch (sortType) {
-				case TOP_RATED -> productRepository.findByTopRated("%ab%", 0.0, 0L, 100);
-				case NEWEST -> productRepository.findByNewest("%ab%", LocalDateTime.now(), 0L, 100);
-				case PRICE_ASC -> productRepository.findByPriceAsc("%ab%", 0L, 0L, 100);
-				case PRICE_DESC -> productRepository.findByPriceDesc("%ab%", 0L, 0L, 100);
-				case POPULARITY -> productRepository.findByPopularity("%ab%", 0L, 0L, 100);
-			};
+			ProductSearchRequest request = new ProductSearchRequest("ab", sortType, null, null, null, null, null, 100);
+			ProductSearchResponse response = productReadService.searchProduct(request);
+			List<ProductSearchEntry> result = response.productSearchEntries();
 
 			switch (sortType) {
-				case TOP_RATED -> assertThat(result).isSortedAccordingTo(comparing(Product::getAvgScore).reversed());
-				case NEWEST -> assertThat(result).isSortedAccordingTo(comparing(Product::getCreatedAt).reversed());
-				case PRICE_ASC -> assertThat(result).isSortedAccordingTo(comparing(Product::getAmount));
-				case PRICE_DESC -> assertThat(result).isSortedAccordingTo(comparing(Product::getAmount).reversed());
-				case POPULARITY -> assertThat(result).isSortedAccordingTo(comparing(Product::getOrderCount).reversed());
+				case TOP_RATED ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::avgScore).reversed());
+				case NEWEST ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::createdAt).reversed());
+				case PRICE_ASC -> assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::amount));
+				case PRICE_DESC ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::amount).reversed());
+				case POPULARITY ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::orderCount).reversed());
 			}
 		}
 	}
