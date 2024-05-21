@@ -90,7 +90,6 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 
 	@DisplayName("상품 검색 시")
 	@Nested
-	@SpringBootTest
 	class SearchProduct {
 
 		@DisplayName("정렬된 순서로 조회된다.")
