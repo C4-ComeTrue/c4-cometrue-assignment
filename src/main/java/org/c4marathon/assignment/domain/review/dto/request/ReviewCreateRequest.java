@@ -1,12 +1,13 @@
 package org.c4marathon.assignment.domain.review.dto.request;
 
+import org.hibernate.validator.constraints.Range;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 public record ReviewCreateRequest(
-	@Min(value = 1, message = "score less than 1")
-	@Max(value = 5, message = "score more than 5")
+	@Range(min = 1, max = 5, message = "invalid score range")
 	int score,
 	@Size(max = 100, message = "comment length more than 100")
 	String comment,
