@@ -33,10 +33,10 @@ public record ProductSearchRequest(
 		this.keyword = keyword;
 		this.sortType = sortType;
 		this.createdAt = setDefaultValue(createdAt, LocalDateTime.now());
-		this.productId = setDefaultValue(productId, 0L);
+		this.productId = setDefaultValue(productId, Long.MIN_VALUE);
 		this.amount = setDefaultValue(amount, getDefaultAmount(sortType));
 		this.orderCount = setDefaultValue(orderCount, Long.MAX_VALUE);
-		this.score = setDefaultValue(score, 5.0);
+		this.score = setDefaultValue(score, Double.MAX_VALUE);
 		this.pageSize = pageSize;
 	}
 
@@ -45,6 +45,6 @@ public record ProductSearchRequest(
 	}
 
 	private Long getDefaultAmount(SortType sortType) {
-		return sortType == SortType.PRICE_ASC ? 0L : Long.MAX_VALUE;
+		return sortType == SortType.PRICE_ASC ? Long.MIN_VALUE : Long.MAX_VALUE;
 	}
 }
