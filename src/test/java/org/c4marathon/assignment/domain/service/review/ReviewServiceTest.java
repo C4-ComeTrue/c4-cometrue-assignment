@@ -3,6 +3,7 @@ package org.c4marathon.assignment.domain.service.review;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.review.dto.request.ReviewCreateRequest;
 import org.c4marathon.assignment.domain.review.service.ReviewService;
@@ -21,6 +22,8 @@ public class ReviewServiceTest extends ServiceTestSupport {
 	private ReviewService reviewService;
 	@Mock
 	private ProductReadService productReadService;
+	@Mock
+	private OrderProductReadService orderProductReadService;
 
 	@DisplayName("리뷰 작성 시")
 	@Nested
@@ -31,12 +34,10 @@ public class ReviewServiceTest extends ServiceTestSupport {
 		void updateAvgScore_when_createReview() {
 			ReviewCreateRequest request = new ReviewCreateRequest(3, "comment", 1);
 
-			given(productReadService.findById(anyLong()))
-				.willReturn(product);
-			given(product.getAvgScore())
-				.willReturn(0.0);
-			given(productReadService.findReviewCount(anyLong()))
-				.willReturn(0L);
+			given(productReadService.findById(anyLong())).willReturn(product);
+			given(product.getAvgScore()).willReturn(0.0);
+			given(productReadService.findReviewCount(anyLong())).willReturn(0L);
+			given(orderProductReadService.existsByConsumerIdAndProductId(anyLong(), anyLong())).willReturn(true);
 
 			reviewService.createReview(consumer, request);
 
@@ -53,10 +54,24 @@ public class ReviewServiceTest extends ServiceTestSupport {
 		void fail_when_duplicateReview() {
 			ReviewCreateRequest request = new ReviewCreateRequest(3, "comment", 1);
 
-			given(reviewRepository.existsByConsumerIdAndProductId(anyLong(), anyLong()))
-				.willReturn(true);
+			given(orderProductReadService.existsByConsumerIdAndProductId(anyLong(), anyLong())).willReturn(true);
+			given(reviewRepository.existsByConsumerIdAndProductId(anyLong(), anyLong())).willReturn(true);
 
 			ErrorCode errorCode = ErrorCode.REVIEW_ALREADY_EXISTS;
+			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
+			assertThatThrownBy(() -> reviewService.createReview(consumer, request))
+				.isInstanceOf(exception.getClass())
+				.hasMessageMatching(exception.getMessage());
+		}
+
+		@DisplayName("구매 이력이 존재하지 않으면, 리뷰는 불가능하다.")
+		@Test
+		void fail_when_notExistsOrderProduct() {
+			ReviewCreateRequest request = new ReviewCreateRequest(3, "comment", 1);
+
+			given(orderProductReadService.existsByConsumerIdAndProductId(anyLong(), anyLong())).willReturn(false);
+
+			ErrorCode errorCode = ErrorCode.NOT_POSSIBLE_CREATE_REVIEW;
 			BaseException exception = new BaseException(errorCode.name(), errorCode.getMessage());
 			assertThatThrownBy(() -> reviewService.createReview(consumer, request))
 				.isInstanceOf(exception.getClass())
