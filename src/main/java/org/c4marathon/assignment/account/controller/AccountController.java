@@ -1,19 +1,14 @@
 package org.c4marathon.assignment.account.controller;
 
-import java.util.List;
-
-import org.c4marathon.assignment.account.dto.request.AccountRequestDto;
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.dto.response.AccountResponseDto;
 import org.c4marathon.assignment.account.service.AccountService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,46 +22,44 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @Operation(summary = "추가 계좌 생성")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PostMapping("")
-    public void createAccount(
-        @Valid
-        @RequestBody
-        AccountRequestDto accountRequestDto
-    ) {
-
-        accountService.saveAccount(accountRequestDto);
-    }
-
-    @Operation(summary = "계좌 전체 조회")
+    @Operation(summary = "메인 계좌 조회")
     @GetMapping("")
-    public ResponseEntity<List<AccountResponseDto>> findAccount(
+    public ResponseEntity<AccountResponseDto> findAccount(
     ) {
-
-        List<AccountResponseDto> accountResponseDtoList = accountService.findAccount();
-        return ResponseEntity.ok(accountResponseDtoList);
+        AccountResponseDto accountResponseDto = accountService.findAccount();
+        return ResponseEntity.ok(accountResponseDto);
     }
 
     @Operation(summary = "메인 계좌 충전")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("/recharge")
-    public void rechargeAccount(
+    public ResponseEntity<Void> rechargeAccount(
         @Valid
         @RequestBody
         RechargeAccountRequestDto rechargeAccountRequestDto
     ) {
         accountService.rechargeAccount(rechargeAccountRequestDto);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "메인 계좌에서 적금 계좌로 이체")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PostMapping("/saving")
-    public void rechargeAccount(
+    @PostMapping("/transfer/saving")
+    public ResponseEntity<Void> rechargeAccount(
         @Valid
         @RequestBody
-        SavingAccountRequestDto savingAccountRequestDto
+        TransferToOtherAccountRequestDto transferToOtherAccountRequestDto
     ) {
-        accountService.transferFromRegularAccount(savingAccountRequestDto);
+        accountService.transferFromRegularAccount(transferToOtherAccountRequestDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "사용자의 메인 계좌에서 친구의 메인 계좌로 송금")
+    @PostMapping("/transfer/regular")
+    public ResponseEntity<Void> transferToOtherAccount(
+        @Valid
+        @RequestBody
+        TransferToOtherAccountRequestDto transferToOtherAccountRequestDto
+    ) {
+        accountService.transferToOtherAccount(transferToOtherAccountRequestDto);
+        return ResponseEntity.noContent().build();
     }
 }

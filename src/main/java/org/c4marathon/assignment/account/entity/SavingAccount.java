@@ -1,8 +1,5 @@
 package org.c4marathon.assignment.account.entity;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.util.entity.BaseEntity;
 
@@ -28,9 +25,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Entity
-@Table(name = "account", indexes = @Index(name = "idx_account_member_id", columnList = "member_id"))
-public class Account extends BaseEntity {
-
+@Table(name = "saving_account", indexes = @Index(name = "idx_saving_account_member_id", columnList = "member_id"))
+public class SavingAccount extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
@@ -38,12 +34,6 @@ public class Account extends BaseEntity {
 
     @Column(name = "balance", nullable = false)
     private Long balance;
-
-    @Column(name = "daily_limit", nullable = false)
-    private Integer dailyLimit;
-
-    @Column(name = "daily_limit_update_at", nullable = false)
-    private LocalDate dailyLimitUpdateAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
@@ -54,18 +44,11 @@ public class Account extends BaseEntity {
     private Member member;
 
     @Builder
-    public Account(Type type, Member member) {
+    public SavingAccount(Type type, Member member) {
 
         this.balance = 0L;
-        this.dailyLimit = 0;
         this.type = type;
         this.member = member;
-        this.dailyLimitUpdateAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
-    }
-
-    public void resetDailyLimit(Integer dailyLimit) {
-        this.dailyLimit = dailyLimit;
-        this.dailyLimitUpdateAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void transferBalance(Long balance) {

@@ -3,17 +3,18 @@ package org.c4marathon.assignment.account.concurrency;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.c4marathon.assignment.account.dto.request.RechargeAccountRequestDto;
-import org.c4marathon.assignment.account.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.account.dto.request.TransferToOtherAccountRequestDto;
 import org.c4marathon.assignment.account.entity.Account;
+import org.c4marathon.assignment.account.entity.SavingAccount;
 import org.c4marathon.assignment.account.entity.Type;
 import org.c4marathon.assignment.account.repository.AccountRepository;
+import org.c4marathon.assignment.account.repository.SavingAccountRepository;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
@@ -39,6 +40,9 @@ public class ConcurrencyTest {
     private AccountRepository accountRepository;
 
     @Autowired
+    private SavingAccountRepository savingAccountRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -46,33 +50,40 @@ public class ConcurrencyTest {
 
     private Member member;
     private Account mainAccount;
-    private Account savingAccount;
+    private SavingAccount savingAccount;
 
     // 회원가입과 기본 계좌 생성
     @BeforeAll
     void setUp() {
-        member = createMember();
+        member = createMember("test@naver.com");
         memberRepository.save(member);
-        savingAccount = createAccount(Type.INSTALLMENT_SAVINGS_ACCOUNT, member);
-        mainAccount = createAccount(Type.REGULAR_ACCOUNT, member);
-        accountRepository.saveAll(List.of(mainAccount, savingAccount));
+        savingAccount = createSavingAccount(member);
+        mainAccount = createAccount(member);
+        accountRepository.save(mainAccount);
+        savingAccountRepository.save(savingAccount);
     }
 
     @AfterAll
     void tearDown() {
         accountRepository.deleteAllInBatch();
+        savingAccountRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
     }
 
-    // 계좌 객체 생성
-    private Account createAccount(Type type, Member member) {
+    // 메인 계좌 객체 생성
+    private Account createAccount(Member member) {
 
-        return Account.builder().type(type).member(member).build();
+        return Account.builder().type(Type.REGULAR_ACCOUNT).member(member).build();
     }
 
-    private Member createMember() {
+    // 적금 계좌 객체 생성
+    private SavingAccount createSavingAccount(Member member) {
 
-        return Member.builder().email("test@naver.com").password("test").name("test").build();
+        return SavingAccount.builder().type(Type.INSTALLMENT_SAVINGS_ACCOUNT).member(member).build();
+    }
+
+    private Member createMember(String email) {
+        return Member.builder().email(email).password("test").name("test").build();
     }
 
     private void setSecurityContext() {
@@ -87,7 +98,7 @@ public class ConcurrencyTest {
 
         @DisplayName("적금 계좌 입금과 메인 계좌 입금이 동시에 발생할 때 메인 계좌 잔액이 정확하게 갱신되어야 한다.")
         @Test
-        void test_concurrent_transfer() throws InterruptedException {
+        void test_concurrent_saving_account_transfer() throws InterruptedException {
 
             // given
             final int threadCount = 50;
@@ -105,7 +116,7 @@ public class ConcurrencyTest {
                         accountService.rechargeAccount(new RechargeAccountRequestDto(mainAccount.getId(), 10000L));
                         // 적금 계좌로 출금
                         accountService.transferFromRegularAccount(
-                            new SavingAccountRequestDto(10000L, savingAccount.getId()));
+                            new TransferToOtherAccountRequestDto(10000L, savingAccount.getId()));
                         successCount.getAndIncrement();
                     } catch (Exception e) {
                         failCount.getAndIncrement();
@@ -119,13 +130,61 @@ public class ConcurrencyTest {
             executorService.shutdown();
 
             Account resultMainAccount = accountRepository.findById(mainAccount.getId()).orElseThrow();
-            Account resultSavingAccount = accountRepository.findById(savingAccount.getId()).orElseThrow();
+            SavingAccount resultSavingAccount = savingAccountRepository.findById(savingAccount.getId()).orElseThrow();
 
             // then
             assertEquals(threadCount, successCount.get());
             assertEquals(0, failCount.get());
             assertEquals(0L, resultMainAccount.getBalance());
             assertEquals(10000L * threadCount, resultSavingAccount.getBalance());
+        }
+
+        @DisplayName("다른 계좌로 송금과 메인 계좌 입금이 동시에 발생할 때 메인 계좌 잔액과 다른 계좌 잔액이 정확하게 갱신되어야 한다.")
+        @Test
+        void test_concurrent_other_account_transfer() throws InterruptedException {
+
+            // given
+            Member otherMember = createMember("test1@naver.com");
+            memberRepository.save(otherMember);
+
+            Account otherAccount = createAccount(otherMember);
+            accountRepository.save(otherAccount);
+
+            final int threadCount = 100;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+            AtomicInteger successCount = new AtomicInteger();
+            AtomicInteger failCount = new AtomicInteger();
+
+            // when
+            for (int i = 0; i < threadCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        setSecurityContext();
+                        // 메인 계좌 입금
+                        accountService.rechargeAccount(new RechargeAccountRequestDto(mainAccount.getId(), 14000L));
+                        accountService.transferToOtherAccount(
+                            new TransferToOtherAccountRequestDto(10000L, otherMember.getId()));
+                        successCount.getAndIncrement();
+                    } catch (Exception e) {
+                        failCount.getAndIncrement();
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+            }
+
+            countDownLatch.await();
+            executorService.shutdown();
+
+            Account resultMainAccount = accountRepository.findById(mainAccount.getId()).orElseThrow();
+            Account resultOtherAccount = accountRepository.findById(otherAccount.getId()).orElseThrow();
+
+            // then
+            assertEquals(threadCount, successCount.get());
+            assertEquals(0, failCount.get());
+            assertEquals(400000L, resultMainAccount.getBalance());
+            assertEquals(10000L * threadCount, resultOtherAccount.getBalance());
         }
     }
 }

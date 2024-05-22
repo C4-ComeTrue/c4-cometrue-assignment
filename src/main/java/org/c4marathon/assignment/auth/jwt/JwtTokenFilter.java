@@ -42,7 +42,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         // Jwt Token에서 memberId 추출
-        Long memberId = JwtTokenUtil.getMemberEmail(authorizationHeader, secretKey);
+        Long memberId = JwtTokenUtil.getMemberId(authorizationHeader, secretKey);
 
         // loginUser 정보로 UsernamePasswordAuthenticationToken 발급
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
