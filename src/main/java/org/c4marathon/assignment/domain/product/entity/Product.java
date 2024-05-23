@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 		@Index(name = "amount_product_id_idx", columnList = "amount, product_id"),
 		@Index(name = "amount_desc_product_id_idx", columnList = "amount desc, product_id"),
 		@Index(name = "created_at_product_id_idx", columnList = "created_at desc, product_id"),
-		@Index(name = "avg_score_desc_product_id_idx", columnList = "avg_score desc, product_id asc"),
+		@Index(name = "avg_score_desc_product_id_idx", columnList = "avg_score desc, product_id"),
 		@Index(name = "order_count_desc_product_id_idx", columnList = "order_count desc, product_id")
 	}
 )
