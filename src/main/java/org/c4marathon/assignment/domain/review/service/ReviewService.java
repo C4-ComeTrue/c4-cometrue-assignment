@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.domain.review.service;
 
+import static org.c4marathon.assignment.domain.review.entity.ReviewFactory.*;
+
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.product.entity.Product;
@@ -18,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 public class ReviewService {
 
 	private final ReviewRepository reviewRepository;
-	private final ReviewFactory reviewFactory;
 	private final ProductReadService productReadService;
 	private final OrderProductReadService orderProductReadService;
 
@@ -40,7 +41,7 @@ public class ReviewService {
 		Product product = productReadService.findById(request.productId());
 		Long reviewCount = productReadService.findReviewCount(request.productId());
 		product.updateAvgScore(calculateAvgScore(product.getAvgScore(), reviewCount, request.score()));
-		reviewRepository.save(reviewFactory.buildReview(consumer.getId(), request));
+		reviewRepository.save(buildReview(consumer.getId(), request));
 	}
 
 	private Double calculateAvgScore(Double avgScore, Long reviewCount, int score) {
