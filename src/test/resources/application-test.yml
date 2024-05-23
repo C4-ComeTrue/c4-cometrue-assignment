@@ -12,7 +12,6 @@ spring:
     hibernate:
       ddl-auto: update
 
-
 logging:
   level:
     org:
@@ -22,3 +21,12 @@ logging:
 
         transaction:
           interceptor:
+      c4marathon:
+        assignment: INFO
+
+redis-stream:
+  stream-key: send-stream
+  consumer-group-name: send-group
+  consumer-name: send-consumer
+  claim-consumer-name: claim-consumer
+  is-test: false

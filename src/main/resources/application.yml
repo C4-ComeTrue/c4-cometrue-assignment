@@ -25,12 +25,13 @@ spring:
         use_sql_comments: true
     open-in-view: false
 
-  # Redis
   data:
     redis:
       host: ${redis.host}
-      port: ${redis.port}
       password: ${redis.password}
+      port: ${redis.port}
+
+
 
 logging:
   level:
@@ -42,3 +43,17 @@ logging:
         transaction:
           interceptor:
 
+bank-account:
+  deposit:
+    core-pool-size: 10
+    max-pool-size: 20
+    queue-capacity: 10
+    complete-on-shutdown: true
+
+redis-stream:
+  stream-key: send-stream
+  consumer-group-name: send-group
+  consumer-name: send-consumer
+  claim-consumer-name: claim-consumer
+  pending-time: 3000
+  is-test: false

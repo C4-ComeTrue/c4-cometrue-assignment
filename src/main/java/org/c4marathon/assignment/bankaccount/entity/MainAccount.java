@@ -1,7 +1,10 @@
 package org.c4marathon.assignment.bankaccount.entity;
 
+import java.time.LocalDateTime;
+
 import org.c4marathon.assignment.common.entity.BaseEntity;
 import org.c4marathon.assignment.common.utils.ConstValue;
+import org.hibernate.annotations.ColumnDefault;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,27 +26,60 @@ public class MainAccount extends BaseEntity {
 	@Column(name = "account_pk", nullable = false, updatable = false)
 	private long accountPk;
 
-	@Column(name = "charge_limit", nullable = false)
-	private long chargeLimit;
-
 	@Column(name = "money", nullable = false)
 	private long money;
 
+	// 최대 충전 한도
+	@Column(name = "charge_money", nullable = false)
+	@ColumnDefault("3000000")
+	private long chargeLimit;
+
+	// 추가로 충전할 수 있는 금액
+	@Column(name = "spare_money", nullable = false)
+	private long spareMoney;
+
 	public MainAccount() {
-		this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
 		this.money = 0L;
-	}
-
-	public MainAccount(long money) {
 		this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
-		this.money = money;
-	}
-
-	public void chargeMoney(long money) {
-		this.money += money;
+		this.spareMoney = ConstValue.LimitConst.CHARGE_LIMIT;
 	}
 
 	public void minusMoney(long money) {
 		this.money -= money;
+	}
+
+	/**
+	 * 최근 충전 일자가 당일이 아니라면 한도 갱신하는 메소드
+	 */
+	public void chargeCheck() {
+		int lastDay = this.getUpdatedAt().getDayOfMonth();
+		LocalDateTime now = LocalDateTime.now();
+		int nowDay = now.getDayOfMonth();
+		if (lastDay != nowDay) {
+			this.setUpdatedAt(now);
+			this.chargeLimit = ConstValue.LimitConst.CHARGE_LIMIT;
+			this.spareMoney = ConstValue.LimitConst.CHARGE_LIMIT;
+		}
+	}
+
+	public boolean canCharge(long money) {
+		boolean result = false;
+		if (this.spareMoney >= money) {
+			result = true;
+		}
+		return result;
+	}
+
+	public void charge(long money) {
+		this.spareMoney -= money;
+		this.money += money;
+	}
+
+	public boolean canSend(long money) {
+		boolean result = false;
+		if (this.money >= money) {
+			result = true;
+		}
+		return result;
 	}
 }

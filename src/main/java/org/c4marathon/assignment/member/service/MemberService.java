@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.member.service;
 
 import org.c4marathon.assignment.bankaccount.entity.MainAccount;
-import org.c4marathon.assignment.bankaccount.limit.ChargeLimitManager;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.member.dto.request.SignInRequestDto;
 import org.c4marathon.assignment.member.dto.request.SignUpRequestDto;
@@ -22,7 +21,6 @@ public class MemberService {
 
 	private final MemberRepository memberRepository;
 	private final MainAccountRepository mainAccountRepository;
-	private final ChargeLimitManager chargeLimitManager;
 	private final PasswordEncoder passwordEncoder;
 
 	@Transactional
