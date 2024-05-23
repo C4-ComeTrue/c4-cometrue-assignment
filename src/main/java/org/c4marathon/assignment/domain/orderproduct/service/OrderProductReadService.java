@@ -2,6 +2,7 @@ package org.c4marathon.assignment.domain.orderproduct.service;
 
 import java.util.List;
 
+import org.c4marathon.assignment.domain.order.repository.OrderRepository;
 import org.c4marathon.assignment.domain.orderproduct.entity.OrderProduct;
 import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductRepository;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class OrderProductReadService {
 
 	private final OrderProductRepository orderProductRepository;
+	private final OrderRepository orderRepository;
 
 	/**
 	 * Product와 조인한 OrderProduct list를 orderId로 조회
@@ -37,6 +39,6 @@ public class OrderProductReadService {
 	@Transactional(readOnly = true)
 	public boolean existsByConsumerIdAndProductId(Long consumerId, Long productId) {
 		List<Long> orderIds = orderProductRepository.findOrderIdByProductId(productId);
-		return orderProductRepository.countByIdsAndConsumerId(orderIds, consumerId) > 0;
+		return orderRepository.existsByConsumerIdAndIdIn(consumerId, orderIds);
 	}
 }
