@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.domain.product.dto.request;
 
+import static java.util.Objects.*;
+
 import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.global.constant.SortType;
@@ -32,16 +34,12 @@ public record ProductSearchRequest(
 	) {
 		this.keyword = keyword;
 		this.sortType = sortType;
-		this.createdAt = setDefaultValue(createdAt, LocalDateTime.now());
-		this.productId = setDefaultValue(productId, Long.MIN_VALUE);
-		this.amount = setDefaultValue(amount, getDefaultAmount(sortType));
-		this.orderCount = setDefaultValue(orderCount, Long.MAX_VALUE);
-		this.score = setDefaultValue(score, Double.MAX_VALUE);
+		this.createdAt = requireNonNullElse(createdAt, LocalDateTime.now());
+		this.productId = requireNonNullElse(productId, Long.MIN_VALUE);
+		this.amount = requireNonNullElse(amount, getDefaultAmount(sortType));
+		this.orderCount = requireNonNullElse(orderCount, Long.MAX_VALUE);
+		this.score = requireNonNullElse(score, Double.MAX_VALUE);
 		this.pageSize = pageSize;
-	}
-
-	private <T> T setDefaultValue(T value, T defaultValue) {
-		return value != null ? value : defaultValue;
 	}
 
 	private Long getDefaultAmount(SortType sortType) {
