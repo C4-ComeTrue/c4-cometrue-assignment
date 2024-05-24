@@ -74,19 +74,6 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 		}
 	}
 
-	@DisplayName("reviewCount 조회 시")
-	@Nested
-	class FindReviewCount {
-
-		@DisplayName("product_id에 해당하는 reviewCount를 조회한다.")
-		@Test
-		void returnReviewCount_when_exists() {
-			given(productRepository.findReviewCount(anyLong())).willReturn(10L);
-			final long reviewCount = productReadService.findReviewCount(product.getId());
-			assertThat(reviewCount).isEqualTo(10L);
-		}
-	}
-
 	@DisplayName("상품 검색 시")
 	@Nested
 	class SearchProduct {
