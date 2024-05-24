@@ -32,7 +32,7 @@
             </when>
             <when test="sortType.name() == 'POPULARITY'">
                 and (p.order_count &lt; #{orderCount}
-                    or (p.order_count = #{orderCount} and p.product_id &gt; #{productId}))
+                or (p.order_count = #{orderCount} and p.product_id &gt; #{productId}))
                 order by p.order_count desc, p.product_id
             </when>
             <when test="sortType.name() == 'TOP_RATED'">
