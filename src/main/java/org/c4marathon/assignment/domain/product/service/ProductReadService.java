@@ -1,10 +1,9 @@
 package org.c4marathon.assignment.domain.product.service;
 
-import java.util.List;
-
 import org.c4marathon.assignment.domain.product.dto.request.ProductSearchRequest;
 import org.c4marathon.assignment.domain.product.dto.response.ProductSearchResponse;
 import org.c4marathon.assignment.domain.product.entity.Product;
+import org.c4marathon.assignment.domain.product.repository.ProductMapper;
 import org.c4marathon.assignment.domain.product.repository.ProductRepository;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.global.error.ErrorCode;
@@ -18,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductReadService {
 
 	private final ProductRepository productRepository;
+	private final ProductMapper productMapper;
 
 	/**
 	 * Seller와 product.name으로 Product 존재 여부 확인
@@ -36,11 +36,6 @@ public class ProductReadService {
 			.orElseThrow(() -> ErrorCode.PRODUCT_NOT_FOUND.baseException("id: %d", id));
 	}
 
-	@Transactional(readOnly = true)
-	public Long findReviewCount(Long productId) {
-		return productRepository.findReviewCount(productId);
-	}
-
 	/**
 	 * sortType에 해당하는 조건으로 pagination
 	 * Newest: 최신순, created_at desc, product_id asc
@@ -51,21 +46,6 @@ public class ProductReadService {
 	 */
 	@Transactional(readOnly = true)
 	public ProductSearchResponse searchProduct(ProductSearchRequest request) {
-		String keyword = toQueryKeyword(request.keyword());
-		Long productId = request.productId();
-		int pageSize = request.pageSize();
-
-		List<Product> products = switch (request.sortType()) {
-			case NEWEST -> productRepository.findByNewest(keyword, request.createdAt(), productId, pageSize);
-			case PRICE_ASC -> productRepository.findByPriceAsc(keyword, request.amount(), productId, pageSize);
-			case PRICE_DESC -> productRepository.findByPriceDesc(keyword, request.amount(), productId, pageSize);
-			case POPULARITY -> productRepository.findByPopularity(keyword, request.orderCount(), productId, pageSize);
-			case TOP_RATED -> productRepository.findByTopRated(keyword, request.score(), productId, pageSize);
-		};
-		return ProductSearchResponse.of(products);
-	}
-
-	private String toQueryKeyword(String keyword) {
-		return "%" + keyword + "%";
+		return new ProductSearchResponse(productMapper.selectByCondition(request));
 	}
 }

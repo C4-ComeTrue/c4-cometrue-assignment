@@ -14,8 +14,8 @@ import org.c4marathon.assignment.domain.orderproduct.repository.OrderProductRepo
 import org.c4marathon.assignment.domain.pay.repository.PayRepository;
 import org.c4marathon.assignment.domain.pointlog.repository.PointLogRepository;
 import org.c4marathon.assignment.domain.product.entity.Product;
+import org.c4marathon.assignment.domain.product.repository.ProductMapper;
 import org.c4marathon.assignment.domain.product.repository.ProductRepository;
-import org.c4marathon.assignment.domain.review.entity.ReviewFactory;
 import org.c4marathon.assignment.domain.review.repository.ReviewRepository;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.domain.seller.repository.SellerRepository;
@@ -47,7 +47,7 @@ public abstract class ServiceTestSupport {
 	@Mock
 	protected ReviewRepository reviewRepository;
 	@Mock
-	protected ReviewFactory reviewFactory;
+	protected ProductMapper productMapper;
 
 	@Mock
 	protected Order order;

@@ -18,6 +18,9 @@ spring:
       maximum-pool-size: 10
     url: jdbc:mysql://localhost:3306/community?rewriteBatchedStatements=true
 
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+
 logging:
   level:
     org.c4marathon.assignment.global.error: debug
