@@ -2,6 +2,8 @@ package org.c4marathon.assignment.domain.product.entity;
 
 import static org.c4marathon.assignment.global.constant.ProductStatus.*;
 
+import java.math.BigDecimal;
+
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.global.constant.ProductStatus;
@@ -71,7 +73,7 @@ public class Product extends BaseEntity {
 
 	@NotNull
 	@Column(name = "avg_score", columnDefinition = "DECIMAL(5, 4) DEFAULT 0.0000")
-	private Double avgScore;
+	private BigDecimal avgScore;
 
 	@NotNull
 	@Column(name = "order_count", columnDefinition = "BIGINT DEFAULT 0")
@@ -92,7 +94,7 @@ public class Product extends BaseEntity {
 		this.seller = seller;
 		this.productStatus = IN_STOCK;
 		this.orderCount = 0L;
-		this.avgScore = (double)0;
+		this.avgScore = BigDecimal.ZERO;
 	}
 
 	public void decreaseStock(Integer quantity) {
@@ -110,7 +112,7 @@ public class Product extends BaseEntity {
 		this.orderCount++;
 	}
 
-	public void updateAvgScore(Double avgScore) {
+	public void updateAvgScore(BigDecimal avgScore) {
 		this.avgScore = avgScore;
 	}
 }

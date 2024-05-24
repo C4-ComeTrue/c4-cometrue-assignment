@@ -3,6 +3,8 @@ package org.c4marathon.assignment.domain.entity;
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.constant.ProductStatus.*;
 
+import java.math.BigDecimal;
+
 import org.c4marathon.assignment.domain.product.entity.Product;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,8 +46,8 @@ public class ProductTest {
 			assertThat(product.isSoldOut()).isTrue();
 			product.increaseOrderCount();
 			assertThat(product.getOrderCount()).isEqualTo(1);
-			product.updateAvgScore(1.0);
-			assertThat(product.getAvgScore()).isEqualTo(1.0);
+			product.updateAvgScore(BigDecimal.ONE);
+			assertThat(product.getAvgScore()).isEqualTo(BigDecimal.ONE);
 		}
 	}
 }

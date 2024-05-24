@@ -3,6 +3,8 @@ package org.c4marathon.assignment.domain.service.review;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.math.BigDecimal;
+
 import org.c4marathon.assignment.domain.orderproduct.service.OrderProductReadService;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.review.dto.request.ReviewCreateRequest;
@@ -35,15 +37,15 @@ public class ReviewServiceTest extends ServiceTestSupport {
 			ReviewCreateRequest request = new ReviewCreateRequest(3, "comment", 1);
 
 			given(productReadService.findById(anyLong())).willReturn(product);
-			given(product.getAvgScore()).willReturn(0.0);
-			given(productReadService.findReviewCount(anyLong())).willReturn(0L);
+			given(product.getAvgScore()).willReturn(BigDecimal.ZERO);
+			given(reviewRepository.countByProductId(anyLong())).willReturn(0L);
 			given(orderProductReadService.existsByConsumerIdAndProductId(anyLong(), anyLong())).willReturn(true);
 
 			reviewService.createReview(consumer, request);
 
 			then(product)
 				.should(times(1))
-				.updateAvgScore(anyDouble());
+				.updateAvgScore(any(BigDecimal.class));
 			then(reviewRepository)
 				.should(times(1))
 				.save(any());
