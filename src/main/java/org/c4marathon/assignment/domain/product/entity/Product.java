@@ -2,6 +2,8 @@ package org.c4marathon.assignment.domain.product.entity;
 
 import static org.c4marathon.assignment.global.constant.ProductStatus.*;
 
+import java.math.BigDecimal;
+
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.global.constant.ProductStatus;
@@ -28,7 +30,12 @@ import lombok.NoArgsConstructor;
 @Table(
 	name = "product_tbl",
 	indexes = {
-		@Index(name = "product_name_seller_id_idx", columnList = "name,seller_id")
+		@Index(name = "product_name_seller_id_idx", columnList = "name,seller_id"),
+		@Index(name = "amount_product_id_idx", columnList = "amount, product_id"),
+		@Index(name = "amount_desc_product_id_idx", columnList = "amount desc, product_id"),
+		@Index(name = "created_at_product_id_idx", columnList = "created_at desc, product_id"),
+		@Index(name = "avg_score_desc_product_id_idx", columnList = "avg_score desc, product_id"),
+		@Index(name = "order_count_desc_product_id_idx", columnList = "order_count desc, product_id")
 	}
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -64,6 +71,14 @@ public class Product extends BaseEntity {
 	@Column(name = "status", columnDefinition = "VARCHAR(20)")
 	private ProductStatus productStatus;
 
+	@NotNull
+	@Column(name = "avg_score", columnDefinition = "DECIMAL(5, 4) DEFAULT 0.0000")
+	private BigDecimal avgScore;
+
+	@NotNull
+	@Column(name = "order_count", columnDefinition = "BIGINT DEFAULT 0")
+	private Long orderCount;
+
 	@Builder
 	public Product(
 		String name,
@@ -78,6 +93,8 @@ public class Product extends BaseEntity {
 		this.stock = stock;
 		this.seller = seller;
 		this.productStatus = IN_STOCK;
+		this.orderCount = 0L;
+		this.avgScore = BigDecimal.ZERO;
 	}
 
 	public void decreaseStock(Integer quantity) {
@@ -89,5 +106,13 @@ public class Product extends BaseEntity {
 
 	public boolean isSoldOut() {
 		return this.productStatus == OUT_OF_STOCK;
+	}
+
+	public void increaseOrderCount() {
+		this.orderCount++;
+	}
+
+	public void updateAvgScore(BigDecimal avgScore) {
+		this.avgScore = avgScore;
 	}
 }

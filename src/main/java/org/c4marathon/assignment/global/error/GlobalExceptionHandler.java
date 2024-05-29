@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
@@ -31,6 +32,14 @@ public class GlobalExceptionHandler {
 			fieldError.getField(), fieldError.getRejectedValue(), fieldError.getDefaultMessage());
 		return new ResponseEntity<>(
 			new BindExceptionResponse(BIND_ERROR.name(), BIND_ERROR.getMessage(), fieldError.getField()),
+			HttpStatus.BAD_REQUEST
+		);
+	}
+
+	@ExceptionHandler(value = ConstraintViolationException.class)
+	public ResponseEntity<ExceptionResponse> constraintViolationException() {
+		return new ResponseEntity<>(
+			new ExceptionResponse(BIND_ERROR.name(), BIND_ERROR.getMessage()),
 			HttpStatus.BAD_REQUEST
 		);
 	}

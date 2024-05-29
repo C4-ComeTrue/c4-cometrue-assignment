@@ -29,7 +29,9 @@ public enum ErrorCode {
 	CONFIRM_NOT_AVAILABLE(BAD_REQUEST, "구매 확정이 불가능한 상태입니다."),
 	NOT_ENOUGH_PRODUCT_STOCK(BAD_REQUEST, "상품의 재고가 부족합니다."),
 	NOT_ENOUGH_POINT(BAD_REQUEST, "사용할 포인트가 부족합니다."),
-	CONSUMER_NOT_FOUND_BY_ID(NOT_FOUND, "id에 해당하는 Consumer가 존재하지 않습니다.");
+	CONSUMER_NOT_FOUND_BY_ID(NOT_FOUND, "id에 해당하는 Consumer가 존재하지 않습니다."),
+	REVIEW_ALREADY_EXISTS(CONFLICT, "해당 product에 대한 review가 이미 존재합니다."),
+	NOT_POSSIBLE_CREATE_REVIEW(NOT_FOUND, "해당 product에 대한 구매 이력이 존재하지 않거나, 리뷰 작성 가능 기간이 지났습니다.");
 
 	private final HttpStatus status;
 	private final String message;

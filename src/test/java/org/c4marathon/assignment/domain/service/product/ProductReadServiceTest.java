@@ -1,19 +1,27 @@
 package org.c4marathon.assignment.domain.service.product;
 
+import static java.util.Comparator.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
 import static org.mockito.BDDMockito.*;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.c4marathon.assignment.domain.product.dto.request.ProductSearchRequest;
+import org.c4marathon.assignment.domain.product.dto.response.ProductSearchEntry;
+import org.c4marathon.assignment.domain.product.dto.response.ProductSearchResponse;
 import org.c4marathon.assignment.domain.product.service.ProductReadService;
 import org.c4marathon.assignment.domain.seller.entity.Seller;
 import org.c4marathon.assignment.domain.service.ServiceTestSupport;
+import org.c4marathon.assignment.global.constant.SortType;
 import org.c4marathon.assignment.global.error.BaseException;
 import org.c4marathon.assignment.global.error.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 
 public class ProductReadServiceTest extends ServiceTestSupport {
@@ -63,6 +71,32 @@ public class ProductReadServiceTest extends ServiceTestSupport {
 			assertThatThrownBy(() -> productReadService.findById(product.getId() + 1))
 				.isInstanceOf(exception.getClass())
 				.hasMessage(exception.getMessage());
+		}
+	}
+
+	@DisplayName("상품 검색 시")
+	@Nested
+	class SearchProduct {
+
+		@DisplayName("정렬된 순서로 조회된다.")
+		@ParameterizedTest
+		@EnumSource(value = SortType.class)
+		void returnSortedList_when_searchProduct(SortType sortType) {
+			ProductSearchRequest request = new ProductSearchRequest("ab", sortType, null, null, null, null, null, 100);
+			ProductSearchResponse response = productReadService.searchProduct(request);
+			List<ProductSearchEntry> result = response.productSearchEntries();
+
+			switch (sortType) {
+				case TOP_RATED ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::avgScore).reversed());
+				case NEWEST ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::createdAt).reversed());
+				case PRICE_ASC -> assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::amount));
+				case PRICE_DESC ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::amount).reversed());
+				case POPULARITY ->
+					assertThat(result).isSortedAccordingTo(comparing(ProductSearchEntry::orderCount).reversed());
+			}
 		}
 	}
 }

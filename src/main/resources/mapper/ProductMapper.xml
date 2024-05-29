@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.c4marathon.assignment.domain.product.repository.ProductMapper">
+    <select id="selectByCondition"
+            parameterType="org.c4marathon.assignment.domain.product.dto.request.ProductSearchRequest"
+            resultType="org.c4marathon.assignment.domain.product.dto.response.ProductSearchEntry">
+        select
+        p.product_id as id,
+        p.name as name,
+        p.description as description,
+        p.amount as amount,
+        p.stock as stock,
+        p.created_at as createdAt,
+        p.order_count as orderCount,
+        p.avg_score as avgScore
+        from product_tbl p
+        where name like CONCAT('%', #{keyword}, '%')
+        <choose>
+            <when test="sortType.name() == 'NEWEST'">
+                and (p.created_at &lt; #{createdAt} or (p.created_at = #{createdAt} and p.product_id &gt; #{productId}))
+                order by p.created_at desc, p.product_id
+            </when>
+            <when test="sortType.name() == 'PRICE_ASC'">
+                and (p.amount &gt; #{amount} or (p.amount = #{amount} and p.product_id &gt; #{productId}))
+                order by p.amount, p.product_id
+            </when>
+            <when test="sortType.name() == 'PRICE_DESC'">
+                and (p.amount &lt; #{amount} or (p.amount = #{amount} and p.product_id &gt; #{productId}))
+                order by p.amount desc, p.product_id
+            </when>
+            <when test="sortType.name() == 'POPULARITY'">
+                and (p.order_count &lt; #{orderCount}
+                or (p.order_count = #{orderCount} and p.product_id &gt; #{productId}))
+                order by p.order_count desc, p.product_id
+            </when>
+            <when test="sortType.name() == 'TOP_RATED'">
+                and (p.avg_score &lt; #{score} or (p.avg_score = #{score} and p.product_id &gt; #{productId}))
+                order by p.avg_score desc, p.product_id
+            </when>
+        </choose>
+        limit #{pageSize}
+    </select>
+</mapper>
