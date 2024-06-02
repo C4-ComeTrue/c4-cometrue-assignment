@@ -31,6 +31,10 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'com.mysql:mysql-connector-j:8.4.0'
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.3.0'
+
 }
 
 checkstyle {
@@ -59,3 +63,4 @@ sonar {
         property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml"
     }
 }
+apply plugin: 'java'
