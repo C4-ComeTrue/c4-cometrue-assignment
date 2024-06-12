@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.global.configuration;
 
+import org.c4marathon.assignment.global.interceptor.AdminInterceptor;
 import org.c4marathon.assignment.global.interceptor.ConsumerInterceptor;
 import org.c4marathon.assignment.global.interceptor.DeliveryCompanyInterceptor;
 import org.c4marathon.assignment.global.interceptor.SellerInterceptor;
@@ -16,6 +17,7 @@ public class WebConfiguration implements WebMvcConfigurer {
 	private final ConsumerInterceptor consumerInterceptor;
 	private final SellerInterceptor sellerInterceptor;
 	private final DeliveryCompanyInterceptor deliveryCompanyInterceptor;
+	private final AdminInterceptor adminInterceptor;
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
@@ -30,5 +32,8 @@ public class WebConfiguration implements WebMvcConfigurer {
 		registry
 			.addInterceptor(deliveryCompanyInterceptor)
 			.addPathPatterns("/orders/deliveries/**");
+		registry
+			.addInterceptor(adminInterceptor)
+			.addPathPatterns("/event/**");
 	}
 }
