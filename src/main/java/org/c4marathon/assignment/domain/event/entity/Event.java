@@ -31,7 +31,7 @@ public class Event extends BaseEntity {
 	private Long id;
 
 	@NotNull
-	@Column(name = "name", columnDefinition = "VARCHAR(30)")
+	@Column(name = "name", columnDefinition = "VARCHAR(30)", unique = true)
 	private String name;
 
 	@NotNull

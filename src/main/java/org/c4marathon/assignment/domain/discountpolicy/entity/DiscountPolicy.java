@@ -31,6 +31,10 @@ public class DiscountPolicy extends BaseEntity {
 	@Column(name = "discount_policy_id", columnDefinition = "BIGINT")
 	private Long id;
 
+	@NotNull
+	@Column(name = "name", columnDefinition = "VARCHAR(20)", unique = true)
+	private String name;
+
 	@Enumerated(value = EnumType.STRING)
 	@NotNull
 	@Column(name = "discount_type", columnDefinition = "VARCHAR(20)")
