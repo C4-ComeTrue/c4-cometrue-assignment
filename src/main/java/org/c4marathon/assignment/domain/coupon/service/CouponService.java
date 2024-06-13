@@ -19,6 +19,7 @@ public class CouponService {
 	private final CouponRepository couponRepository;
 	private final DiscountPolicyReadService discountPolicyReadService;
 	private final EventReadService eventReadService;
+	private final CouponReadService couponReadService;
 
 	@Transactional
 	public void createCoupon(CreateCouponRequest request) {
@@ -33,6 +34,9 @@ public class CouponService {
 		}
 		if (!eventReadService.existsById(request.eventId())) {
 			throw EVENT_NOT_FOUND.baseException();
+		}
+		if (couponReadService.existsByName(request.name())) {
+			throw ALREADY_COUPON_EXISTS.baseException();
 		}
 	}
 }

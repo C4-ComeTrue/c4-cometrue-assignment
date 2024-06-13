@@ -35,7 +35,8 @@ public enum ErrorCode {
 	ALREADY_EVENT_EXISTS(CONFLICT, "해당 name에 대한 event가 이미 존재합니다."),
 	ALREADY_DISCOUNT_POLICY_EXISTS(CONFLICT, "해당 name에 대한 discount_policy가 이미 존재합니다."),
 	DISCOUNT_POLICY_NOT_FOUND(NOT_FOUND, "요청에 해당하는 discount_policy가 존재하지 않습니다."),
-	EVENT_NOT_FOUND(NOT_FOUND, "요청에 해당하는 event가 존재하지 않습니다.");
+	EVENT_NOT_FOUND(NOT_FOUND, "요청에 해당하는 event가 존재하지 않습니다."),
+	ALREADY_COUPON_EXISTS(CONFLICT, "해당 name에 대한 coupon이 이미 존재합니다.");
 
 	private final HttpStatus status;
 	private final String message;

@@ -34,6 +34,6 @@ public class WebConfiguration implements WebMvcConfigurer {
 			.addPathPatterns("/orders/deliveries/**");
 		registry
 			.addInterceptor(adminInterceptor)
-			.addPathPatterns("/event/**", "/discount-policy/**");
+			.addPathPatterns("/event/**", "/discount-policy/**", "/coupons/**");
 	}
 }
