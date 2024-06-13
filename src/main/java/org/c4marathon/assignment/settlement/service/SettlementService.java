@@ -1,6 +1,5 @@
 package org.c4marathon.assignment.settlement.service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,6 +9,7 @@ import org.c4marathon.assignment.settlement.document.MemberInfoDocument;
 import org.c4marathon.assignment.settlement.document.SettlementInfoDocument;
 import org.c4marathon.assignment.settlement.dto.request.DivideMoneyRequestDto;
 import org.c4marathon.assignment.settlement.exception.SettlementErrorCode;
+import org.c4marathon.assignment.settlement.util.RandomUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -39,7 +39,6 @@ public class SettlementService {
 		}
 		long minMoney = requestDto.totalMoney() / totalNumber; // 1인당 보내야 하는 최소 금액
 		long leftMoney = requestDto.totalMoney() % totalNumber; // 최소 금액을 뺀 나머지 금액
-		List<Long> personalSendMoney = new ArrayList<>(Collections.nCopies(totalNumber, minMoney));
 
 		// 랜덤으로 정렬하여 앞에서부터 leftMoney 한도 내에서 1원씩 받도록 한다.
 		List<MemberInfoDocument> memberInfoList = requestDto.memberInfoList()
@@ -64,5 +63,44 @@ public class SettlementService {
 			// TODO 서버 -> 클라이언트 메세지 보내기..?
 		}
 
+	}
+
+	public void divideRandom(long requestAccountPk, String requestMemberName, DivideMoneyRequestDto requestDto) {
+		int totalNumber = requestDto.totalNumber();
+		if (totalNumber != requestDto.memberInfoList().size()) {
+			throw SettlementErrorCode.WRONG_PARAMETER.settlementException(
+				"totalNumber = " + totalNumber + ", list size = " + requestDto.memberInfoList().size());
+		}
+		long totalMoney = requestDto.totalMoney();
+		long initMoney = totalMoney / (totalNumber * 2);
+
+		List<MemberInfoDocument> memberInfoList = requestDto.memberInfoList()
+			.stream()
+			.map(member -> new MemberInfoDocument(member.accountPk(), member.memberName(), initMoney))
+			.collect(
+				Collectors.toList());
+		Collections.shuffle(memberInfoList);
+		totalMoney -= (initMoney * totalNumber);
+
+		long randomMoney;
+		for (int i = 0; i < totalNumber - 1; i++) {
+			randomMoney = RandomUtils.getRandomMoney(totalMoney + 1);
+			memberInfoList.get(i).plusRandomMoney(randomMoney);
+			totalMoney -= randomMoney;
+
+		}
+		memberInfoList.get(totalNumber - 1).plusRandomMoney(totalMoney);
+
+		SettlementInfoDocument settleInfo = new SettlementInfoDocument(requestAccountPk, requestMemberName, totalNumber,
+			requestDto.totalMoney(),
+			memberInfoList);
+
+		try {
+			mongoTemplate.insert(settleInfo);
+		} catch (DataAccessException exception) {
+			throw CommonErrorCode.INTERNAL_SERVER_ERROR.commonException("정산 데이터 저장 실패");
+		} finally {
+			// TODO 서버 -> 클라이언트 메세지 보내기..?
+		}
 	}
 }

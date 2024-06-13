@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record DivideMoneyRequestDto(
-	@Max(value = 5, message = "정산은 최대 50명까지 가능합니다.")
+	@Max(value = 50, message = "정산은 최대 50명까지 가능합니다.")
 	@Min(value = 1, message = "정산은 최소 1명 이상부터 가능합니다.")
 	int totalNumber,
 

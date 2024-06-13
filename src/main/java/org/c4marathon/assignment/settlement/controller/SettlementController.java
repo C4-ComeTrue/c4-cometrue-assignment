@@ -31,4 +31,14 @@ public class SettlementController {
 		settleService.divideEqually(memberInfo.mainAccountPk(), memberInfo.memberName(), requestDto);
 	}
 
+	/**
+	 * 랜덤 정산
+	 */
+	@ResponseStatus(HttpStatus.OK)
+	@PostMapping("/random")
+	public void divideMoneyRandom(@Login SessionMemberInfo memberInfo,
+		@Valid @RequestBody DivideMoneyRequestDto requestDto) {
+		settleService.divideRandom(memberInfo.mainAccountPk(), memberInfo.memberName(), requestDto);
+	}
+
 }
