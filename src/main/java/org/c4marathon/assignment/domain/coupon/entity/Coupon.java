@@ -50,10 +50,6 @@ public class Coupon extends BaseEntity {
 	private Long discountPolicyId;
 
 	@NotNull
-	@Column(name = "serial_number", columnDefinition = "VARCHAR(30)", updatable = false)
-	private String serialNumber;
-
-	@NotNull
 	@Column(name = "event_id", columnDefinition = "BIGINT")
 	private Long eventId;
 
@@ -81,7 +77,6 @@ public class Coupon extends BaseEntity {
 		CouponType couponType,
 		Boolean redundantUsable,
 		Long discountPolicyId,
-		String serialNumber,
 		Long eventId,
 		LocalDateTime validity,
 		Long maximumUsage,
@@ -91,7 +86,6 @@ public class Coupon extends BaseEntity {
 		this.couponType = couponType;
 		this.redundantUsable = redundantUsable;
 		this.discountPolicyId = discountPolicyId;
-		this.serialNumber = serialNumber;
 		this.eventId = eventId;
 		this.validity = validity;
 		this.maximumUsage = maximumUsage;

@@ -16,4 +16,9 @@ public class DiscountPolicyReadService {
 	public boolean existsByName(String name) {
 		return discountPolicyRepository.existsByName(name);
 	}
+
+	@Transactional(readOnly = true)
+	public boolean existsById(Long id) {
+		return discountPolicyRepository.existsById(id);
+	}
 }

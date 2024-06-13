@@ -16,4 +16,9 @@ public class EventReadService {
 	public boolean existsByName(String name) {
 		return eventRepository.existsByName(name);
 	}
+
+	@Transactional(readOnly = true)
+	public boolean existsById(Long id) {
+		return eventRepository.existsById(id);
+	}
 }
