@@ -17,6 +17,9 @@ public record DivideMoneyRequestDto(
 	@Positive(message = "정산 금액은 1원 이상부터 가능합니다.")
 	long totalMoney,
 
+	@NotNull(message = "정산 방식을 입력해 주세요.")
+	Boolean isRandom,
+
 	@Valid
 	@NotNull(message = "계좌 정보를 입력해 주세요.")
 	@Size(min = 1, message = "정산은 최소 1명 이상부터 가능합니다.")

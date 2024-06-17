@@ -1,9 +1,7 @@
 package org.c4marathon.assignment.settlement.document;
 
 import lombok.Getter;
-import lombok.ToString;
 
-@ToString
 @Getter
 public class MemberInfoDocument {
 	private long accountPk;
