@@ -8,10 +8,13 @@ import org.c4marathon.assignment.common.exception.CommonErrorCode;
 import org.c4marathon.assignment.settlement.document.MemberInfoDocument;
 import org.c4marathon.assignment.settlement.document.SettlementInfoDocument;
 import org.c4marathon.assignment.settlement.dto.request.DivideMoneyRequestDto;
+import org.c4marathon.assignment.settlement.dto.response.SettlementInfoResponseDto;
 import org.c4marathon.assignment.settlement.exception.SettlementErrorCode;
 import org.c4marathon.assignment.settlement.util.RandomUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -44,7 +47,6 @@ public class SettlementService {
 		} else {
 			memberInfoList = getEquallySettlementInfo(requestDto, totalNumber);
 		}
-		System.out.println(memberInfoList);
 
 		SettlementInfoDocument settleInfo = new SettlementInfoDocument(requestAccountPk, requestMemberName, totalNumber,
 			requestDto.totalMoney(),
@@ -56,6 +58,22 @@ public class SettlementService {
 			throw CommonErrorCode.INTERNAL_SERVER_ERROR.commonException("정산 데이터 저장 실패");
 		}
 
+	}
+
+	/**
+	 *
+	 * 자신의 계좌가 포함된 정산 요청 리스트를 반환한다.
+	 */
+	public List<SettlementInfoResponseDto> getSettlementInfoList(long accountPk) {
+		try {
+			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk));
+			return mongoTemplate.find(query, SettlementInfoDocument.class)
+				.stream()
+				.map(settlementInfoDocument -> new SettlementInfoResponseDto(settlementInfoDocument))
+				.collect(Collectors.toList());
+		} catch (DataAccessException exception) {
+			throw CommonErrorCode.INTERNAL_SERVER_ERROR.commonException("정산 데이터 조회 실패");
+		}
 	}
 
 	private List<MemberInfoDocument> getEquallySettlementInfo(DivideMoneyRequestDto requestDto, int totalNumber) {

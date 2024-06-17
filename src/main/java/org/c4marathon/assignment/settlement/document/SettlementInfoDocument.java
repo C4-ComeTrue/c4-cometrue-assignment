@@ -8,10 +8,12 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.persistence.Id;
+import lombok.Getter;
 import lombok.ToString;
 
 @Document(collection = "settle_info")
 @ToString
+@Getter
 public class SettlementInfoDocument {
 	@Id
 	private ObjectId id;

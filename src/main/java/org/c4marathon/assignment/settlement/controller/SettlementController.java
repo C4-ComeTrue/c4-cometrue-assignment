@@ -1,13 +1,18 @@
 package org.c4marathon.assignment.settlement.controller;
 
+import java.util.List;
+
 import org.c4marathon.assignment.common.annotation.Login;
 import org.c4marathon.assignment.member.session.SessionMemberInfo;
 import org.c4marathon.assignment.settlement.dto.request.DivideMoneyRequestDto;
+import org.c4marathon.assignment.settlement.dto.response.SettlementInfoResponseDto;
 import org.c4marathon.assignment.settlement.service.SettlementService;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +35,19 @@ public class SettlementController {
 	public void divideMoney(@Login SessionMemberInfo memberInfo,
 		@Valid @RequestBody DivideMoneyRequestDto requestDto) {
 		settleService.divideMoney(memberInfo.mainAccountPk(), memberInfo.memberName(), requestDto);
+	}
+
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping("/info/list")
+	public List<SettlementInfoResponseDto> getSettlementInfoList(@Login SessionMemberInfo memberInfo) {
+		return settleService.getSettlementInfoList(memberInfo.mainAccountPk());
+	}
+
+	@ResponseStatus(HttpStatus.OK)
+	@GetMapping("/info")
+	public void getSettlementInfo(@Login SessionMemberInfo memberInfo,
+		@RequestParam("settlementId") String settlementId) {
+
 	}
 
 }
