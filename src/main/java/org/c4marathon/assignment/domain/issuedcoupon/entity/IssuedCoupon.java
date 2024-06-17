@@ -31,8 +31,8 @@ public class IssuedCoupon extends BaseEntity {
 	private Long couponId;
 
 	@NotNull
-	@Column(name = "is_used", columnDefinition = "BIT default 0")
-	private Boolean isUsed;
+	@Column(name = "used_count", columnDefinition = "BIGINT")
+	private Long usedCount;
 
 	@NotNull
 	@Column(name = "consumer_id", columnDefinition = "BIGINT")
