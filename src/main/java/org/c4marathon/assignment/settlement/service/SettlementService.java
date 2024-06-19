@@ -51,6 +51,7 @@ public class SettlementService {
 		SettlementInfoDocument settleInfo = new SettlementInfoDocument(requestAccountPk, requestMemberName, totalNumber,
 			requestDto.totalMoney(),
 			memberInfoList);
+		System.out.println(settleInfo);
 
 		try {
 			mongoTemplate.insert(settleInfo);
