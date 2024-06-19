@@ -46,7 +46,7 @@ class MainAccountControllerTest {
 	@BeforeEach
 	void initSession() {
 		session = new MockHttpSession();
-		SessionMemberInfo memberInfo = new SessionMemberInfo(1L, "testId", 1L);
+		SessionMemberInfo memberInfo = new SessionMemberInfo(1L, "testId", "testName", 1L);
 		session.setAttribute(SessionConst.MEMBER_INFO, memberInfo);
 	}
 
