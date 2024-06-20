@@ -180,7 +180,7 @@ class SettlementControllerTest {
 			given(settlementService.getSettlementInfoList(anyLong())).willReturn(responseDto);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/info/list").session(session));
+			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/info").session(session));
 
 			// Then
 			String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
