@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.domain.coupon.entity;
 
+import static java.util.Objects.*;
+
 import org.c4marathon.assignment.domain.coupon.dto.request.CreateCouponRequest;
 
 import lombok.AccessLevel;
@@ -16,8 +18,8 @@ public class CouponFactory {
 			.discountPolicyId(request.discountPolicyId())
 			.eventId(request.eventId())
 			.validity(request.validity())
-			.maximumUsage(request.maximumUsage())
-			.maximumIssued(request.maximumIssued())
+			.maximumUsage(requireNonNullElse(request.maximumUsage(), Long.MAX_VALUE))
+			.maximumIssued(requireNonNullElse(request.maximumIssued(), Long.MAX_VALUE))
 			.build();
 	}
 }
