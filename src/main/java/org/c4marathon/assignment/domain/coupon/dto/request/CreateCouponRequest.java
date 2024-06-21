@@ -22,7 +22,7 @@ public record CreateCouponRequest(
 	long eventId,
 	@NotNull
 	@Future
-	LocalDateTime validity,
+	LocalDateTime expiredTime,
 	Long maximumUsage,
 	Long maximumIssued
 ) {
