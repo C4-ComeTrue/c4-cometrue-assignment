@@ -8,6 +8,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 public record PurchaseProductRequest(
 	List<@Valid PurchaseProductEntry> purchaseProducts,
 	@PositiveOrZero(message = "point less than 0")
-	long point
+	long point,
+	Long issuedCouponId
 ) {
 }

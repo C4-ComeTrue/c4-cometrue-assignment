@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.domain.coupon.entity;
 
+import static org.c4marathon.assignment.global.error.ErrorCode.*;
+
 import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
@@ -33,7 +35,7 @@ public class Coupon extends BaseEntity {
 	private Long id;
 
 	@NotNull
-	@Column(name = "name", columnDefinition = "VARCHAR(20)")
+	@Column(name = "name", columnDefinition = "VARCHAR(20)", unique = true)
 	private String name;
 
 	@NotNull
@@ -54,8 +56,8 @@ public class Coupon extends BaseEntity {
 	private Long eventId;
 
 	@NotNull
-	@Column(name = "validity", columnDefinition = "DATETIME")
-	private LocalDateTime validity;
+	@Column(name = "expired_time", columnDefinition = "DATETIME")
+	private LocalDateTime expiredTime;
 
 	@Column(name = "maximum_usage", columnDefinition = "BIGINT default " + Long.MAX_VALUE)
 	private Long maximumUsage;
@@ -64,8 +66,8 @@ public class Coupon extends BaseEntity {
 	private Long maximumIssued;
 
 	@NotNull
-	@Column(name = "use_count", columnDefinition = "BIGINT default 0")
-	private Long useCount;
+	@Column(name = "used_count", columnDefinition = "BIGINT default 0")
+	private Long usedCount;
 
 	@NotNull
 	@Column(name = "issued_count", columnDefinition = "BIGINT default 0")
@@ -78,7 +80,7 @@ public class Coupon extends BaseEntity {
 		Boolean redundantUsable,
 		Long discountPolicyId,
 		Long eventId,
-		LocalDateTime validity,
+		LocalDateTime expiredTime,
 		Long maximumUsage,
 		Long maximumIssued
 	) {
@@ -87,10 +89,43 @@ public class Coupon extends BaseEntity {
 		this.redundantUsable = redundantUsable;
 		this.discountPolicyId = discountPolicyId;
 		this.eventId = eventId;
-		this.validity = validity;
+		this.expiredTime = expiredTime;
 		this.maximumUsage = maximumUsage;
 		this.maximumIssued = maximumIssued;
-		this.useCount = 0L;
+		this.usedCount = 0L;
 		this.issuedCount = 0L;
+	}
+
+	public void increaseIssuedCount() {
+		validateIssuedCount();
+		issuedCount++;
+	}
+
+	public void increaseUsedCount() {
+		validateUsedCount();
+		usedCount++;
+	}
+
+	public void decreaseUsedCount() {
+		usedCount--;
+	}
+
+	public void validateTime() {
+		LocalDateTime now = LocalDateTime.now();
+		if (now.isAfter(expiredTime)) {
+			throw RESOURCE_EXPIRED.baseException();
+		}
+	}
+
+	private void validateIssuedCount() {
+		if (issuedCount.equals(maximumIssued)) {
+			throw COUPON_NOT_ISSUABLE.baseException();
+		}
+	}
+
+	private void validateUsedCount() {
+		if (usedCount.equals(maximumUsage)) {
+			throw COUPON_NOT_USABLE.baseException();
+		}
 	}
 }

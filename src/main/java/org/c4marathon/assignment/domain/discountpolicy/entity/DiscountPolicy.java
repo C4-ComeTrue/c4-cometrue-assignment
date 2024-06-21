@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.domain.discountpolicy.entity;
 
+import static org.c4marathon.assignment.global.constant.DiscountType.*;
+
 import org.c4marathon.assignment.domain.base.entity.BaseEntity;
 import org.c4marathon.assignment.global.constant.DiscountType;
 
@@ -45,4 +47,11 @@ public class DiscountPolicy extends BaseEntity {
 
 	@Column(name = "discount_rate", columnDefinition = "INTEGER")
 	private Integer discountRate;
+
+	public long calculateDiscountAmount(long totalAmount) {
+		if (discountType == RATED_DISCOUNT) {
+			return (long)Math.floor(totalAmount * ((double)getDiscountRate() / 100));
+		}
+		return discountAmount;
+	}
 }

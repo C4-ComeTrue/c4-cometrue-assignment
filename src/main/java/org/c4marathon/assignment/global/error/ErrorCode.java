@@ -36,7 +36,18 @@ public enum ErrorCode {
 	ALREADY_DISCOUNT_POLICY_EXISTS(CONFLICT, "해당 name에 대한 discount_policy가 이미 존재합니다."),
 	DISCOUNT_POLICY_NOT_FOUND(NOT_FOUND, "요청에 해당하는 discount_policy가 존재하지 않습니다."),
 	EVENT_NOT_FOUND(NOT_FOUND, "요청에 해당하는 event가 존재하지 않습니다."),
-	ALREADY_COUPON_EXISTS(CONFLICT, "해당 name에 대한 coupon이 이미 존재합니다.");
+	ALREADY_COUPON_EXISTS(CONFLICT, "해당 name에 대한 coupon이 이미 존재합니다."),
+	COUPON_NOT_FOUND(NOT_FOUND, "요청에 해당하는 쿠폰 종류가 존재하지 않습니다."),
+	RESOURCE_EXPIRED(GONE, "더 이상 사용할 수 없는 자원입니다."),
+	COUPON_NOT_ISSUABLE(BAD_REQUEST, "더 이상 해당 쿠폰을 발급할 수 없습니다."),
+	SINGLE_COUPON_AVAILABLE_PER_EVENT(CONFLICT, "하나의 이벤트에 하나의 쿠폰만 발급 가능합니다."),
+	ISSUED_COUPON_NOT_FOUND(NOT_FOUND, "요청에 해당하는 발급된 쿠폰이 존재하지 않습니다."),
+	INVALID_COUPON_EXPIRED_TIME(BAD_REQUEST, "쿠폰 유효기간은 이벤트 기간 이후일 수 없습니다."),
+	ALREADY_USED_COUPON(BAD_REQUEST, "이미 사용된 쿠폰입니다."),
+	COUPON_NOT_USABLE(BAD_REQUEST, "더 이상 해당 쿠폰을 사용할 수 없습니다."),
+	EXCESSIVE_POINT_USE(BAD_REQUEST, "사용하려는 포인트가 주문 금액보다 많습니다."),
+
+	SERVER_ERROR(INTERNAL_SERVER_ERROR, "request was interrupted. please try again.");
 
 	private final HttpStatus status;
 	private final String message;
