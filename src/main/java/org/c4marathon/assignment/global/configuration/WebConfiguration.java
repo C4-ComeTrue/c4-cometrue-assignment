@@ -23,7 +23,7 @@ public class WebConfiguration implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry
 			.addInterceptor(consumerInterceptor)
-			.addPathPatterns("/consumers/**", "/reviews/**");
+			.addPathPatterns("/consumers/**", "/reviews/**", "/issued-coupons/**");
 
 		registry
 			.addInterceptor(sellerInterceptor)
