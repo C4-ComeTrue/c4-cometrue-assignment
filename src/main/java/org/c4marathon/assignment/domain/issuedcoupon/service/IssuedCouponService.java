@@ -42,19 +42,12 @@ public class IssuedCouponService {
 	public long issueCoupon(CouponIssueRequest request, Consumer consumer) {
 		Coupon coupon = couponReadService.findById(request.couponId());
 		Event event = eventReadService.findById(coupon.getEventId());
-		validateExpiration(coupon.getExpiredTime());
+		coupon.validateTime();
 
 		if (coupon.getCouponType() == ISSUE_COUPON) {
 			couponRestrictionManager.validateCouponIssuable(coupon.getId());
 			return lockedCouponService.increaseIssueCount(event.getId(), request, consumer);
 		}
 		return issuedCouponRepository.save(buildIssuedCoupon(request, consumer)).getId();
-	}
-
-	private void validateExpiration(LocalDateTime target) {
-		LocalDateTime now = LocalDateTime.now();
-		if (now.isAfter(target)) {
-			throw RESOURCE_EXPIRED.baseException();
-		}
 	}
 }
