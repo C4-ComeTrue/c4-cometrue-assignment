@@ -9,7 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 public interface FailedCouponLogRepository extends JpaRepository<FailedCouponLog, Long> {
 
 	@Query(value = """
-			select * from failed_coupon_log_tbl fcl limit 1
+			select *
+		    from failed_coupon_log_tbl fcl
+			limit 1
 		""", nativeQuery = true)
 	Optional<FailedCouponLog> findFirst();
 

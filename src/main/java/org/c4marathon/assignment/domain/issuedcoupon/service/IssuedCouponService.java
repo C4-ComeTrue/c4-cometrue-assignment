@@ -2,9 +2,6 @@ package org.c4marathon.assignment.domain.issuedcoupon.service;
 
 import static org.c4marathon.assignment.domain.issuedcoupon.entity.IssuedCouponFactory.*;
 import static org.c4marathon.assignment.global.constant.CouponType.*;
-import static org.c4marathon.assignment.global.error.ErrorCode.*;
-
-import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.coupon.entity.Coupon;

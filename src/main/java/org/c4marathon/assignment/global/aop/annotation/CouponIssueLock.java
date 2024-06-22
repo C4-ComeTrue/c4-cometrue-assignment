@@ -10,6 +10,8 @@ import java.lang.annotation.Target;
 public @interface CouponIssueLock {
 
 	String key() default "";
+
 	long waitTime() default 5;
+
 	long leaseTime() default 1;
 }
