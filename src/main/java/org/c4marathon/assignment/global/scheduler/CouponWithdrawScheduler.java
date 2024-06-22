@@ -24,12 +24,13 @@ public class CouponWithdrawScheduler {
 
 	// failed_coupon_log에 coupon_id가 없고, used_map에 있는 것 중에서, 쿠폰 유효 기간이 지난 것을 삭제해야함
 	// failed_coupon_log에 채워지기 전에 이 스케줄러가 돌아가지고 existsByCouponId가 false를 리턴하면 어떡하지..?
-	@Scheduled(fixedRate = 60 * 1_000)
+	@Scheduled(fixedDelay = 60 * 1_000)
 	@Transactional
 	public void processCouponWithdraw() {
 		for (Long usedCouponId : couponRestrictionManager.getNotUsableCoupons()) {
 			Coupon coupon = couponReadService.findById(usedCouponId);
-			if (coupon.getExpiredTime().isBefore(LocalDateTime.now())) {
+			LocalDateTime now = LocalDateTime.now();
+			if (coupon.getExpiredTime().isBefore(now)) {
 				if (!failedCouponLogRepository.existsByCouponId(usedCouponId)) {
 					issuedCouponRepository.deleteByCouponId(usedCouponId);
 					couponRestrictionManager.removeNotUsableCoupon(usedCouponId);
