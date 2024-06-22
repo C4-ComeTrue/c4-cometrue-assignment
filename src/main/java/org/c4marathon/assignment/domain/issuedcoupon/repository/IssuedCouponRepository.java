@@ -1,9 +1,13 @@
 package org.c4marathon.assignment.domain.issuedcoupon.repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.c4marathon.assignment.domain.issuedcoupon.entity.IssuedCoupon;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long> {
 
@@ -26,4 +30,12 @@ public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long
 			where ic.coupon_id = :couponId
 		""", nativeQuery = true)
 	void deleteByCouponId(Long usedCouponId);
+
+	@Query(value = """
+		select c.coupon_id
+		from issued_coupon_tbl ic
+		         join coupon_tbl c on c.coupon_id = ic.coupon_id
+		where c.expired_time < :now
+		""", nativeQuery = true)
+	List<Long> findExpiredCouponId(@Param("now") LocalDateTime now);
 }

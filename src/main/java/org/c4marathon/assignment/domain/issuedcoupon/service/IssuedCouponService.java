@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 public class IssuedCouponService {
 
 	private final IssuedCouponRepository issuedCouponRepository;
-	private final IssuedCouponReadService issuedCouponReadService;
 	private final CouponReadService couponReadService;
 	private final EventReadService eventReadService;
 	private final LockedCouponService lockedCouponService;
@@ -31,7 +30,7 @@ public class IssuedCouponService {
 	 * 하나의 이벤트에 여러개의 쿠폰이 생성될 수 있는데, 소비자는 하나의 이벤트에 하나의 쿠폰만 발급받을 수 있음
 	 * 선착순 발급 쿠폰일 때, 캐싱된 "이미 발급된 쿠폰 수"가 최대 발급 가능 수 이상이면(높을리는 없겠지만) 예외 터트림
 	 * 이걸로 일단 레디스 접근을 최소화하고..
-	 * 그게 아니라면 락 얻고 확인한 다음에 가능하면 쿠폰 발급함.
+	 * 그게 아니라면 락 잡고 확인한 다음에 가능하면 쿠폰 발급함.
 	 * 선착순 발급 쿠폰은 이벤트 하나 당 한 개의 쿠폰만 발급받을 수 있음
 	 * 선착순 사용 쿠폰은 이벤트 하나 당 여러개의 쿠폰을 발급받을 수 있음
 	 */

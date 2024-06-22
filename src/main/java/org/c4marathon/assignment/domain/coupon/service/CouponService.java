@@ -28,6 +28,12 @@ public class CouponService {
 		couponRepository.save(CouponFactory.buildCoupon(request));
 	}
 
+	/**
+	 * @throws org.c4marathon.assignment.global.error.BaseException
+	 * 같은 이름의 쿠폰이 존재할 경우
+	 * 존재하지 않는 DiscountPolicy id를 요청할 경우
+	 * 쿠폰의 유효기간이 이벤트 유효기간보다 이후일 경우
+	 */
 	private void validateRequest(CreateCouponRequest request) {
 		request.validate();
 		if (couponReadService.existsByName(request.name())) {

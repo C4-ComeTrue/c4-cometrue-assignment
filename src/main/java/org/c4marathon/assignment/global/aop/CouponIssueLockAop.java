@@ -26,6 +26,10 @@ public class CouponIssueLockAop {
 	private final RedissonClient redissonClient;
 	private final TransactionAop transactionAop;
 
+	/**
+	 * redis distributed lock, unlock을 진행하는 AOP
+	 * 파라미터를 통해서 lock key를 정하고 redisson client의 tryLock 이후에 unlock
+	 */
 	@Around("@annotation(org.c4marathon.assignment.global.aop.annotation.CouponIssueLock)")
 	public Object couponIssueLock(ProceedingJoinPoint joinPoint) throws Throwable {
 		MethodSignature signature = (MethodSignature)joinPoint.getSignature();

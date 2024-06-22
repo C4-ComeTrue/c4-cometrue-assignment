@@ -70,7 +70,7 @@ public class ConsumerService {
 
 	/**
 	 * 상품 구매
-	 * 최종 결제 금액 = 총 구입 금액 - 사용할 포인트
+	 * 최종 결제 금액 = (총 구입 금액 - 할인된 금액) - 사용할 포인트
 	 * 이후 구매 확정 단계에서 사용하기 위해 Order Entity에 포인트 관련 필드를 추가
 	 * 선착순 사용 쿠폰일 경우에, 주문을 하고 환불을 해도 쿠폰은 환불되지 않음.
 	 * 포인트 같은 경우에는 모든 할인(총 주문 금액 - 쿠폰 할인 - 포인트 사용 금액)이 적용된 최종 결제 금액에 5퍼센트가 적용됨.
@@ -149,12 +149,14 @@ public class ConsumerService {
 
 	/**
 	 * 쿠폰 사용
-	 * 내가 발급받은 쿠폰이 아니면 exception
-	 * 기간이 지난 쿠폰이면 exception
-	 * 중복 불가능 쿠폰인데 이미 사용됐으면 exception
 	 * 선착순 발급 쿠폰인 경우는 사용만 하면 되기 때문에 따로 락 메커니즘은 필요없음, 중복 사용도 가능함
 	 * 선착순 사용 쿠폰인 경우는 락 메커니즘이 필요함.
-	 * 그래서 여기도 사용 횟수 다다르면 couponRestrictionManager에 캐싱해둠
+	 * 사용 횟수 다다르면 couponRestrictionManager에 캐싱해둠
+	 * 그래서 분산락 얻기 전에 캐싱된 데이터 보고 레디스 접근을 최소화함.
+	 * @throws org.c4marathon.assignment.global.error.BaseException
+	 * 내가 발급받은 쿠폰이 아닌 경우
+	 * 기간이 지난 쿠폰인 경우
+	 * 중복 불가능 쿠폰인데 이미 사용된 경우
 	 */
 	private Coupon useCoupon(IssuedCoupon issuedCoupon) {
 		if (issuedCoupon == null) {
@@ -172,9 +174,11 @@ public class ConsumerService {
 		return coupon;
 	}
 
+	/**
+	 * 쿠폰이 중복 사용 불가능하고 이미 사용된 경우, 예외를 반환함
+	 */
 	private void validateRedundant(Coupon coupon, IssuedCoupon issuedCoupon) {
 		if (!coupon.getRedundantUsable() && issuedCoupon.getUsedCount() > 0) {
-			couponRestrictionManager.addNotUsableCoupon(coupon.getId());
 			throw ALREADY_USED_COUPON.baseException();
 		}
 	}

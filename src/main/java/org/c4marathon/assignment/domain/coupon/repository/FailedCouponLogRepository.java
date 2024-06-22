@@ -14,6 +14,4 @@ public interface FailedCouponLogRepository extends JpaRepository<FailedCouponLog
 			limit 1
 		""", nativeQuery = true)
 	Optional<FailedCouponLog> findFirst();
-
-	boolean existsByCouponId(Long couponId);
 }
