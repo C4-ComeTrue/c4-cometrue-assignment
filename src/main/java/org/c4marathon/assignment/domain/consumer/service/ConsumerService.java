@@ -194,12 +194,13 @@ public class ConsumerService {
 	 * 환불은 선착순 발급 쿠폰만 가능하기 때문에 동시성 제어를 딱히 할 필요가 없음
 	 */
 	private void refundCoupon(Order order) {
-		if (order.getIssuedCouponId() != null) {
-			IssuedCoupon issuedCoupon = issuedCouponReadService.findById(order.getIssuedCouponId());
-			Coupon coupon = couponReadService.findById(issuedCoupon.getCouponId());
-			if (coupon.getCouponType() != USE_COUPON) {
-				issuedCoupon.decreaseUsedCount();
-			}
+		if (order.getIssuedCouponId() == null) {
+			return;
+		}
+		IssuedCoupon issuedCoupon = issuedCouponReadService.findById(order.getIssuedCouponId());
+		Coupon coupon = couponReadService.findById(issuedCoupon.getCouponId());
+		if (coupon.getCouponType() != USE_COUPON) {
+			issuedCoupon.decreaseUsedCount();
 		}
 	}
 
