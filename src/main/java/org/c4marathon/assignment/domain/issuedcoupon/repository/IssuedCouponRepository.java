@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long> {
 
 	@Query(value = """
-			select 1 from issued_coupon_tbl ic
-			join coupon_tbl c on c.coupon_id = ic.coupon_id
-			where c.event_id = :eventId and ic.consumer_id = :consumerId
-			limit 1
+		select 1
+		from issued_coupon_tbl ic
+		         join coupon_tbl c on c.coupon_id = ic.coupon_id
+		where c.event_id = :eventId
+		  	and ic.consumer_id = :consumerId
+		limit 1
 		""",
 		nativeQuery = true
 	)
