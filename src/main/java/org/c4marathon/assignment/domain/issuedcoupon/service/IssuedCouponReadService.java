@@ -15,7 +15,7 @@ public class IssuedCouponReadService {
 	private final IssuedCouponRepository issuedCouponRepository;
 
 	public boolean existsByConsumerIdAndEventId(Long consumerId, Long eventId) {
-		return issuedCouponRepository.countByConsumerIdAndEventId(consumerId, eventId) > 0;
+		return issuedCouponRepository.existsByConsumerIdCouponId_EventId(consumerId, eventId) != null;
 	}
 
 	public IssuedCoupon findById(Long id) {
