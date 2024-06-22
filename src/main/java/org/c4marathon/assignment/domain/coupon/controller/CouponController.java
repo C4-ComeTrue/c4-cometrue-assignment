@@ -2,9 +2,11 @@ package org.c4marathon.assignment.domain.coupon.controller;
 
 import org.c4marathon.assignment.domain.coupon.dto.request.CreateCouponRequest;
 import org.c4marathon.assignment.domain.coupon.service.CouponService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -17,6 +19,7 @@ public class CouponController {
 
 	private final CouponService couponService;
 
+	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
 	public void createCoupon(@Valid @RequestBody CreateCouponRequest request) {
 		couponService.createCoupon(request);
