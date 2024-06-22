@@ -88,7 +88,6 @@ public class ConsumerService {
 			long totalAmount = calculateTotalAmount(orderProducts, coupon);
 			decreaseBalance(consumer, totalAmount - request.point());
 			saveOrderInfo(request, consumer, order, orderProducts, totalAmount, issuedCoupon);
-			throw new RuntimeException();
 		} catch (Exception e) {
 			// 예외가 발생했을때 선착순 사용 쿠폰을 원상복구 해야함
 			couponRetryService.decreaseUsedCount(issuedCoupon, coupon);
