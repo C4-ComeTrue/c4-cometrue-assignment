@@ -36,7 +36,7 @@ public class LockedCouponService {
 		Coupon coupon = couponReadService.findById(couponId);
 		IssuedCoupon issuedCoupon = issuedCouponReadService.findById(issuedCouponId);
 		coupon.increaseUsedCount();
-		issuedCoupon.updateUsedCount();
+		issuedCoupon.increaseUsedCount();
 	}
 
 	@CouponIssueLock(key = "#couponId")
@@ -44,7 +44,7 @@ public class LockedCouponService {
 		Coupon coupon = couponReadService.findById(couponId);
 		IssuedCoupon issuedCoupon = issuedCouponReadService.findById(issuedCouponId);
 		coupon.decreaseUsedCount();
-		issuedCoupon.updateUsedCount();
+		issuedCoupon.decreaseUsedCount();
 	}
 
 	private void validateRedundantIssue(Long eventId, Long consumerId, Long couponId) {

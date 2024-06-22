@@ -54,7 +54,11 @@ public class IssuedCoupon extends BaseEntity {
 		}
 	}
 
-	public void updateUsedCount() {
+	public void increaseUsedCount() {
 		usedCount++;
+	}
+
+	public void decreaseUsedCount() {
+		usedCount--;
 	}
 }

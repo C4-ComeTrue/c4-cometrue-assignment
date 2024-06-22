@@ -184,7 +184,7 @@ public class ConsumerService {
 			couponRestrictionManager.validateCouponUsable(coupon.getId());
 			lockedCouponService.increaseUsedCount(coupon.getId(), issuedCoupon.getId());
 		} else {
-			issuedCoupon.updateUsedCount();
+			issuedCoupon.increaseUsedCount();
 		}
 		return coupon;
 	}
@@ -215,7 +215,7 @@ public class ConsumerService {
 			IssuedCoupon issuedCoupon = issuedCouponReadService.findById(order.getIssuedCouponId());
 			Coupon coupon = couponReadService.findById(issuedCoupon.getCouponId());
 			if (coupon.getCouponType() != USE_COUPON) {
-				issuedCoupon.updateUsedCount();
+				issuedCoupon.decreaseUsedCount();
 			}
 		}
 	}
