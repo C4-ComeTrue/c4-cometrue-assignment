@@ -29,16 +29,16 @@ public class CouponService {
 	}
 
 	private void validateRequest(CreateCouponRequest request) {
-		Event event = eventReadService.findById(request.eventId());
 		request.validate();
+		if (couponReadService.existsByName(request.name())) {
+			throw ALREADY_COUPON_EXISTS.baseException();
+		}
 		if (!discountPolicyReadService.existsById(request.discountPolicyId())) {
 			throw DISCOUNT_POLICY_NOT_FOUND.baseException();
 		}
+		Event event = eventReadService.findById(request.eventId());
 		if (event.getEndDate().isBefore(request.expiredTime())) {
 			throw INVALID_COUPON_EXPIRED_TIME.baseException();
-		}
-		if (couponReadService.existsByName(request.name())) {
-			throw ALREADY_COUPON_EXISTS.baseException();
 		}
 	}
 }
