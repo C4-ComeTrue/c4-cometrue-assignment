@@ -12,4 +12,6 @@ public interface FailedCouponLogRepository extends JpaRepository<FailedCouponLog
 			select * from failed_coupon_log_tbl fcl limit 1
 		""", nativeQuery = true)
 	Optional<FailedCouponLog> findFirst();
+
+	boolean existsByCouponId(Long couponId);
 }

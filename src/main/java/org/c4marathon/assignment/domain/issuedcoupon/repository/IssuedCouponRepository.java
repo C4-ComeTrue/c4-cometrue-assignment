@@ -2,6 +2,7 @@ package org.c4marathon.assignment.domain.issuedcoupon.repository;
 
 import org.c4marathon.assignment.domain.issuedcoupon.entity.IssuedCoupon;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long> {
@@ -17,4 +18,12 @@ public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long
 		nativeQuery = true
 	)
 	Long existsByConsumerIdCouponId_EventId(Long consumerId, Long eventId);
+
+	@Modifying
+	@Query(value = """
+			delete
+		 	from issued_coupon_tbl ic
+			where ic.coupon_id = :couponId
+		""", nativeQuery = true)
+	void deleteByCouponId(Long usedCouponId);
 }

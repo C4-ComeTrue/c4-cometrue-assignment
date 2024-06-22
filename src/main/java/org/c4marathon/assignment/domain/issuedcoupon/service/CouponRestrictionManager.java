@@ -7,7 +7,10 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
+import lombok.Getter;
+
 @Component
+@Getter
 public class CouponRestrictionManager {
 
 	// 쿠폰의 수가 수십만개가 될 순 없고, 스케줄러로 돌면서 기간이 지난 쿠폰 또는 이벤트인 경우
