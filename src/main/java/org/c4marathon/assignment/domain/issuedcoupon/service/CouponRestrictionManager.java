@@ -34,4 +34,8 @@ public class CouponRestrictionManager {
 	public void addNotUsableCoupon(long couponId) {
 		notUsableCoupons.add(couponId);
 	}
+
+	public void removeNotUsableCoupon(long couponId) {
+		notUsableCoupons.remove(couponId);
+	}
 }
