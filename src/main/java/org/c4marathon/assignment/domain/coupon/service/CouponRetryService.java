@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class CouponRetryService {
 
+	public static final int MAXIMUM_RETRY_COUNT = 3;
 	private final LockedCouponService lockedCouponService;
 	private final CouponRestrictionManager couponRestrictionManager;
 	private final FailedCouponLogService failedCouponLogService;
@@ -34,8 +35,9 @@ public class CouponRetryService {
 				couponRestrictionManager.removeNotUsableCoupon(coupon.getId());
 				break;
 			} catch (Exception innerException) {
+				log.info("failed decrease coupon use count. retry count: {}", retryCount);
 				retryCount++;
-				if (retryCount >= 3) {
+				if (retryCount >= MAXIMUM_RETRY_COUNT) {
 					failedCouponLogService.saveFailedCouponLog(issuedCoupon, coupon);
 					throw innerException;
 				}
