@@ -15,9 +15,8 @@ import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductRequ
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
 import org.c4marathon.assignment.domain.coupon.entity.Coupon;
-import org.c4marathon.assignment.domain.coupon.entity.FailedCouponLog;
-import org.c4marathon.assignment.domain.coupon.repository.FailedCouponLogRepository;
 import org.c4marathon.assignment.domain.coupon.service.CouponReadService;
+import org.c4marathon.assignment.domain.coupon.service.CouponRetryService;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
 import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
@@ -67,7 +66,7 @@ public class ConsumerService {
 	private final LockedCouponService lockedCouponService;
 	private final DiscountPolicyReadService discountPolicyReadService;
 	private final CouponRestrictionManager couponRestrictionManager;
-	private final FailedCouponLogRepository failedCouponLogRepository;
+	private final CouponRetryService couponRetryService;
 
 	/**
 	 * 상품 구매
@@ -89,25 +88,10 @@ public class ConsumerService {
 			long totalAmount = calculateTotalAmount(orderProducts, coupon);
 			decreaseBalance(consumer, totalAmount - request.point());
 			saveOrderInfo(request, consumer, order, orderProducts, totalAmount, issuedCoupon);
+			throw new RuntimeException();
 		} catch (Exception e) {
 			// 예외가 발생했을때 선착순 사용 쿠폰을 원상복구 해야함
-			if (issuedCoupon != null && coupon != null && coupon.getCouponType() == USE_COUPON) {
-				int retryCount = 0;
-				while (true) {
-					try {
-						lockedCouponService.decreaseUsedCount(coupon.getId(), issuedCoupon.getId());
-						couponRestrictionManager.addNotIssuableCoupon(coupon.getId());
-						break;
-					} catch (Exception innerException) {
-						retryCount++;
-						if (retryCount >= 3) {
-							failedCouponLogRepository.save(
-								new FailedCouponLog(null, coupon.getId(), issuedCoupon.getId()));
-							throw innerException;
-						}
-					}
-				}
-			}
+			couponRetryService.decreaseUsedCount(issuedCoupon, coupon);
 			throw e;
 		}
 	}
