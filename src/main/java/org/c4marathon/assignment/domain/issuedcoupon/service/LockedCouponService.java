@@ -31,7 +31,7 @@ public class LockedCouponService {
 	 */
 	@CouponIssueLock(key = "#eventId")
 	public long increaseIssueCount(Long eventId, CouponIssueRequest request, Consumer consumer) {
-		validateRedundantIssue(eventId, consumer.getId(), request.couponId());
+		validateRedundantIssue(eventId, consumer.getId());
 		Coupon coupon = couponReadService.findById(request.couponId());
 		if (coupon.getIssuedCount().equals(coupon.getMaximumIssued())) {
 			couponRestrictionManager.addNotIssuableCoupon(coupon.getId());
@@ -67,7 +67,7 @@ public class LockedCouponService {
 		issuedCoupon.decreaseUsedCount();
 	}
 
-	private void validateRedundantIssue(Long eventId, Long consumerId, Long couponId) {
+	private void validateRedundantIssue(Long eventId, Long consumerId) {
 		if (issuedCouponReadService.existsByConsumerIdAndEventId(consumerId, eventId)) {
 			throw SINGLE_COUPON_AVAILABLE_PER_EVENT.baseException();
 		}
