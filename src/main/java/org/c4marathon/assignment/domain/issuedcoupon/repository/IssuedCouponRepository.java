@@ -21,7 +21,7 @@ public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long
 		""",
 		nativeQuery = true
 	)
-	Long existsByConsumerIdCouponId_EventId(Long consumerId, Long eventId);
+	Long existsByConsumerIdCouponId_EventId(@Param("consumerId") Long consumerId, @Param("eventId") Long eventId);
 
 	@Modifying
 	@Query(value = """
@@ -29,7 +29,7 @@ public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long
 		 	from issued_coupon_tbl ic
 			where ic.coupon_id = :couponId
 		""", nativeQuery = true)
-	void deleteByCouponId(Long usedCouponId);
+	void deleteByCouponId(@Param("couponId") Long couponId);
 
 	@Query(value = """
 		select c.coupon_id
