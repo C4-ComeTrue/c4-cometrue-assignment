@@ -18,6 +18,11 @@ spring:
       maximum-pool-size: 10
     url: jdbc:mysql://localhost:3306/community?rewriteBatchedStatements=true
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 mybatis:
   mapper-locations: classpath:mapper/*.xml
 

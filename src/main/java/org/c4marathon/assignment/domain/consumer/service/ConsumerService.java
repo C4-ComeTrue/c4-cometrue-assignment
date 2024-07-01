@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.domain.consumer.service;
 
+import static org.c4marathon.assignment.global.constant.CouponType.*;
 import static org.c4marathon.assignment.global.constant.DeliveryStatus.*;
 import static org.c4marathon.assignment.global.constant.OrderStatus.*;
 import static org.c4marathon.assignment.global.error.ErrorCode.*;
@@ -13,10 +14,19 @@ import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductEntr
 import org.c4marathon.assignment.domain.consumer.dto.request.PurchaseProductRequest;
 import org.c4marathon.assignment.domain.consumer.entity.Consumer;
 import org.c4marathon.assignment.domain.consumer.repository.ConsumerRepository;
+import org.c4marathon.assignment.domain.coupon.entity.Coupon;
+import org.c4marathon.assignment.domain.coupon.service.CouponReadService;
+import org.c4marathon.assignment.domain.coupon.service.CouponRetryService;
 import org.c4marathon.assignment.domain.delivery.entity.Delivery;
 import org.c4marathon.assignment.domain.delivery.repository.DeliveryRepository;
 import org.c4marathon.assignment.domain.delivery.service.DeliveryReadService;
 import org.c4marathon.assignment.domain.deliverycompany.service.DeliveryCompanyReadService;
+import org.c4marathon.assignment.domain.discountpolicy.entity.DiscountPolicy;
+import org.c4marathon.assignment.domain.discountpolicy.service.DiscountPolicyReadService;
+import org.c4marathon.assignment.domain.issuedcoupon.entity.IssuedCoupon;
+import org.c4marathon.assignment.domain.issuedcoupon.service.CouponRestrictionManager;
+import org.c4marathon.assignment.domain.issuedcoupon.service.IssuedCouponReadService;
+import org.c4marathon.assignment.domain.issuedcoupon.service.LockedCouponService;
 import org.c4marathon.assignment.domain.order.entity.Order;
 import org.c4marathon.assignment.domain.order.repository.OrderRepository;
 import org.c4marathon.assignment.domain.order.service.OrderReadService;
@@ -51,23 +61,38 @@ public class ConsumerService {
 	private final DeliveryCompanyReadService deliveryCompanyReadService;
 	private final PointLogRepository pointLogRepository;
 	private final DeliveryReadService deliveryReadService;
+	private final IssuedCouponReadService issuedCouponReadService;
+	private final CouponReadService couponReadService;
+	private final LockedCouponService lockedCouponService;
+	private final DiscountPolicyReadService discountPolicyReadService;
+	private final CouponRestrictionManager couponRestrictionManager;
+	private final CouponRetryService couponRetryService;
 
 	/**
 	 * 상품 구매
-	 * 최종 결제 금액 = 총 구입 금액 - 사용할 포인트
+	 * 최종 결제 금액 = (총 구입 금액 - 할인된 금액) - 사용할 포인트
 	 * 이후 구매 확정 단계에서 사용하기 위해 Order Entity에 포인트 관련 필드를 추가
+	 * 선착순 사용 쿠폰일 경우에, 주문을 하고 환불을 해도 쿠폰은 환불되지 않음.
+	 * 포인트 같은 경우에는 모든 할인(총 주문 금액 - 쿠폰 할인 - 포인트 사용 금액)이 적용된 최종 결제 금액에 5퍼센트가 적용됨.
 	 * @param consumer 상품 구매하는 소비자
 	 */
 	@Transactional
 	public void purchaseProduct(PurchaseProductRequest request, Consumer consumer) {
-		decreasePoint(consumer, request.point());
-		Order order = saveOrder(consumer, request.point());
-		List<OrderProduct> orderProducts = getOrderProducts(request, order);
-		long totalAmount = orderProducts.stream()
-			.mapToLong(OrderProduct::getAmount)
-			.sum();
-		decreaseBalance(consumer, totalAmount - request.point());
-		saveOrderInfo(request, consumer, order, orderProducts, totalAmount);
+		IssuedCoupon issuedCoupon = getIssuedCoupon(request.issuedCouponId(), consumer);
+		Coupon coupon = useCoupon(issuedCoupon);
+
+		try {
+			decreasePoint(consumer, request.point());
+			Order order = saveOrder(consumer, request.point());
+			List<OrderProduct> orderProducts = getOrderProducts(request, order);
+			long totalAmount = calculateTotalAmount(orderProducts, coupon);
+			decreaseBalance(consumer, totalAmount - request.point());
+			saveOrderInfo(request, consumer, order, orderProducts, totalAmount, issuedCoupon);
+		} catch (Exception e) {
+			// 예외가 발생했을때 선착순 사용 쿠폰을 원상복구 해야함
+			couponRetryService.decreaseUsedCount(issuedCoupon, coupon);
+			throw e;
+		}
 	}
 
 	/**
@@ -85,6 +110,7 @@ public class ConsumerService {
 		validateRefundRequest(consumer, order, delivery);
 
 		updateStatusWhenRefund(order, delivery);
+		refundCoupon(order);
 		savePointLog(consumer, order, false);
 	}
 
@@ -112,6 +138,76 @@ public class ConsumerService {
 		savePointLog(consumer, order, true);
 	}
 
+	private IssuedCoupon getIssuedCoupon(Long issuedCouponId, Consumer consumer) {
+		if (issuedCouponId == null) {
+			return null;
+		}
+		IssuedCoupon issuedCoupon = issuedCouponReadService.findById(issuedCouponId);
+		issuedCoupon.validatePermission(consumer.getId());
+		return issuedCoupon;
+	}
+
+	/**
+	 * 쿠폰 사용
+	 * 선착순 발급 쿠폰인 경우는 사용만 하면 되기 때문에 따로 락 메커니즘은 필요없음, 중복 사용도 가능함
+	 * 선착순 사용 쿠폰인 경우는 락 메커니즘이 필요함.
+	 * 사용 횟수 다다르면 couponRestrictionManager에 캐싱해둠
+	 * 그래서 분산락 얻기 전에 캐싱된 데이터 보고 레디스 접근을 최소화함.
+	 * @throws org.c4marathon.assignment.global.error.BaseException
+	 * 내가 발급받은 쿠폰이 아닌 경우
+	 * 기간이 지난 쿠폰인 경우
+	 * 중복 불가능 쿠폰인데 이미 사용된 경우
+	 */
+	private Coupon useCoupon(IssuedCoupon issuedCoupon) {
+		if (issuedCoupon == null) {
+			return null;
+		}
+		Coupon coupon = couponReadService.findById(issuedCoupon.getCouponId());
+		coupon.validateTime();
+		validateRedundant(coupon, issuedCoupon);
+		if (coupon.getCouponType() == USE_COUPON) {
+			couponRestrictionManager.validateCouponUsable(coupon.getId());
+			lockedCouponService.increaseUsedCount(coupon.getId(), issuedCoupon.getId());
+		} else {
+			issuedCoupon.increaseUsedCount();
+		}
+		return coupon;
+	}
+
+	/**
+	 * 쿠폰이 중복 사용 불가능하고 이미 사용된 경우, 예외를 반환함
+	 */
+	private void validateRedundant(Coupon coupon, IssuedCoupon issuedCoupon) {
+		if (!coupon.getRedundantUsable() && issuedCoupon.getUsedCount() > 0) {
+			throw ALREADY_USED_COUPON.baseException();
+		}
+	}
+
+	private long calculateTotalAmount(List<OrderProduct> orderProducts, Coupon coupon) {
+		long totalAmount = orderProducts.stream()
+			.mapToLong(OrderProduct::getAmount)
+			.sum();
+		if (coupon != null) {
+			DiscountPolicy discountPolicy = discountPolicyReadService.findById(coupon.getDiscountPolicyId());
+			totalAmount = Math.max(0, totalAmount - discountPolicy.calculateDiscountAmount(totalAmount));
+		}
+		return totalAmount;
+	}
+
+	/**
+	 * 환불은 선착순 발급 쿠폰만 가능하기 때문에 동시성 제어를 딱히 할 필요가 없음
+	 */
+	private void refundCoupon(Order order) {
+		if (order.getIssuedCouponId() == null) {
+			return;
+		}
+		IssuedCoupon issuedCoupon = issuedCouponReadService.findById(order.getIssuedCouponId());
+		Coupon coupon = couponReadService.findById(issuedCoupon.getCouponId());
+		if (coupon.getCouponType() != USE_COUPON) {
+			issuedCoupon.decreaseUsedCount();
+		}
+	}
+
 	/**
 	 * 주문 시 product에 대한 구매 횟수를 증가함
 	 */
@@ -120,11 +216,12 @@ public class ConsumerService {
 	}
 
 	private void saveOrderInfo(PurchaseProductRequest request, Consumer consumer, Order order,
-		List<OrderProduct> orderProducts, long totalAmount) {
+		List<OrderProduct> orderProducts, long totalAmount, IssuedCoupon issuedCoupon) {
 		orderProductJdbcRepository.saveAllBatch(orderProducts);
 		order.updateEarnedPoint(getPurchasePoint(totalAmount - request.point()));
 		order.updateTotalAmount(totalAmount);
 		order.updateDeliveryId(saveDelivery(consumer).getId());
+		order.updateIssuedCouponId(issuedCoupon == null ? null : issuedCoupon.getId());
 	}
 
 	/**
@@ -229,6 +326,9 @@ public class ConsumerService {
 	 * 잔고가 부족할 시 예외를 반환하고, 아니면 잔고를 감소
 	 */
 	private void decreaseBalance(Consumer consumer, long totalAmount) {
+		if (totalAmount < 0) {
+			throw EXCESSIVE_POINT_USE.baseException();
+		}
 		if (consumer.getBalance() < totalAmount) {
 			throw NOT_ENOUGH_BALANCE.baseException("total amount: %d", totalAmount);
 		}

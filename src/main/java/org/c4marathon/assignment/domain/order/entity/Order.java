@@ -53,6 +53,9 @@ public class Order extends BaseEntity {
 	@Column(name = "delivery_id", columnDefinition = "BIGINT")
 	private Long deliveryId;
 
+	@Column(name = "issued_coupon_id", columnDefinition = "BIGINT")
+	private Long issuedCouponId;
+
 	@Builder
 	public Order(OrderStatus orderStatus, Consumer consumer, long usedPoint) {
 		this.orderStatus = orderStatus;
@@ -74,5 +77,9 @@ public class Order extends BaseEntity {
 
 	public void updateTotalAmount(long totalAmount) {
 		this.totalAmount = totalAmount;
+	}
+
+	public void updateIssuedCouponId(Long issuedCouponId) {
+		this.issuedCouponId = issuedCouponId;
 	}
 }
