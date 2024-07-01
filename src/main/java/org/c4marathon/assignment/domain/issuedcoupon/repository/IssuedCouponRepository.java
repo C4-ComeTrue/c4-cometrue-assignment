@@ -25,9 +25,9 @@ public interface IssuedCouponRepository extends JpaRepository<IssuedCoupon, Long
 
 	@Modifying
 	@Query(value = """
-			delete
-		 	from issued_coupon_tbl ic
-			where ic.coupon_id = :couponId
+		delete
+			from issued_coupon_tbl ic
+		where ic.coupon_id = :couponId
 		""", nativeQuery = true)
 	void deleteByCouponId(@Param("couponId") Long couponId);
 
