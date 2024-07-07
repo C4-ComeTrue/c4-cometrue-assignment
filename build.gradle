@@ -25,12 +25,22 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.apache.commons:commons-lang3:3.13.0'
     implementation 'org.apache.commons:commons-collections4:4.4'
     compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 }
 
 checkstyle {
