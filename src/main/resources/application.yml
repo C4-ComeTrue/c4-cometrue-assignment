@@ -18,3 +18,5 @@ spring:
         database-platform: org.hibernate.dialect.MySQLDialect
         default_batch_fetch_size: 100
   #        format_sql: true
+token:
+  secret: ${SECRET_KEY}
