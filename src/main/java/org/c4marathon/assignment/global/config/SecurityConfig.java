@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.global.config;
 
 import lombok.RequiredArgsConstructor;
+import org.c4marathon.assignment.global.jwt.JwtAuthenticationEntryPoint;
 import org.c4marathon.assignment.global.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/accounts/**").authenticated()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().permitAll())
                 .cors(cors -> cors.disable())
@@ -36,7 +38,10 @@ public class SecurityConfig {
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .formLogin(formLogin -> formLogin.disable()) // 사용자 지정 로그인 로직 구현
-                .httpBasic(HttpBasicConfigurer::disable); // http 기본 인증 비활성화
+                .httpBasic(HttpBasicConfigurer::disable)
+                .exceptionHandling(exceptionHandling -> {
+                    exceptionHandling.authenticationEntryPoint(new JwtAuthenticationEntryPoint());
+                });
         return http.build();
     }
 

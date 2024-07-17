@@ -26,4 +26,8 @@ public class Saving extends BaseEntity {
     private long balance; // 계좌의 잔고
 
     private double interestRate; // 이자율
+
+    public void updateBalance(long amount){
+        balance += amount;
+    }
 }

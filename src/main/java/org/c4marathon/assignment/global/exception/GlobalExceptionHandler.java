@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.global.exception;
 
+import io.micrometer.common.lang.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,19 +19,20 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
-        log.error(e.getMessage(), e);
-        ErrorCode errorCode = e.getErrorCode();
-        return handleExceptionInternal(errorCode);
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(
+            Exception ex,
+            @Nullable Object body,
+            HttpHeaders headers,
+            HttpStatusCode statusCode,
+            WebRequest request) {
+        final HttpStatus status = (HttpStatus) statusCode;
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .code(status.name())
+                .message(ex.getMessage())
+                .build();
+        return super.handleExceptionInternal(ex, errorResponse, headers, status, request);
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error(ex.getMessage(), ex);
-        return handleExceptionInternal(ErrorCode.INTERNAL_SERVER_ERROR);
-    }
-
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -43,24 +45,34 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .collect(Collectors.toList());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .code("BAD_REQUEST")
-                .message("Request의 정보가 올바르지 않습니다.")
+                .code(ErrorCode.INVALID_REQUEST_CONTECT.name())
+                .message(ErrorCode.INVALID_REQUEST_CONTECT.getMessage())
                 .errors(validationErrors)
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, ErrorCode.INVALID_REQUEST_CONTECT.getHttpStatus());
     }
 
-    private ResponseEntity<ErrorResponse> handleExceptionInternal(ErrorCode errorCode) {
-        return ResponseEntity.status(errorCode.getHttpStatus())
-                .body(makeErrorResponse(errorCode));
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
+        log.error(e.getErrorCode().getMessage(), e);
+        ErrorCode errorCode = e.getErrorCode();
+        return makeErrorResponse(errorCode);
     }
 
-    private ErrorResponse makeErrorResponse(ErrorCode errorCode) {
-        return ErrorResponse.builder()
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error(ex.getMessage(), ex);
+        return makeErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+
+    private ResponseEntity<ErrorResponse> makeErrorResponse(ErrorCode errorCode) {
+        ErrorResponse res = ErrorResponse.builder()
                 .code(errorCode.name())
                 .message(errorCode.getMessage())
                 .build();
+
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(res);
     }
 }
 
