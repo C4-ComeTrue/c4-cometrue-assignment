@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.domain.account.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,8 +28,9 @@ public class Account extends BaseEntity {
     @PositiveOrZero
     private long balance; // 계좌의 잔고
 
-    private long dailyTopUpAmount; // 하루 총 충전 금액, 3_000_000을 넘으면 안 된다.
-    // 하루제한을 넘었는지 확인할 때 컬럼에 제약조건을 거는 게 나은가 혹은 트랜잭션 안에서 관리하는게 더 나은가
+    @PositiveOrZero
+    @Max(value = 3_000_000, message = "충전 금액은 3,000,000을 초과할 수 없습니다.")
+    private long dailyTopUpAmount;
 
     public Account(User user){
         this.user = user;
@@ -36,9 +38,13 @@ public class Account extends BaseEntity {
         dailyTopUpAmount = 0;
     }
 
-    public void topUp(long amount){
+    public void deposit(long amount){
         balance += amount;
-        dailyTopUpAmount += amount; // TODO 제한을 넘겼는가
+        dailyTopUpAmount += amount;
+    }
+
+    public void withdraw(long amount){
+        balance -= amount;
     }
 
 }

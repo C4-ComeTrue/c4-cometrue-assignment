@@ -2,7 +2,7 @@ package org.c4marathon.assignment.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.c4marathon.assignment.domain.account.entity.Account;
-import org.c4marathon.assignment.domain.account.AccountRepository;
+import org.c4marathon.assignment.domain.account.repository.AccountRepository;
 import org.c4marathon.assignment.domain.user.dto.SignUpDto;
 import org.c4marathon.assignment.domain.user.entity.User;
 import org.c4marathon.assignment.domain.user.repository.UserRepository;

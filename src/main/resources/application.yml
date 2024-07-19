@@ -11,12 +11,16 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-    #    show-sql: true
+      show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         database-platform: org.hibernate.dialect.MySQLDialect
         default_batch_fetch_size: 100
-  #        format_sql: true
+        format_sql: true
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG
 token:
   secret: ${SECRET_KEY}

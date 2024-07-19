@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.domain.saving.entity;
+package org.c4marathon.assignment.domain.account.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,7 +12,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Entity
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class Saving extends BaseEntity {
+public class SavingAccount extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -26,8 +26,13 @@ public class Saving extends BaseEntity {
     private long balance; // 계좌의 잔고
 
     private double interestRate; // 이자율
+    public SavingAccount(User user){
+        this.user = user;
+        balance = 0;
+        interestRate = 0;
+    }
 
-    public void updateBalance(long amount){
+    public void deposit(long amount){
         balance += amount;
     }
 }

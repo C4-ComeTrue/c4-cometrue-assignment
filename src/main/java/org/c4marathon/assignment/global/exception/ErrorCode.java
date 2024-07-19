@@ -24,6 +24,7 @@ public enum ErrorCode {
 
 
     /* 500 Internal Server Error */
+    MAIN_ACCOUNT_PK_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "DB 정합성 문제가 발생했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 측에 문제가 생겼습니다.");
 
     private final HttpStatus httpStatus;
