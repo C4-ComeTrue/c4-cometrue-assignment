@@ -24,20 +24,17 @@ public class UserService {
 
     @Transactional
     public SignUpDto.Res signUp(String email, String password){
-
-        User user = new User(email, BCrypt.hashpw(password, BCrypt.gensalt()));
-        User savedUser;
-        try {
-            savedUser = userRepository.save(user);
-        }  catch (DataIntegrityViolationException e){
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new CustomException(ErrorCode.DUPLICATED_EMAIL); // 이미 존재하는 이메일이 있는 경우
         }
+
+        User user = userRepository.save(new User(email, BCrypt.hashpw(password, BCrypt.gensalt())));
 
         Account mainAccount = new Account(user);
         Account savedMainAccount = accountRepository.save(mainAccount);
 
-        savedUser.updateMainAccount(savedMainAccount.getId());
-        return new SignUpDto.Res(tokenProvider.createAccessToken(savedUser.getEmail(), "ROLE_USER"));
+        user.updateMainAccount(savedMainAccount.getId());
+        return new SignUpDto.Res(tokenProvider.createAccessToken(user.getEmail(), "ROLE_USER"));
     }
 
     @Transactional
