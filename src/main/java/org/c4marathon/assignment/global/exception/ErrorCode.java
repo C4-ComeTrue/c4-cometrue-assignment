@@ -15,7 +15,7 @@ public enum ErrorCode {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "잘못된 비밀번호입니다."),
     DEPOSIT_LIMIT_EXCEED(HttpStatus.BAD_REQUEST, "하루 충전 한도를 초과하였습니다."),
     MAIN_ACCOUNT_BALANCE_EXCEED(HttpStatus.BAD_REQUEST, "메인계좌 잔액이 부족합니다."),
-    INVALID_REQUEST_CONTECT(HttpStatus.BAD_REQUEST, "잘못된 데이터를 포함한 요청입니다."),
+    INVALID_REQUEST_CONTENT(HttpStatus.BAD_REQUEST, "잘못된 데이터를 포함한 요청입니다."),
 
     /* 401 Unauthorized */
     TOKEN_VALIDATION_EXCEPTION(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),

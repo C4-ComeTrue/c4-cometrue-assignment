@@ -45,12 +45,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .collect(Collectors.toList());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .code(ErrorCode.INVALID_REQUEST_CONTECT.name())
-                .message(ErrorCode.INVALID_REQUEST_CONTECT.getMessage())
+                .code(ErrorCode.INVALID_REQUEST_CONTENT.name())
+                .message(ErrorCode.INVALID_REQUEST_CONTENT.getMessage())
                 .errors(validationErrors)
                 .build();
 
-        return new ResponseEntity<>(errorResponse, ErrorCode.INVALID_REQUEST_CONTECT.getHttpStatus());
+        return new ResponseEntity<>(errorResponse, ErrorCode.INVALID_REQUEST_CONTENT.getHttpStatus());
     }
 
     @ExceptionHandler(CustomException.class)
