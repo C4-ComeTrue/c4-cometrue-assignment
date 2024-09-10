@@ -1,11 +1,10 @@
-package org.c4marathon.assignment.user.controller;
+package org.c4marathon.assignment.user;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.c4marathon.assignment.user.dto.JoinDto;
 import org.c4marathon.assignment.user.dto.LoginDto;
 import org.c4marathon.assignment.user.repository.UserRepository;
-import org.c4marathon.assignment.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class UserControllerTest {
+public class UserTest {
 
     @MockBean
     private UserRepository userRepository;
