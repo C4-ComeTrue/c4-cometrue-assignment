@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.user;
+package org.c4marathon.assignment.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.c4marathon.assignment.config.CommonResponse;
