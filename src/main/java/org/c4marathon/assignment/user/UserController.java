@@ -1,7 +1,7 @@
-package org.c4marathon.assignment.user.controller;
+package org.c4marathon.assignment.user;
 
 import lombok.RequiredArgsConstructor;
-import org.c4marathon.assignment.user.config.CommonResponse;
+import org.c4marathon.assignment.config.CommonResponse;
 import org.c4marathon.assignment.user.dto.JoinDto;
 import org.c4marathon.assignment.user.dto.LoginDto;
 import org.c4marathon.assignment.user.service.UserService;
@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,15 +24,26 @@ public class UserController {
     public ResponseEntity<CommonResponse> join(
             @RequestBody JoinDto joinDto
     ){
-        userService.save(joinDto);
 
-        CommonResponse res = new CommonResponse(
-                200,
-                HttpStatus.OK,
-                "회원가입 성공",
-                null
-        );
-        return new ResponseEntity<>(res, res.getHttpStatus());
+        boolean checkJoin = userService.save(joinDto);
+
+        if(checkJoin == true){
+            CommonResponse res = new CommonResponse(
+                    200,
+                    HttpStatus.OK,
+                    "회원가입 성공",
+                    null
+            );
+            return new ResponseEntity<>(res, res.getHttpStatus());
+        }else {
+            CommonResponse res = new CommonResponse(
+                    400,
+                    HttpStatus.BAD_REQUEST,
+                    "회원가입 실패",
+                    null
+            );
+            return new ResponseEntity<>(res, res.getHttpStatus());
+        }
     }
 
 

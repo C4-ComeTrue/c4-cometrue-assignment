@@ -3,7 +3,9 @@ package org.c4marathon.assignment.user.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.c4marathon.assignment.user.dto.JoinDto;
+import org.c4marathon.assignment.user.dto.LoginDto;
 import org.c4marathon.assignment.user.repository.UserRepository;
+import org.c4marathon.assignment.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +56,20 @@ public class UserControllerTest {
         // when, then
         mockMvc.perform(post("/user/join")
                         .content(toJson(joinDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @DisplayName("[로그인 테스트]")
+    @Test
+    void loginTest() throws Exception {
+
+        // given
+        LoginDto loginDto = new LoginDto("abcd", "a1234");
+
+        // when, then
+        mockMvc.perform(post("/user/login")
+                        .content(toJson(loginDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
