@@ -18,17 +18,24 @@ public class UserService {
 
     // 회원가입
     @Transactional
-    public void save(JoinDto joinDto){
+    public boolean save(JoinDto joinDto){
+        Optional checkUser = userRepository.findByUserId(joinDto.userId());
 
-        User user = User.builder()
-                .userId(joinDto.userId())
-                .userPw(joinDto.userPw())
-                .name(joinDto.name())
-                .build();
+        if(checkUser == null){
+            User user = User.builder()
+                    .userId(joinDto.userId())
+                    .userPw(joinDto.userPw())
+                    .name(joinDto.name())
+                    .build();
 
-        userRepository.save(user);
+            userRepository.save(user);
+            return true;
+        }else {
+            return false;
+        }
     }
 
+    // 로그인
     public LoginDto login(LoginDto loginDto){
         Optional<User> userRepositoryByUserId = userRepository.findByUserId(loginDto.userId());
         if (userRepositoryByUserId.isPresent()) {
