@@ -3,12 +3,15 @@
 - 취뽀컴트루 & 취준마라톤 과제 레포
 - 각 프로젝트 설명은 assignment 폴더를 참고 바랍니다.
 
-| 과제 이름 | 한 줄 설명 | 링크 |
-| -- | -- | -- |
-| My-Storage | 간단한 형태의 클라우드 스토리지를 만들어 봅시다. | [링크](assignments/my-storage.md) |
-| Mini-Pay | 기본 송금과 정산 기능이 있는 페이 서비스를 만들어 봅시다. | [링크](assignments/mini-pay.md) |
-| Accelerated To-Do | iCal 형식에 맞춘 일정을 제공하는 To-Do 서버를 개발해 봅시다. | [링크](assignments/accelerated-to-do.md) |
-| Opener-Market | 구매자와 판매자 기능이 있는 오픈마켓 서비스를 개발해 봅시다. | [링크](assignments/opener-market.md) |
+| 과제 이름 | 한 줄 설명 | 예상 난이도 (1 - 5) | 링크 |
+| -- | -- | -- | -- |
+| My-Storage | 간단한 형태의 클라우드 스토리지를 만들어 봅시다. | 4 ~ 5 | [링크](assignments/my-storage.md) |
+| Mini-Pay | 기본 송금과 정산 기능이 있는 페이 서비스를 만들어 봅시다. | 4 | [링크](assignments/mini-pay.md) |
+| Accelerated To-Do | iCal 형식에 맞춘 일정을 제공하는 To-Do 서버를 개발해 봅시다. | 4 ~ 5 | [링크](assignments/accelerated-to-do.md) |
+| Opener-Market | 구매자와 판매자 기능이 있는 오픈마켓 서비스를 개발해 봅시다. | 3 ~ 4 | [링크](assignments/opener-market.md) |
+| Popping-Community | 일반적인 커뮤니티를 개발해 봅시다. 단, 사용자가 엄청나게 많을 겁니다. | 3 ~ 4 | [링크](assignments/popping-community.md) |
+| Algorithm-Market | 알고리즘 연습 사이트 (ex. 릿코드, 백준, 프로그래머스) 를 개발해 봅시다. | 4 | [링크](assignments/algorithm-market.md) |
+| Very-Simple-SNS | 간단한 형태의 SNS를 개발해 봅시다.<br />어느정도 규모 있는 서버 개발을 해 본적이 없는 분들에게 추천드립니다. | 2 | [링크](assignments/very-simple-sns.md) |
 
 ## Branch Guide
 
