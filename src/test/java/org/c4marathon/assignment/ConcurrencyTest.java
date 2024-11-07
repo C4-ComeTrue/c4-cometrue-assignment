@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import org.c4marathon.assignment.common.exception.BusinessException;
 import org.c4marathon.assignment.common.exception.ErrorCode;
 import org.c4marathon.assignment.domain.SavingsType;
+import org.c4marathon.assignment.domain.entity.ChargeLinkedAccount;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.ChargeLinkedAccountRepository;
 import org.c4marathon.assignment.repository.SavingsAccountRepository;
@@ -83,10 +84,11 @@ class ConcurrencyTest {
 
 		var userAAccountId = userA.accountId();
 		var userBAccountId = userB.accountId();   // userB 에게 동시에 전송
+
 		var transferAmount = 5000;
 		var chargeAmount = 1000000;
 
-		// 2. 각 회원이 10000원씩 충전한다.
+		// 2. B 계좌로 보낼 수 있도록 잔액을 여유롭게 충전한다.
 		var userBAccountNumber = accountRepository.findById(userBAccountId).orElseThrow().getAccountNumber();
 		chargeService.charge(userAAccountId, chargeAmount);
 
@@ -97,7 +99,7 @@ class ConcurrencyTest {
 		// when
 		for (int i = 0; i < concurrentUser; i++) {
 			executorService.execute(() -> {
-				accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);
+				accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);  // 100명이 userB 계좌로 전송
 				countDownLatch.countDown();
 			});
 		}
@@ -106,8 +108,10 @@ class ConcurrencyTest {
 		executorService.shutdown();
 
 		// then
-		var accountEntity = accountRepository.findById(userAAccountId).orElseThrow();
-		assertThat(accountEntity.getAmount()).isEqualTo(chargeAmount - transferAmount * concurrentUser);
+		var accountAEntity = accountRepository.findById(userAAccountId).orElseThrow();
+		var accountBEntity = accountRepository.findById(userBAccountId).orElseThrow();
+		assertThat(accountAEntity.getAmount()).isEqualTo(chargeAmount - transferAmount * concurrentUser);
+		assertThat(accountBEntity.getAmount()).isEqualTo(transferAmount * concurrentUser);  // 동시성 이슈 확인 필요
 	}
 
 	@Test
@@ -185,5 +189,51 @@ class ConcurrencyTest {
 		var resultAmountB = accountRepository.findAmount(userBAccountId);
 		assertThat(resultAmountA).isEqualTo(0);
 		assertThat(resultAmountB).isEqualTo(transferAmount + chargeAmount);
+	}
+
+	@Test
+	void 송금시_자동_충전이_일어날때_내_계좌로_돈이_들어오는_경우_송금이_성공한다() {
+		// given
+		// 주 계좌 생성
+		var userA = memberService.register("email1", "password1");
+		var userB = memberService.register("email2", "password2");
+
+		var userAAccountId = userA.accountId();
+		var userBAccountId = userB.accountId();
+		var userBAccountNumber = accountRepository.findById(userB.accountId()).orElseThrow().getAccountNumber();
+
+		// 유저 A가 주 충전 계좌 생성
+		var transferAmount = 5000;
+		var chargeAmount = 10000;
+		var userAAccount = accountRepository.findById(userAAccountId).orElseThrow();
+		var chargedLinkedAccount = ChargeLinkedAccount.builder()
+			.account(userAAccount)
+			.bank("우리은행")
+			.accountNumber("111-0000-222")
+			.amount(10000)
+			.main(true).build();     // 주 계좌에 10000원 충전 수행
+
+		chargeLinkedAccountRepository.save(chargedLinkedAccount);
+		chargeService.charge(userBAccountId, transferAmount);
+
+		// when
+		var future1 = CompletableFuture.runAsync(() ->
+		{
+			accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);  // userA -> B로 5000원 송금 시도 -> 잔액 부족으로 자동 충전 수행
+		});
+
+		var future2 = CompletableFuture.runAsync(() ->
+		{
+			accountService.transfer(userBAccountId, userAAccount.getAccountNumber(), transferAmount);  // userB -> A로 5000원 송금 시도
+		});
+
+		// 다수의 비동기 작업을 수행할 때 까지 대기
+		CompletableFuture.allOf(future1, future2).join();
+
+		// then
+		var resultAmountA = accountRepository.findAmount(userAAccountId);
+		var resultAmountB = accountRepository.findAmount(userBAccountId);
+		assertThat(resultAmountA).isEqualTo(transferAmount + (chargeAmount - transferAmount));
+		assertThat(resultAmountB).isEqualTo(transferAmount);
 	}
 }

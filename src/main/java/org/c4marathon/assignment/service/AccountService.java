@@ -55,6 +55,7 @@ public class AccountService {
 		}
 
 		// 2. 잔액이 여유로워졌다면, 내 계좌의 잔액을 차감시키고 친구의 메인 계좌로 송금한다.
+		// TODO: 내 계좌와 친구 계좌 트랜잭션 분리
 		minusMyAccount(accountId, transferAmount);
 		plusTargetAccount(transferAccountNumber, transferAmount);
 
