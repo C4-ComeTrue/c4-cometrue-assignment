@@ -4,9 +4,12 @@ import java.util.Optional;
 
 import org.c4marathon.assignment.domain.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import jakarta.persistence.LockModeType;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
@@ -15,6 +18,10 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 	Optional<Account> findByMemberId(long memberId);
 
 	Optional<Account> findByAccountNumber(String accountNumber);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("select ac from Account ac where ac.accountNumber = :accountNumber")
+	Optional<Account> findByAccountNumberWithWriteLock(@Param("accountNumber") String accountNumber);
 
 	@Query("select ac.amount from Account ac where ac.id = :id")
 	long findAmount(@Param("id") long id);

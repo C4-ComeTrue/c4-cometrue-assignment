@@ -70,7 +70,7 @@ public class AccountService {
 	}
 
 	private void plusTargetAccount(String accountNumber, long transferAmount) {
-		Account transferAccount = accountRepository.findByAccountNumber(accountNumber)
+		Account transferAccount = accountRepository.findByAccountNumberWithWriteLock(accountNumber)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 		accountRepository.deposit(transferAccount.getId(), transferAmount);
