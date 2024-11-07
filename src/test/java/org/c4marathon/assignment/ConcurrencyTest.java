@@ -2,6 +2,8 @@ package org.c4marathon.assignment;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -85,25 +87,27 @@ class ConcurrencyTest {
 		var userAAccountId = userA.accountId();
 		var userBAccountId = userB.accountId();   // userB 에게 동시에 전송
 
-		var transferAmount = 5000;
+		var transferAmount = 500;
 		var chargeAmount = 1000000;
 
 		// 2. B 계좌로 보낼 수 있도록 잔액을 여유롭게 충전한다.
 		var userBAccountNumber = accountRepository.findById(userBAccountId).orElseThrow().getAccountNumber();
 		chargeService.charge(userAAccountId, chargeAmount);
 
-		var concurrentUser = 100;
+		var concurrentUser = 1000;
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
 		var executorService = Executors.newFixedThreadPool(1000);
 		var countDownLatch = new CountDownLatch(concurrentUser);
 
 		// when
 		for (int i = 0; i < concurrentUser; i++) {
-			executorService.execute(() -> {
-				accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);  // 100명이 userB 계좌로 전송
+			futures.add(CompletableFuture.runAsync(() -> {
+				accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);
 				countDownLatch.countDown();
-			});
+			}, executorService));
 		}
 
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 		countDownLatch.await();
 		executorService.shutdown();
 
