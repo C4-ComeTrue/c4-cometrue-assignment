@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 	transactionManagerRef = "mysqlTransactionManager")
 @EnableTransactionManagement
 public class JpaConfig {
-	// TODO config설정 전부 해줘서 mongodb txManager랑 분리하여 사용하도록 수정 필요
 	@Value("${spring.jpa.hibernate.ddl-auto}")
 	private String ddlAuto;
 
@@ -48,7 +47,7 @@ public class JpaConfig {
 		entityManagerFactoryBean.setPackagesToScan("org.c4marathon.assignment.*.entity"); // MySQL Entity 패키지 경로
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-		vendorAdapter.setGenerateDdl(true);
+		vendorAdapter.setGenerateDdl(false);
 		entityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter); // hibernate 등록
 
 		Map<String, Object> properties = new HashMap<>();

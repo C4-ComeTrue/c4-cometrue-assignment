@@ -172,8 +172,8 @@ class SettlementControllerTest {
 		@Test
 		@DisplayName("전체 정산 정보 조회 테스트")
 		void get_settlement_info_list() throws Exception {
-			List<SettlementInfoResponseDto> responseDto = new ArrayList<>(
-				List.of(new SettlementInfoResponseDto(new ObjectId(), 1, "user1", 2, 10000,
+			List<SettlementInfoResponseDto> responseDto = new ArrayList<>(List.of(
+				new SettlementInfoResponseDto(new ObjectId(), 1, "user1", 2, 10000,
 					List.of(new MemberInfoDocument(2, "user2", 3000), new MemberInfoDocument(3, "user3", 7000)),
 					LocalDateTime.now())));
 			// Given

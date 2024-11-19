@@ -22,10 +22,10 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class RedisStreamConsumer implements StreamListener<String, MapRecord<String, Object, Object>>, InitializingBean,
+public class RedisStreamConsumer implements StreamListener<String, MapRecord<String, Object, String>>, InitializingBean,
 	DisposableBean {
 
-	private StreamMessageListenerContainer<String, MapRecord<String, Object, Object>> listenerContainer;
+	private StreamMessageListenerContainer<String, MapRecord<String, Object, String>> listenerContainer;
 	private Subscription subscription;
 
 	@Value("${redis-stream.stream-key}")
@@ -76,18 +76,18 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 	 * XADD된 메세지를 먼저 처리한다. 처리와 동시에 consumer-group에 pending 한다.
 	 */
 	@Override
-	public void onMessage(MapRecord<String, Object, Object> message) {
+	public void onMessage(MapRecord<String, Object, String> message) {
 		// 테스트에서 ack 처리 되지 않도록 처리
 		if (isTest) {
 			return;
 		}
-		Set<Map.Entry<Object, Object>> entries = message.getValue().entrySet();
+		Set<Map.Entry<Object, String>> entries = message.getValue().entrySet();
 		Long[] accountData = new Long[3];
 		int index = 0;
 
 		// depositData에 send-pk, deposit-pk, money를 차례대로 담는다.
-		for (Map.Entry<Object, Object> entry : entries) {
-			String value = (String)entry.getValue();
+		for (Map.Entry<Object, String> entry : entries) {
+			String value = entry.getValue();
 			accountData[index++] = Long.valueOf(value);
 		}
 
