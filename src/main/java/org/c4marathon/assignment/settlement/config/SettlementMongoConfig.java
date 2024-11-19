@@ -2,9 +2,11 @@ package org.c4marathon.assignment.settlement.config;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.SessionSynchronization;
@@ -12,36 +14,26 @@ import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.WriteResultChecking;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
+@Profile("default")
 @Configuration
 @EnableMongoRepositories(basePackages = {"org.c4marathon.assignment.settlement"})
-@EnableTransactionManagement
 public class SettlementMongoConfig extends AbstractMongoClientConfiguration {
 
 	@Value("${spring.mongo.database}")
 	private String databaseName;
 
-	@Value("${spring.mongo.username}")
-	private String username;
-
-	@Value("${spring.mongo.password}")
-	private String password;
-
-	@Value("${spring.mongo.host}")
-	private String host;
-
-	@Value("${spring.mongo.port}")
-	private int port;
+	@Value("${spring.mongo.uri}")
+	private String mongoUri;
 
 	@Bean
 	public MongoTransactionManager mongoTransactionManager(
-		MongoDatabaseFactory mongoDatabaseFactory) {
+		@Qualifier("mongoDbFactory") MongoDatabaseFactory mongoDatabaseFactory) {
 		return new MongoTransactionManager(mongoDatabaseFactory);
 	}
 
@@ -58,8 +50,7 @@ public class SettlementMongoConfig extends AbstractMongoClientConfiguration {
 	@Override
 	public MongoClient mongoClient() {
 
-		String uri = String.format("mongodb://%s:%s@%s:%d/%s?authSource=admin&socketTimeoutMS=1500", username, password,
-			host, port, databaseName);
+		String uri = String.format(mongoUri);
 
 		ConnectionString connectionString = new ConnectionString(uri);
 
