@@ -1,8 +1,10 @@
 package org.c4marathon.assignment.settlement.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.c4marathon.assignment.common.exception.CommonErrorCode;
 import org.c4marathon.assignment.common.exception.CommonException;
 import org.c4marathon.assignment.settlement.document.MemberInfoDocument;
@@ -12,6 +14,7 @@ import org.c4marathon.assignment.settlement.dto.request.MemberInfo;
 import org.c4marathon.assignment.settlement.dto.response.SettlementInfoResponseDto;
 import org.c4marathon.assignment.settlement.exception.SettlementErrorCode;
 import org.c4marathon.assignment.settlement.exception.SettlementException;
+import org.c4marathon.assignment.settlement.util.SettlementUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -115,13 +119,17 @@ class SettlementServiceTest {
 			List<SettlementInfoDocument> responseDto = new ArrayList<>(
 				List.of(new SettlementInfoDocument(2, "user2", 3, 10000,
 					List.of(new MemberInfoDocument(1, "user1", 33334), new MemberInfoDocument(3, "user3", 33333),
-						new MemberInfoDocument(4, "user4", 33333)))));
+						new MemberInfoDocument(4, "user4", 33333)), LocalDateTime.now())));
 
-			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk));
+			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk))
+				.addCriteria(Criteria.where("_id").gt(new ObjectId(0, 0)))
+				.with(Sort.by(Sort.Order.asc("createdAt")))
+				.limit(SettlementUtils.PAGE_SIZE);
 			when(mongoTemplate.find(query, SettlementInfoDocument.class)).thenReturn(responseDto);
 
 			// When
-			List<SettlementInfoResponseDto> settlementInfoList = settlementService.getSettlementInfoList(accountPk);
+			List<SettlementInfoResponseDto> settlementInfoList = settlementService.getSettlementInfoList(accountPk,
+				null);
 
 			// Then
 			assertEquals(responseDto.size(), settlementInfoList.size());
@@ -136,14 +144,17 @@ class SettlementServiceTest {
 		@DisplayName("데이터베이스 오류로 정산 내역 조회가 실패하면 INTERNAL_SERVER_ERROR를 반환한다.")
 		void request_when_database_server_error() {
 			// Given
-			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk));
+			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk))
+				.addCriteria(Criteria.where("_id").gt(new ObjectId(0, 0)))
+				.with(Sort.by(Sort.Order.asc("createdAt")))
+				.limit(SettlementUtils.PAGE_SIZE);
 			given(mongoTemplate.find(query, SettlementInfoDocument.class)).willThrow(
 				new DataAccessException("error") {
 				});
 
 			// When
 			CommonException commonException = assertThrows(CommonException.class,
-				() -> settlementService.getSettlementInfoList(accountPk));
+				() -> settlementService.getSettlementInfoList(accountPk, null));
 
 			// Then
 			assertEquals(CommonErrorCode.INTERNAL_SERVER_ERROR.name(), commonException.getErrorName());

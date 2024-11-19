@@ -1,9 +1,11 @@
 package org.c4marathon.assignment.settlement.service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.bson.types.ObjectId;
 import org.c4marathon.assignment.common.exception.CommonErrorCode;
 import org.c4marathon.assignment.settlement.document.MemberInfoDocument;
 import org.c4marathon.assignment.settlement.document.SettlementInfoDocument;
@@ -13,6 +15,7 @@ import org.c4marathon.assignment.settlement.dto.response.SettlementInfoResponseD
 import org.c4marathon.assignment.settlement.exception.SettlementErrorCode;
 import org.c4marathon.assignment.settlement.util.SettlementUtils;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -47,7 +50,7 @@ public class SettlementService {
 		}
 
 		SettlementInfoDocument settleInfo = new SettlementInfoDocument(requestAccountPk, requestMemberName, totalNumber,
-			requestDto.totalMoney(), memberInfoList);
+			requestDto.totalMoney(), memberInfoList, LocalDateTime.now());
 
 		try {
 			mongoTemplate.insert(settleInfo);
@@ -61,9 +64,15 @@ public class SettlementService {
 	 *
 	 * 자신의 계좌가 포함된 정산 요청 리스트를 반환한다.
 	 */
-	public List<SettlementInfoResponseDto> getSettlementInfoList(long accountPk) {
+	public List<SettlementInfoResponseDto> getSettlementInfoList(long accountPk, String objectId) {
 		try {
-			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk));
+			ObjectId id = getId(objectId);
+
+			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk))
+				.addCriteria(Criteria.where("_id").gt(id))
+				.with(Sort.by(Sort.Order.asc("createdAt")))
+				.limit(SettlementUtils.PAGE_SIZE);
+
 			return mongoTemplate.find(query, SettlementInfoDocument.class)
 				.stream()
 				.map(settlementInfoDocument -> new SettlementInfoResponseDto(settlementInfoDocument))
@@ -71,6 +80,14 @@ public class SettlementService {
 		} catch (DataAccessException exception) {
 			throw CommonErrorCode.INTERNAL_SERVER_ERROR.commonException("정산 데이터 조회 실패");
 		}
+	}
+
+	private ObjectId getId(String objectId) {
+		if (objectId == null || objectId.isEmpty()) {
+			return new ObjectId(0, 0);
+		}
+
+		return new ObjectId(objectId);
 	}
 
 	/**

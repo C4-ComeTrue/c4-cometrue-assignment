@@ -177,13 +177,13 @@ class SettlementControllerTest {
 					List.of(new MemberInfoDocument(2, "user2", 3000), new MemberInfoDocument(3, "user3", 7000)),
 					LocalDateTime.now())));
 			// Given
-			given(settlementService.getSettlementInfoList(anyLong())).willReturn(responseDto);
+			given(settlementService.getSettlementInfoList(anyLong(), anyString())).willReturn(responseDto);
 
 			// When
-			ResultActions resultActions = mockMvc.perform(get(REQUEST_URL + "/info").session(session));
+			ResultActions resultActions = mockMvc.perform(
+				get(REQUEST_URL + "/info").param("objectId", "0").session(session));
 
 			// Then
-			String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
 			resultActions.andExpectAll(status().isOk(), jsonPath("$[0].memberInfoList").isNotEmpty());
 		}
 	}
