@@ -8,9 +8,10 @@ import org.c4marathon.assignment.common.exception.CommonErrorCode;
 import org.c4marathon.assignment.settlement.document.MemberInfoDocument;
 import org.c4marathon.assignment.settlement.document.SettlementInfoDocument;
 import org.c4marathon.assignment.settlement.dto.request.DivideMoneyRequestDto;
+import org.c4marathon.assignment.settlement.dto.request.MemberInfo;
 import org.c4marathon.assignment.settlement.dto.response.SettlementInfoResponseDto;
 import org.c4marathon.assignment.settlement.exception.SettlementErrorCode;
-import org.c4marathon.assignment.settlement.util.RandomUtils;
+import org.c4marathon.assignment.settlement.util.SettlementUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -38,20 +39,15 @@ public class SettlementService {
 				"totalNumber = " + totalNumber + ", list size = " + requestDto.memberInfoList().size());
 		}
 
-		// 랜덤으로 나눠주기 위해 셔플
-		Collections.shuffle(requestDto.memberInfoList());
-
 		List<MemberInfoDocument> memberInfoList;
 		if (requestDto.isRandom()) {
-			memberInfoList = getRandomSettlementInfo(requestDto, totalNumber);
+			memberInfoList = getRandomSettlementInfo(requestDto.memberInfoList(), requestDto.totalMoney(), totalNumber);
 		} else {
 			memberInfoList = getEquallySettlementInfo(requestDto, totalNumber);
 		}
 
 		SettlementInfoDocument settleInfo = new SettlementInfoDocument(requestAccountPk, requestMemberName, totalNumber,
-			requestDto.totalMoney(),
-			memberInfoList);
-		System.out.println(settleInfo);
+			requestDto.totalMoney(), memberInfoList);
 
 		try {
 			mongoTemplate.insert(settleInfo);
@@ -71,24 +67,29 @@ public class SettlementService {
 			return mongoTemplate.find(query, SettlementInfoDocument.class)
 				.stream()
 				.map(settlementInfoDocument -> new SettlementInfoResponseDto(settlementInfoDocument))
-				.collect(Collectors.toList());
+				.toList();
 		} catch (DataAccessException exception) {
 			throw CommonErrorCode.INTERNAL_SERVER_ERROR.commonException("정산 데이터 조회 실패");
 		}
 	}
 
+	/**
+	 * 1/N 정산 메소드. 1원 단위까지 분배합니다.
+	 * @param requestDto
+	 * @param totalNumber
+	 * @return
+	 */
 	private List<MemberInfoDocument> getEquallySettlementInfo(DivideMoneyRequestDto requestDto, int totalNumber) {
 		long initMoney = requestDto.totalMoney() / totalNumber; // 1인당 보내야 하는 최소 금액
 		long leftMoney = requestDto.totalMoney() % totalNumber; // 최소 금액을 뺀 나머지 금액
 
-		// 랜덤으로 정렬하여 앞에서부터 leftMoney 한도 내에서 1원씩 받도록 한다.
 		List<MemberInfoDocument> memberInfoList = requestDto.memberInfoList()
 			.stream()
 			.map(member -> new MemberInfoDocument(member.accountPk(), member.memberName(), initMoney))
-			.collect(
-				Collectors.toList());
-		Collections.shuffle(memberInfoList);
+			.collect(Collectors.toList());
 
+		// 랜덤으로 정렬하여 앞에서부터 leftMoney 한도 내에서 1원씩 받도록 한다.
+		Collections.shuffle(memberInfoList);
 		for (int i = 0; i < totalNumber && leftMoney-- > 0; i++) {
 			memberInfoList.get(i).plusLeftMoney();
 		}
@@ -96,28 +97,34 @@ public class SettlementService {
 		return memberInfoList;
 	}
 
-	private List<MemberInfoDocument> getRandomSettlementInfo(DivideMoneyRequestDto requestDto, int totalNumber) {
-		long totalMoney = requestDto.totalMoney();
-		long initMoney = totalMoney / (totalNumber * 2);
+	/**
+	 * 랜덤 정산 메소드
+	 * @param memberInfoList
+	 * @param totalMoney
+	 * @param totalNumber
+	 * @return
+	 */
+	private List<MemberInfoDocument> getRandomSettlementInfo(List<MemberInfo> memberInfoList, long totalMoney,
+		int totalNumber) {
 
-		List<MemberInfoDocument> memberInfoList = requestDto.memberInfoList()
-			.stream()
-			.map(member -> new MemberInfoDocument(member.accountPk(), member.memberName(), initMoney))
-			.collect(
-				Collectors.toList());
-		Collections.shuffle(memberInfoList);
-		totalMoney -= (initMoney * totalNumber);
+		List<MemberInfoDocument> memberInfoDocumentList = memberInfoList.stream()
+			.map(member -> new MemberInfoDocument(member.accountPk(), member.memberName(), 0))
+			.collect(Collectors.toList());
 
-		long randomMoney;
-		for (int i = 0; i < totalNumber - 1; i++) {
-			randomMoney = RandomUtils.getRandomMoney(totalMoney + 1);
-			memberInfoList.get(i).plusRandomMoney(randomMoney);
-			totalMoney -= randomMoney;
-
+		long range = totalMoney / SettlementUtils.MIN_UNIT + 1; // 최소 금액 단위로 나눌 때 나눠줘야 할 범위
+		// 0번째 사람을 제외한 나머지 사람들에 대해 랜덤하게 분할
+		for (int i = 1; i < totalNumber; i++) {
+			long randomCount = SettlementUtils.getRandomMoney(range);
+			range -= randomCount;
+			long plusMoney = randomCount * SettlementUtils.MIN_UNIT;
+			totalMoney -= plusMoney;
+			memberInfoDocumentList.get(i).plusRandomMoney(plusMoney);
 		}
-		memberInfoList.get(totalNumber - 1).plusRandomMoney(totalMoney);
 
-		return memberInfoList;
+		// 잔여 금액 할당
+		memberInfoDocumentList.get(0).plusRandomMoney(totalMoney);
+
+		return memberInfoDocumentList;
 
 	}
 }
