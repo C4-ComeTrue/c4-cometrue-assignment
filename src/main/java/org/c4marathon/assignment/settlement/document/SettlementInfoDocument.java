@@ -29,15 +29,15 @@ public class SettlementInfoDocument {
 	private List<MemberInfoDocument> memberInfoList; // 정산하는 사용자의 정보
 
 	@Indexed(name = "created_date_index")
-	LocalDateTime createdAt;
+	private LocalDateTime createdAt;
 
 	public SettlementInfoDocument(long requestAccountPk, String requestMemberName, int totalNumber, long totalMoney,
-		List<MemberInfoDocument> memberInfoList) {
+		List<MemberInfoDocument> memberInfoList, LocalDateTime createdAt) {
 		this.requestAccountPk = requestAccountPk;
 		this.requestMemberName = requestMemberName;
 		this.totalNumber = totalNumber;
 		this.totalMoney = totalMoney;
 		this.memberInfoList = List.copyOf(memberInfoList);
-		this.createdAt = LocalDateTime.now().plusHours(9);
+		this.createdAt = createdAt;
 	}
 }
