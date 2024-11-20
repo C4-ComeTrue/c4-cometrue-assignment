@@ -70,7 +70,7 @@ public class SettlementService {
 
 			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk))
 				.addCriteria(Criteria.where("_id").gt(id))
-				.with(Sort.by(Sort.Order.asc("createdAt")))
+				.with(Sort.by(Sort.Order.desc("createdAt")))
 				.limit(SettlementUtils.PAGE_SIZE);
 
 			return mongoTemplate.find(query, SettlementInfoDocument.class)
