@@ -107,9 +107,8 @@ public class SettlementService {
 
 		// 랜덤으로 정렬하여 앞에서부터 leftMoney 한도 내에서 1원씩 받도록 한다.
 		Collections.shuffle(memberInfoList);
-		for (int i = 0; i < totalNumber && leftMoney-- > 0; i++) {
-			memberInfoList.get(i).plusLeftMoney();
-		}
+		memberInfoList.stream()
+			.forEach(member -> member.plusLeftMoney());
 
 		return memberInfoList;
 	}
@@ -126,7 +125,7 @@ public class SettlementService {
 
 		List<MemberInfoDocument> memberInfoDocumentList = memberInfoList.stream()
 			.map(member -> new MemberInfoDocument(member.accountPk(), member.memberName(), 0))
-			.collect(Collectors.toList());
+			.toList();
 
 		long range = totalMoney / SettlementUtils.MIN_UNIT + 1; // 최소 금액 단위로 나눌 때 나눠줘야 할 범위
 		// 0번째 사람을 제외한 나머지 사람들에 대해 랜덤하게 분할
