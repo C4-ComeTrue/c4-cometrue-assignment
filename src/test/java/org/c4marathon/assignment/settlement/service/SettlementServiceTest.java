@@ -123,7 +123,7 @@ class SettlementServiceTest {
 
 			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk))
 				.addCriteria(Criteria.where("_id").gt(new ObjectId(0, 0)))
-				.with(Sort.by(Sort.Order.asc("createdAt")))
+				.with(Sort.by(Sort.Order.desc("createdAt")))
 				.limit(SettlementUtils.PAGE_SIZE);
 			when(mongoTemplate.find(query, SettlementInfoDocument.class)).thenReturn(responseDto);
 
@@ -146,7 +146,7 @@ class SettlementServiceTest {
 			// Given
 			Query query = new Query(Criteria.where("memberInfoList.accountPk").is(accountPk))
 				.addCriteria(Criteria.where("_id").gt(new ObjectId(0, 0)))
-				.with(Sort.by(Sort.Order.asc("createdAt")))
+				.with(Sort.by(Sort.Order.desc("createdAt")))
 				.limit(SettlementUtils.PAGE_SIZE);
 			given(mongoTemplate.find(query, SettlementInfoDocument.class)).willThrow(
 				new DataAccessException("error") {
