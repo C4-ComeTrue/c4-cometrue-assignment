@@ -25,12 +25,17 @@ spring:
         use_sql_comments: true
     open-in-view: false
 
+  #Redis
   data:
     redis:
       host: ${redis.host}
       password: ${redis.password}
       port: ${redis.port}
 
+  #Mongo
+  mongo:
+    database: ${mongo.database}
+    uri: ${mongo.uri}
 
 
 logging:

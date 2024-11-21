@@ -13,6 +13,7 @@ import org.c4marathon.assignment.bankaccount.message.util.RedisOperator;
 import org.c4marathon.assignment.bankaccount.repository.MainAccountRepository;
 import org.c4marathon.assignment.bankaccount.repository.SavingAccountRepository;
 import org.c4marathon.assignment.bankaccount.service.MainAccountService;
+import org.c4marathon.assignment.container.ContainerBaseConfig;
 import org.c4marathon.assignment.member.entity.Member;
 import org.c4marathon.assignment.member.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -34,7 +36,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-public class MoneySendConcurrencyTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class MoneySendConcurrencyTest extends ContainerBaseConfig {
 
 	@Autowired
 	MemberRepository memberRepository;
@@ -263,7 +266,7 @@ public class MoneySendConcurrencyTest {
 			executorService.shutdown();
 
 			executor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.SECONDS);
-			
+
 			MainAccount resultMainAccount1 = mainAccountRepository.findById(mainAccountPk[0]).get();
 			MainAccount resultMainAccount2 = mainAccountRepository.findById(mainAccountPk[1]).get();
 			MainAccount resultMainAccount3 = mainAccountRepository.findById(mainAccountPk[2]).get();

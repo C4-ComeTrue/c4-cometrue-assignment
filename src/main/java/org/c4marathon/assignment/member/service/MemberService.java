@@ -46,7 +46,8 @@ public class MemberService {
 			throw MemberErrorCode.INVALID_PASSWORD.memberException("비밀번호 불일치");
 		}
 
-		return new SessionMemberInfo(member.getMemberPk(), member.getMemberId(), member.getMainAccountPk());
+		return new SessionMemberInfo(member.getMemberPk(), member.getMemberId(), member.getMemberName(),
+			member.getMainAccountPk());
 	}
 
 	public MemberInfoResponseDto getMemberInfo(long memberPk) {

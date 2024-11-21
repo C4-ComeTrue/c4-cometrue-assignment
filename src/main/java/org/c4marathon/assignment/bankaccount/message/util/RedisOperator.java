@@ -14,6 +14,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -62,15 +63,19 @@ public class RedisOperator {
 			return;
 		}
 
-		RedisAsyncCommands commands = (RedisAsyncCommands)connection.getNativeConnection();
+		RedisAsyncCommands<String, String> commands = (RedisAsyncCommands)connection.getNativeConnection();
 
 		CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).addKey(streamKey)
 			.add("*") // id 자동 생성
-			.add("send-pk").add(sendPk)
-			.add("deposit-pk").add(depositPk)
-			.add("money").add(money);
+			.add("send-pk")
+			.add(sendPk)
+			.add("deposit-pk")
+			.add(depositPk)
+			.add("money")
+			.add(money);
 
-		RedisFuture dispatch = commands.dispatch(CommandType.XADD, new StatusOutput<>(StringCodec.UTF8), commandArgs);
+		RedisFuture<String> dispatch = commands.dispatch(CommandType.XADD, new StatusOutput<>(StringCodec.UTF8),
+			commandArgs);
 		dispatch.handle((result, exception) -> {
 			// 예외가 발생하면 이체 롤백 요청을 보낸다.
 			if (exception != null) {
@@ -127,7 +132,7 @@ public class RedisOperator {
 			return;
 		}
 
-		RedisAsyncCommands commands = (RedisAsyncCommands)connection.getNativeConnection();
+		RedisAsyncCommands<String, String> commands = (RedisAsyncCommands)connection.getNativeConnection();
 
 		CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).addKey(streamKey)
 			.add(pendingMessage.getGroupName())
@@ -146,7 +151,7 @@ public class RedisOperator {
 				return;
 			}
 
-			RedisAsyncCommands commands = (RedisAsyncCommands)connection.getNativeConnection();
+			RedisAsyncCommands<String, String> commands = (RedisAsyncCommands)connection.getNativeConnection();
 
 			// 사용할 명령어 생성
 			CommandArgs<String, String> commandArgs = new CommandArgs<>(StringCodec.UTF8).add(CommandKeyword.CREATE)
@@ -181,7 +186,7 @@ public class RedisOperator {
 		return false;
 	}
 
-	public StreamMessageListenerContainer createStreamMessageListenerContainer() {
+	public StreamMessageListenerContainer<String, MapRecord<String, Object, String>> createStreamMessageListenerContainer() {
 		return StreamMessageListenerContainer.create(redisTemplate.getConnectionFactory(),
 			StreamMessageListenerContainer.StreamMessageListenerContainerOptions.builder()
 				.hashKeySerializer(new StringRedisSerializer())

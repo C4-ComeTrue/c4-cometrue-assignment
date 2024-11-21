@@ -39,9 +39,13 @@ dependencies {
     implementation 'org.springframework.security:spring-security-crypto:5.6.3'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    implementation 'org.springframework.data:spring-data-mongodb'
+    implementation 'org.mongodb:mongodb-driver-sync'
+
     testImplementation 'org.testcontainers:testcontainers:1.19.4'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.4'
     testImplementation 'org.testcontainers:mysql:1.19.4'
+    testImplementation 'org.testcontainers:mongodb:1.16.3'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
