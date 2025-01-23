@@ -6,7 +6,6 @@ import org.c4marathon.assignment.member.dto.MemberLoginRequest;
 import org.c4marathon.assignment.member.dto.MemberRegisterRequest;
 import org.c4marathon.global.session.SessionConst;
 import org.c4marathon.global.session.SessionMemberInfo;
-import org.hibernate.boot.TempTableDdlTransactionHandling;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
