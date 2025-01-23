@@ -1,4 +1,4 @@
-package org.c4marathon.global.config;
+package org.c4marathon.assignment.member.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
