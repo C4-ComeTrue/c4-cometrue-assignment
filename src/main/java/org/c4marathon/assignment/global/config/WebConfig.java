@@ -1,7 +1,7 @@
-package org.c4marathon.global.config;
+package org.c4marathon.assignment.global.config;
 
-import org.c4marathon.global.annotation.LoginMemberArgumentResolver;
-import org.c4marathon.global.auth.LoginInterceptor;
+import org.c4marathon.assignment.global.annotation.LoginMemberArgumentResolver;
+import org.c4marathon.assignment.global.auth.LoginInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

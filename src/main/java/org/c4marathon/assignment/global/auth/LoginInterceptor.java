@@ -1,10 +1,10 @@
-package org.c4marathon.global.auth;
+package org.c4marathon.assignment.global.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.c4marathon.global.session.SessionConst;
-import org.c4marathon.global.session.SessionMemberInfo;
+import org.c4marathon.assignment.global.session.SessionConst;
+import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 public class LoginInterceptor implements HandlerInterceptor {

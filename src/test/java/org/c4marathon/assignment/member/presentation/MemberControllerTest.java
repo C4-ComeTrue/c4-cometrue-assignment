@@ -4,8 +4,8 @@ import org.c4marathon.assignment.ControllerTestSupport;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.dto.MemberLoginRequest;
 import org.c4marathon.assignment.member.dto.MemberRegisterRequest;
-import org.c4marathon.global.session.SessionConst;
-import org.c4marathon.global.session.SessionMemberInfo;
+import org.c4marathon.assignment.global.session.SessionConst;
+import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -41,7 +41,7 @@ class MemberControllerTest extends ControllerTestSupport {
         MemberLoginRequest loginRequest = new MemberLoginRequest("test@test.com", "testPassword!");
 
         Member member = Member.create("test@test.com","테스트", "testPassword!");
-        given(memberService.login(any())).willReturn(new SessionMemberInfo(member.getId(), member.getEmail()));
+        given(memberService.login(any())).willReturn(new SessionMemberInfo(member.getId(), member.getEmail(), 1L));
 
         // when // then
         mockMvc.perform(
@@ -51,6 +51,6 @@ class MemberControllerTest extends ControllerTestSupport {
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(request().sessionAttribute(SessionConst.LOGIN_MEMBER, new SessionMemberInfo(member.getId(), member.getEmail())));
+                .andExpect(request().sessionAttribute(SessionConst.LOGIN_MEMBER, new SessionMemberInfo(member.getId(), member.getEmail(), 1L)));
     }
 }

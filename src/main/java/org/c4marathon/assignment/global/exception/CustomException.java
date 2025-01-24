@@ -1,4 +1,4 @@
-package org.c4marathon.global.exception;
+package org.c4marathon.assignment.global.exception;
 
 import lombok.Getter;
 

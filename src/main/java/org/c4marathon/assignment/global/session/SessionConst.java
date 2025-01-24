@@ -1,4 +1,4 @@
-package org.c4marathon.global.session;
+package org.c4marathon.assignment.global.session;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

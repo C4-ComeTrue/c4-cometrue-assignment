@@ -1,11 +1,10 @@
-package org.c4marathon.assignment.member.exception;
+package org.c4marathon.assignment.account.exception;
 
 import org.c4marathon.assignment.global.exception.CustomException;
 import org.c4marathon.assignment.global.exception.ErrorCode;
 
-public class DuplicateEmailException extends CustomException {
-
-    public DuplicateEmailException() {
+public class NotFoundAccountException extends CustomException {
+    public NotFoundAccountException() {
         super(ErrorCode.DUPLICATE_EMAIL);
     }
 }

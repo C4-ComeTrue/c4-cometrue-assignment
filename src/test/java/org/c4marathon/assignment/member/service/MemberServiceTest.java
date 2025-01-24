@@ -1,6 +1,8 @@
 package org.c4marathon.assignment.member.service;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
+import org.c4marathon.assignment.account.domain.Account;
+import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.dto.MemberLoginRequest;
@@ -9,12 +11,14 @@ import org.c4marathon.assignment.member.dto.MemberRegisterResponse;
 import org.c4marathon.assignment.member.exception.DuplicateEmailException;
 import org.c4marathon.assignment.member.exception.InvalidPasswordException;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
-import org.c4marathon.global.session.SessionMemberInfo;
+import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,12 +35,15 @@ class MemberServiceTest extends IntegrationTestSupport {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AccountRepository accountRepository;
+
     @AfterEach
     void tearDown() {
         memberRepository.deleteAllInBatch();
     }
 
-    @DisplayName("회원가입 테스트")
+    @DisplayName("회원가입 및 계좌 생성 통합 테스트")
     @Test
     void register() throws Exception {
         // given
@@ -50,9 +57,13 @@ class MemberServiceTest extends IntegrationTestSupport {
         MemberRegisterResponse registerMember = memberService.register(registerRequest);
 
         // then
-        assertThat(registerMember)
-                .extracting("memberId", "email")
-                .contains(1L, "test@test.com");
+        Member member = memberRepository.findById(registerMember.memberId())
+                .orElseThrow(NotFoundMemberException::new);
+        assertThat(member.getEmail()).isEqualTo("test@test.com");
+
+        // 메인 계좌 생성 여부 검증
+        Optional<Account> account = accountRepository.findById(member.getAccountId());
+        assertThat(account).isPresent();
 
     }
 
@@ -79,6 +90,7 @@ class MemberServiceTest extends IntegrationTestSupport {
     void login() throws Exception {
         // given
         Member member = Member.create("test@test.com", "테스트", passwordEncoder.encode("test"));
+        member.setMainAccountId(1L);
         memberRepository.save(member);
         MemberLoginRequest loginRequest = new MemberLoginRequest("test@test.com", "test");
 
@@ -87,8 +99,8 @@ class MemberServiceTest extends IntegrationTestSupport {
 
         // then
         assertThat(loginMember)
-                .extracting("memberId", "email")
-                .contains(1L, "test@test.com");
+                .extracting("memberId", "email", "accountId")
+                .contains(1L, "test@test.com", 1L);
     }
 
     @Test

@@ -1,10 +1,11 @@
-package org.c4marathon.global.session;
+package org.c4marathon.assignment.global.session;
 
 import java.io.Serializable;
 
 public record SessionMemberInfo(
     Long memberId,
-    String email
+    String email,
+    Long accountId
 
 ) implements Serializable {
 }

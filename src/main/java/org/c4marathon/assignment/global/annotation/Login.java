@@ -1,4 +1,4 @@
-package org.c4marathon.global.annotation;
+package org.c4marathon.assignment.global.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
