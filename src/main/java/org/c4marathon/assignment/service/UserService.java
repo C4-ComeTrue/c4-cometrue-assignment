@@ -19,7 +19,7 @@ public class UserService {
 
     @Transactional
     public void registerUser(PostUserReq postUserReq) {
-        if (isEmailExist(postUserReq.email())) {
+        if (userRepository.isEmailExist(postUserReq.email())) {
             throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
         }
 
@@ -31,9 +31,5 @@ public class UserService {
 
         Account mainAccount = new Account(user.getId());
         accountRepository.save(mainAccount);
-    }
-
-    public boolean isEmailExist(String email) {
-        return userRepository.isEmailExist(email);
     }
 }
