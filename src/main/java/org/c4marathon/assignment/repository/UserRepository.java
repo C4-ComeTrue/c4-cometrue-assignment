@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.repository;
 
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 
 import org.c4marathon.assignment.entity.User;
@@ -16,5 +18,9 @@ public class UserRepository {
 
 	public User save(User user) {
 		return userJpaRepository.save(user);
+	}
+
+	public Optional<User> findByEmail(String email) {
+		return userJpaRepository.findByEmail(email);
 	}
 }
