@@ -23,7 +23,7 @@ public class MainAccountService {
 
 	@Transactional
 	public void createMainAccount(User user){
-		MainAccount mainAccount = new MainAccount(user, createAccountNumber(), 0,3000000);
+		MainAccount mainAccount = new MainAccount(user, createAccountNumber(), 0);
 		mainAccountRepository.save(mainAccount);
 	}
 

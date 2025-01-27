@@ -32,14 +32,10 @@ public class MainAccount extends BaseEntity{
 	@Column(name = "balance", nullable = false)
 	private long balance;
 
-	@Column(name = "account_limit", nullable = false)
-	private long limit;
-
-	public MainAccount(User user, String accountNumber, long balance, long limit){
+	public MainAccount(User user, String accountNumber, long balance){
 		this.user = user;
 		this.accountNumber = accountNumber;
 		this.balance = balance;
-		this.limit = limit;
 	}
 
 	public void chargeMoney(long money) {
