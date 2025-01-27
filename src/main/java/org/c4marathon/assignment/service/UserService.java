@@ -1,6 +1,5 @@
 package org.c4marathon.assignment.service;
 
-import org.c4marathon.assignment.domain.MainAccount;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.dto.request.SignUpRequestDto;
 import org.c4marathon.assignment.repository.UserRepository;

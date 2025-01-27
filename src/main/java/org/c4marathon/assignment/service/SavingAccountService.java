@@ -1,30 +1,26 @@
 package org.c4marathon.assignment.service;
 
 import java.util.Random;
-import org.c4marathon.assignment.common.exception.NotFoundException;
-import org.c4marathon.assignment.common.exception.enums.ErrorCode;
 import org.c4marathon.assignment.domain.MainAccount;
-import org.c4marathon.assignment.domain.User;
-import org.c4marathon.assignment.repository.MainAccountRepository;
+import org.c4marathon.assignment.domain.SavingAccount;
+import org.c4marathon.assignment.dto.request.SavingAccountRequestDto;
+import org.c4marathon.assignment.repository.SavingAccountRepository;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 @Service
 @RequiredArgsConstructor
-public class MainAccountService {
-	private final MainAccountRepository mainAccountRepository;
-	static int counter = 1;
+public class SavingAccountService {
+	private final SavingAccountRepository savingAccountRepository;
+	private final MainAccountService mainAccountService;
+	static int counter = 50;
 
 	@Transactional
-	public void createMainAccount(User user){
-		MainAccount mainAccount = new MainAccount(user, createAccountNumber(), 0,3000000);
-		mainAccountRepository.save(mainAccount);
-	}
-
-	public MainAccount getMainAccount(long mainAccountId){
-		return mainAccountRepository.findById(mainAccountId).orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MAIN_ACCOUNT));
+	public void createSavingAccount(SavingAccountRequestDto requestDto) {
+		MainAccount mainAccount = mainAccountService.getMainAccount(requestDto.mainAccountId());
+		SavingAccount savingAccount = new SavingAccount(mainAccount, createAccountNumber(), requestDto.balance(), requestDto.rate());
+		savingAccountRepository.save(savingAccount);
 	}
 
 	/**
