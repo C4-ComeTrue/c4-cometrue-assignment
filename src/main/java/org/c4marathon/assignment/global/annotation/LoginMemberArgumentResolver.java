@@ -2,6 +2,7 @@ package org.c4marathon.assignment.global.annotation;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.c4marathon.assignment.global.session.SessionConst;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.springframework.core.MethodParameter;
@@ -14,19 +15,19 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        boolean hasLoginAnnotation = parameter.hasMethodAnnotation(Login.class);
+        boolean hasLoginAnnotation = parameter.hasParameterAnnotation(Login.class);
         boolean hasMemberType = SessionMemberInfo.class.isAssignableFrom(parameter.getParameterType());
 
         return hasLoginAnnotation && hasMemberType;
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    public SessionMemberInfo resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
-        HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession();
         if (session == null) {
             return null;
         }
-        return session.getAttribute(SessionConst.LOGIN_MEMBER);
+        return (SessionMemberInfo) session.getAttribute(SessionConst.LOGIN_MEMBER);
     }
 }

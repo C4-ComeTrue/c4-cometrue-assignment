@@ -6,10 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.c4marathon.assignment.global.entity.BaseEntity;
-import org.c4marathon.assignment.global.util.Const;
-import org.hibernate.annotations.ColumnDefault;
-
-import java.time.LocalDateTime;
 
 import static org.c4marathon.assignment.global.util.Const.CHARGE_LIMIT;
 
@@ -41,12 +37,12 @@ public class Account extends BaseEntity {
         this.chargeLimit = chargeLimit;
     }
 
-    public static Account create() {
+    public static Account create(long money) {
         return Account.builder()
                 .chargeLimit(CHARGE_LIMIT)
+                .money(money)
                 .build();
     }
-
 
     public void chargeAccount(long money) {
         this.money += money;
@@ -67,10 +63,5 @@ public class Account extends BaseEntity {
     public boolean isSend(long money) {
         return this.money > money;
     }
-    public void resetChargeLimit() {
-        this.chargeLimit = CHARGE_LIMIT;
-    }
-
-
 
 }

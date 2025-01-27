@@ -1,15 +1,19 @@
 package org.c4marathon.assignment.account.presentation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.c4marathon.assignment.account.dto.SendToSavingAccountRequest;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.global.annotation.Login;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -20,7 +24,7 @@ public class AccountController {
     @PostMapping("/charge")
     public ResponseEntity<Void> charge(
             @Login SessionMemberInfo loginMember,
-            @RequestParam @PositiveOrZero long money
+            @RequestParam @PositiveOrZero(message = "음수는 송금할 수 없습니다.") long money
     ) {
         accountService.chargeMoney(loginMember.accountId(), money);
         return ResponseEntity.ok().build();
