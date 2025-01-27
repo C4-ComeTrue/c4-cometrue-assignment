@@ -31,5 +31,7 @@ public class UserService {
 
         Account mainAccount = new Account(user.getId());
         accountRepository.save(mainAccount);
+
+        user.changeMainAccount(mainAccount.getId());
     }
 }
