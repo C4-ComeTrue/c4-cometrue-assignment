@@ -1,10 +1,8 @@
 package org.c4marathon.assignment.account.presentation;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.c4marathon.assignment.account.dto.SendToSavingAccountRequest;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.global.annotation.Login;

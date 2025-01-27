@@ -1,9 +1,6 @@
 package org.c4marathon.assignment.account.service.scheduler;
 
 import lombok.RequiredArgsConstructor;
-import org.c4marathon.assignment.account.domain.repository.AccountRepository;
-import org.c4marathon.assignment.account.domain.repository.SavingAccountRepository;
-import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
