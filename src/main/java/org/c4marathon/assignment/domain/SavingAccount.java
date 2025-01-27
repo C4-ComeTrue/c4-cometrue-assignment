@@ -41,4 +41,8 @@ public class SavingAccount extends BaseEntity {
 		this.balance = balance;
 		this.rate = rate;
 	}
+
+	public void chargeMoney(long money) {
+		this.balance += money;
+	}
 }

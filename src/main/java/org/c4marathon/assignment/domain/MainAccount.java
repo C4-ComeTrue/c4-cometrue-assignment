@@ -45,4 +45,8 @@ public class MainAccount extends BaseEntity{
 	public void chargeMoney(long money) {
 		this.balance += money;
 	}
+
+	public void withdrawMoney(long money){
+		this.balance -= money;
+	}
 }
