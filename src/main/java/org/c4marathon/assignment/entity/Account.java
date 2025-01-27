@@ -22,6 +22,8 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "account")
 public class Account extends BaseEntity {
+    private static final int DEFAULT_CHARGE_LIMIT = 3_000_000;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_id", nullable = false)
@@ -39,13 +41,17 @@ public class Account extends BaseEntity {
     @Column(name = "daily_limit", nullable = false)
     private Integer dailyLimit;
 
-    @Column(name = "daily_limit_updated_date", nullable = false)
-    private Instant dailyLimitUpdatedDate;
+    @Column(name = "daily_charged_amount", nullable = false)
+    private Integer dailyChargeAmount ;
+
+    @Column(name = "daily_charged_amount_updated_date", nullable = false)
+    private Instant dailyChargeAmountUpdatedDate;
 
     public Account(Long userId) {
         this.userId = userId;
         this.balance = 0L;
-        this.dailyLimit = 0;
-        this.dailyLimitUpdatedDate = Instant.now();
+        this.dailyLimit = DEFAULT_CHARGE_LIMIT;
+        this.dailyChargeAmount = 0;
+        this.dailyChargeAmountUpdatedDate = Instant.now();
     }
 }
