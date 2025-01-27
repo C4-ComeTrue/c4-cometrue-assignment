@@ -1,6 +1,8 @@
 package org.c4marathon.assignment.entity;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -53,5 +55,21 @@ public class Account extends BaseEntity {
         this.dailyLimit = DEFAULT_CHARGE_LIMIT;
         this.dailyChargeAmount = 0;
         this.dailyChargeAmountUpdatedDate = Instant.now();
+    }
+
+    public boolean isDailyLimitExceeded(int amount) {
+        LocalDate updatedDate = this.dailyChargeAmountUpdatedDate.atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate now = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        if(updatedDate.isBefore(now)) {
+            this.dailyChargeAmount = 0;
+        }
+
+        return this.dailyLimit < dailyChargeAmount + amount ? true : false;
+    }
+
+    public void deposit(int amount) {
+        this.dailyChargeAmount += amount;
+        this.balance += amount;
     }
 }

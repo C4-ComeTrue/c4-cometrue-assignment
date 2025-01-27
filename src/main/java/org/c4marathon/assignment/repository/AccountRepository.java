@@ -1,8 +1,11 @@
 package org.c4marathon.assignment.repository;
 
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 
 import org.c4marathon.assignment.entity.Account;
+import org.c4marathon.assignment.entity.User;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -12,5 +15,9 @@ public class AccountRepository {
 
 	public void save(Account account) {
 		accountJpaRepository.save(account);
+	}
+
+	public Optional<Account> findByIdWithWriteLock(Long id) {
+		return accountJpaRepository.findByIdWithWriteLock(id);
 	}
 }

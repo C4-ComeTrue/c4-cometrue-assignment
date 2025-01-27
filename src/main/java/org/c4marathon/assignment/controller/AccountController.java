@@ -1,6 +1,8 @@
 package org.c4marathon.assignment.controller;
 
+import org.c4marathon.assignment.dto.request.PostMainAccountReq;
 import org.c4marathon.assignment.dto.request.PostSavingsAccountReq;
+import org.c4marathon.assignment.dto.response.MainAccountInfoRes;
 import org.c4marathon.assignment.service.AccountService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +19,12 @@ public class AccountController {
 	private final AccountService accountService;
 
 	@PostMapping("/savings")
-	public void createSavingsAccount(@RequestBody @Valid PostSavingsAccountReq postSavingsAccountReq){
+	public void createSavingsAccount(@RequestBody @Valid PostSavingsAccountReq postSavingsAccountReq) {
 		accountService.createSavingsAccount(postSavingsAccountReq);
+	}
+
+	@PostMapping("/main/deposit")
+	public MainAccountInfoRes depositMainAccount(@RequestBody @Valid PostMainAccountReq postMainAccountReq) {
+		return accountService.depositMainAccount(postMainAccountReq);
 	}
 }
