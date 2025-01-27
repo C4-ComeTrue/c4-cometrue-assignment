@@ -30,8 +30,15 @@ public class SavingAccount extends BaseEntity {
 	private String accountNumber;
 
 	@Column(name = "balance", nullable = false)
-	private int balance;
+	private double balance;
 
 	@Column(name = "rate", nullable = false)
 	private double rate;
+
+	public SavingAccount(MainAccount mainAccount, String accountNumber, double balance, double rate){
+		this.mainAccount = mainAccount;
+		this.accountNumber = accountNumber;
+		this.balance = balance;
+		this.rate = rate;
+	}
 }

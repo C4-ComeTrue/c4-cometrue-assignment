@@ -30,10 +30,10 @@ public class MainAccount extends BaseEntity{
 	private String accountNumber;
 
 	@Column(name = "balance", nullable = false)
-	private int balance;
+	private double balance;
 
 	@Column(name = "account_limit", nullable = false)
-	private int limit;
+	private double limit;
 
 	public MainAccount(User user, String accountNumber, int balance, int limit){
 		this.user = user;
