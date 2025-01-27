@@ -31,6 +31,19 @@ public class MainAccountService {
 		return mainAccountRepository.findById(mainAccountId).orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MAIN_ACCOUNT));
 	}
 
+	public MainAccount getMainAccountWithXLock(long mainAccountId){
+		return mainAccountRepository.findByIdWithXLock(mainAccountId).orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MAIN_ACCOUNT));
+	}
+
+	public void withdrawMoney(MainAccount mainAccount, long money){
+		mainAccount.withdrawMoney(money);
+		mainAccountRepository.save(mainAccount);
+	}
+
+	public boolean checkBalanceAvailability(MainAccount mainAccount, long money){
+		return mainAccount.getBalance() >= money;
+	}
+
 	/**
 	 * 메인 계좌 충전 Method
 	 * [1] Redis를 통해 일일 충전 한도가 넘었는지 확인
@@ -90,7 +103,7 @@ public class MainAccountService {
 	 * */
 	private void updateMainAccountBalance(long mainAccountId, long money){
 		try {
-			MainAccount mainAccount = mainAccountRepository.findByIdWithXLock(mainAccountId).orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_MAIN_ACCOUNT));
+			MainAccount mainAccount = getMainAccountWithXLock(mainAccountId);
 			mainAccount.chargeMoney(money);
 			mainAccountRepository.save(mainAccount);
 		} catch (Exception e){
@@ -109,7 +122,6 @@ public class MainAccountService {
 			redisTemplate.opsForValue().set(key, currentLimit + money);
 		}
 	}
-
 
 	/**
 	 * 계좌 번호 생성
