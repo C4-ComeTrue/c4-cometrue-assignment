@@ -1,14 +1,14 @@
 package org.c4marathon.assignment.account.presentation;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import org.c4marathon.assignment.account.dto.SendToSavingAccountRequest;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.global.annotation.Login;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api")
@@ -23,6 +23,19 @@ public class AccountController {
             @RequestParam @PositiveOrZero long money
     ) {
         accountService.chargeMoney(loginMember.accountId(), money);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/send/saving-account")
+    public ResponseEntity<Void> sendToSavingAccount(
+            @Login SessionMemberInfo loginMember,
+            @Valid @RequestBody SendToSavingAccountRequest request
+    ) {
+        accountService.sendToSavingAccount(
+                loginMember.accountId(),
+                request.savingAccountId(),
+                request.money()
+        );
         return ResponseEntity.ok().build();
     }
 }
