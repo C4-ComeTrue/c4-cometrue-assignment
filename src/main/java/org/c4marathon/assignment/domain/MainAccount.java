@@ -1,7 +1,5 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,11 +16,11 @@ import lombok.NoArgsConstructor;
 @Table(name = "main_account")
 @Getter
 @NoArgsConstructor
-public class MainAccount {
+public class MainAccount extends BaseEntity{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "main_account_id", nullable = false)
-	private Integer id;
+	private long id;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
@@ -34,9 +32,13 @@ public class MainAccount {
 	@Column(name = "balance", nullable = false)
 	private int balance;
 
-	@Column(name = "limit", nullable = false)
+	@Column(name = "account_limit", nullable = false)
 	private int limit;
 
-	@Column(name = "create_date", nullable = false)
-	private LocalDateTime createDate;
+	public MainAccount(User user, String accountNumber, int balance, int limit){
+		this.user = user;
+		this.accountNumber = accountNumber;
+		this.balance = balance;
+		this.limit = limit;
+	}
 }

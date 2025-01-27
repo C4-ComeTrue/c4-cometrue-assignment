@@ -1,7 +1,5 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,18 +13,17 @@ import lombok.NoArgsConstructor;
 @Table(name = "user")
 @Getter
 @NoArgsConstructor
-public class User {
+public class User extends BaseEntity{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id", nullable = false)
-	private Integer id;
+	private long id;
 
 	@Column(name = "username", nullable = false, length = 30)
 	private String username;
 
-	@Column(name = "create_date", nullable = false)
-	private LocalDateTime  createDate;
+	public User(String username) {
+		this.username = username;
+	}
 
-	@Column(name = "update_date", nullable = false)
-	private LocalDateTime updateDate;
 }
