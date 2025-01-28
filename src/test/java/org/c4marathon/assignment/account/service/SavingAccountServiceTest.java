@@ -25,6 +25,7 @@ class SavingAccountServiceTest extends IntegrationTestSupport {
     @AfterEach
     void tearDown() {
         savingAccountRepository.deleteAllInBatch();
+        memberRepository.deleteAllInBatch();
     }
 
     @DisplayName("적금 계좌를 생성한다.")

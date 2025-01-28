@@ -9,6 +9,7 @@ import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededExcep
 import org.c4marathon.assignment.account.exception.InsufficientBalanceException;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,14 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @AfterEach
+    void tearDown() {
+        accountRepository.deleteAllInBatch();
+        savingAccountRepository.deleteAllInBatch();
+        memberRepository.deleteAllInBatch();
+
+    }
 
     @DisplayName("메인 계좌를 생성한다.")
     @Test

@@ -39,7 +39,7 @@ spring:
       on-profile: test
 
   datasource:
-    url: ${TEST_DB_URL}
+    url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
     username: sa
     password:
