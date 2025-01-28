@@ -38,4 +38,8 @@ public class SavingsAccount extends BaseEntity {
 		this.userId = userId;
 		this.balance = 0L;
 	}
+
+	public void deposit(int amount) {
+		this.balance += amount;
+	}
 }

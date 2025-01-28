@@ -11,9 +11,10 @@ public enum ErrorCode {
     INVALID_EMAIL(HttpStatus.BAD_REQUEST, "존재하지 않는 이메일입니다."),
     INVALID_USER_ID(HttpStatus.BAD_REQUEST, "존재하지 않는 회원번호입니다."),
     INVALID_MAIN_ACCOUNT(HttpStatus.BAD_REQUEST, "존재하지 않는 메인 계좌입니다."),
+    INVALID_SAVINGS_ACCOUNT(HttpStatus.BAD_REQUEST, "존재하지 않는 적금 계좌입니다."),
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid parameter included"),
-    EXCEEDED_DEPOSIT_LIMIT(HttpStatus.BAD_REQUEST, "일일 충전 한도를 초과했습니다.");
-
+    EXCEEDED_DEPOSIT_LIMIT(HttpStatus.BAD_REQUEST, "일일 충전 한도를 초과했습니다."),
+    INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "잔액이 부족합니다.");
     private final HttpStatus httpStatus;
     private final String message;
 }

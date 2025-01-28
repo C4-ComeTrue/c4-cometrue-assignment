@@ -72,4 +72,12 @@ public class Account extends BaseEntity {
         this.dailyChargeAmount += amount;
         this.balance += amount;
     }
+
+    public boolean isBalanceInsufficient(int amount) {
+        return this.balance < amount ? true : false;
+    }
+
+    public void withdraw(int amount) {
+        this.balance -= amount;
+    }
 }

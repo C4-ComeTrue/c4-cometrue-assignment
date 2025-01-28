@@ -2,7 +2,9 @@ package org.c4marathon.assignment.service;
 
 import org.c4marathon.assignment.dto.request.PostMainAccountReq;
 import org.c4marathon.assignment.dto.request.PostSavingsAccountReq;
+import org.c4marathon.assignment.dto.request.WithdrawMainAccountReq;
 import org.c4marathon.assignment.dto.response.MainAccountInfoRes;
+import org.c4marathon.assignment.dto.response.WithdrawInfoRes;
 import org.c4marathon.assignment.entity.Account;
 import org.c4marathon.assignment.entity.SavingsAccount;
 import org.c4marathon.assignment.entity.User;
@@ -45,5 +47,28 @@ public class AccountService {
 		account.deposit(postMainAccountReq.amount());
 
 		return new MainAccountInfoRes(account);
+	}
+
+	@Transactional
+	public WithdrawInfoRes withdrawForSavings(WithdrawMainAccountReq withdrawMainAccountReq) {
+		User user = userRepository.findById(withdrawMainAccountReq.userId())
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_USER_ID));
+
+		Account account = accountRepository.findByIdWithWriteLock(user.getMainAccount())
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
+
+		if (account.isBalanceInsufficient(withdrawMainAccountReq.amount())) {
+			throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
+		}
+
+		SavingsAccount savingsAccount = savingsAccountRepository.findByIdAndUserId(
+				withdrawMainAccountReq.savingsAccount(),
+				withdrawMainAccountReq.userId())
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_SAVINGS_ACCOUNT));
+
+		account.withdraw(withdrawMainAccountReq.amount());
+		savingsAccount.deposit(withdrawMainAccountReq.amount());
+
+		return new WithdrawInfoRes(account.getBalance(), savingsAccount.getBalance());
 	}
 }

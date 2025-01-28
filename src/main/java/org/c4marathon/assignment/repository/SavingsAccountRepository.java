@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.repository;
 
+import java.util.Optional;
+
 import org.c4marathon.assignment.entity.SavingsAccount;
 import org.springframework.stereotype.Repository;
 
@@ -12,5 +14,9 @@ public class SavingsAccountRepository {
 
 	public void save(SavingsAccount savingsAccount) {
 		savingsAccountJpaRepository.save(savingsAccount);
+	}
+
+	public Optional<SavingsAccount> findByIdAndUserId(long savingsAccountId, long userId) {
+		return savingsAccountJpaRepository.findByIdAndUserId(savingsAccountId, userId);
 	}
 }
