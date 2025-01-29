@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.controller;
 
+import org.c4marathon.assignment.common.dto.SuccessNonDataResponse;
+import org.c4marathon.assignment.common.exception.enums.SuccessCode;
 import org.c4marathon.assignment.dto.request.ChargeSavingAccountRequestDto;
 import org.c4marathon.assignment.dto.request.SavingAccountRequestDto;
 import org.c4marathon.assignment.service.SavingAccountService;
@@ -18,12 +20,14 @@ public class SavingAccountController {
 	private final SavingAccountService savingAccountService;
 
 	@PostMapping()
-	public void createSavingAccount(@RequestBody @Valid SavingAccountRequestDto requestDto){
+	public SuccessNonDataResponse createSavingAccount(@RequestBody @Valid SavingAccountRequestDto requestDto){
 		savingAccountService.createSavingAccount(requestDto);
+		return SuccessNonDataResponse.success(SuccessCode.CREATE_SAVING_ACCOUNT_SUCCESS);
 	}
 
 	@PostMapping("/charge")
-	public void chargeFromMainAccount(@RequestBody @Valid ChargeSavingAccountRequestDto requestDto){
+	public SuccessNonDataResponse chargeFromMainAccount(@RequestBody @Valid ChargeSavingAccountRequestDto requestDto){
 		savingAccountService.chargeFromMainAccount(requestDto);
+		return SuccessNonDataResponse.success(SuccessCode.TRANSFER_SAVING_ACCOUNT_SUCCESS);
 	}
 }

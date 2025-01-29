@@ -8,6 +8,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SuccessCode {
 
+	CREATE_MAIN_ACCOUNT_SUCCESS(HttpStatus.CREATED, "메인 계좌 생성이 완료되었습니다."),
+	CREATE_SAVING_ACCOUNT_SUCCESS(HttpStatus.CREATED, "적금 계좌 생성이 완료되었습니다."),
 	CHARGE_MAIN_ACCOUNT_SUCCESS(HttpStatus.OK, "메인 계좌에 충전 완료되었습니다."),
 	TRANSFER_SAVING_ACCOUNT_SUCCESS(HttpStatus.OK, "적금 계좌에 송금 완료되었습니다.");
 

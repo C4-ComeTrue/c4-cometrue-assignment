@@ -45,4 +45,9 @@ public class MainAccount extends BaseEntity{
 	public void withdrawMoney(long money){
 		this.balance -= money;
 	}
+
+	public boolean checkBalanceAvailability(long money){
+		return this.balance >= money;
+	}
+
 }

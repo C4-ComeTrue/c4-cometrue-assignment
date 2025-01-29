@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.controller;
 
+import org.c4marathon.assignment.common.dto.SuccessNonDataResponse;
+import org.c4marathon.assignment.common.exception.enums.SuccessCode;
 import org.c4marathon.assignment.dto.request.ChargeMainAccountRequestDto;
 import org.c4marathon.assignment.service.MainAccountService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +20,8 @@ public class MainAccountController {
 	private final MainAccountService mainAccountService;
 
 	@PostMapping("/charge")
-	public void chargeMainAccount(@RequestBody @Valid ChargeMainAccountRequestDto requestDto){
+	public SuccessNonDataResponse chargeMainAccount(@RequestBody @Valid ChargeMainAccountRequestDto requestDto){
 		mainAccountService.chargeMainAccount(requestDto);
+		return SuccessNonDataResponse.success(SuccessCode.CHARGE_MAIN_ACCOUNT_SUCCESS);
 	}
 }

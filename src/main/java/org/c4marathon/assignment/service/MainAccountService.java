@@ -5,6 +5,7 @@ import java.util.Random;
 import org.c4marathon.assignment.common.exception.BalanceUpdateException;
 import org.c4marathon.assignment.common.exception.NotFoundException;
 import org.c4marathon.assignment.common.exception.enums.ErrorCode;
+import org.c4marathon.assignment.common.util.BankSystemUtil;
 import org.c4marathon.assignment.domain.MainAccount;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.dto.request.ChargeMainAccountRequestDto;
@@ -19,11 +20,12 @@ import lombok.RequiredArgsConstructor;
 public class MainAccountService {
 	private final MainAccountRepository mainAccountRepository;
 	private final RedisTemplate<String,Long> redisTemplate;
+	static final long chargeLimit = 3000000L;
 	static int counter = 1;
 
 	@Transactional
 	public void createMainAccount(User user){
-		MainAccount mainAccount = new MainAccount(user, createAccountNumber(), 0);
+		MainAccount mainAccount = new MainAccount(user, BankSystemUtil.createAccountNumber(counter), 0);
 		mainAccountRepository.save(mainAccount);
 	}
 
@@ -38,10 +40,6 @@ public class MainAccountService {
 	public void withdrawMoney(MainAccount mainAccount, long money){
 		mainAccount.withdrawMoney(money);
 		mainAccountRepository.save(mainAccount);
-	}
-
-	public boolean checkBalanceAvailability(MainAccount mainAccount, long money){
-		return mainAccount.getBalance() >= money;
 	}
 
 	/**
@@ -86,7 +84,7 @@ public class MainAccountService {
 		/* Redis에 해당 계좌id가 없다면 일일한도 3,000,000으로 세팅 */
 		Long currentLimit = redisTemplate.opsForValue().get("dailyLimit:"+mainAccountId);
 		if(currentLimit == null) {
-			currentLimit = 3000000L;
+			currentLimit = chargeLimit;
 			redisTemplate.opsForValue().set("dailyLimit:" + mainAccountId,currentLimit);
 		}
 
@@ -123,25 +121,4 @@ public class MainAccountService {
 		}
 	}
 
-	/**
-	 * 계좌 번호 생성
-	 * */
-	private String createAccountNumber(){
-		Random random = new Random();
-		int createNum = 0;
-		String ranNum = "";
-		String randomNum = "";
-
-		for (int i=0; i<7; i++) {
-			createNum = random.nextInt(9);
-			ranNum = Integer.toString(createNum);
-			randomNum += ranNum;
-		}
-		String bankNum = "3333";
-		String countAccountNum = String.format("%02d",counter);
-
-		counter++;
-		String accountNum = bankNum+"-"+countAccountNum+"-"+randomNum;
-		return accountNum;
-	}
 }
