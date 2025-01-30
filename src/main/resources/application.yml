@@ -17,6 +17,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
+    data:
+      redis:
+        host: ${REDIS_HOST}
+        port: ${REDIS_PORT}
+
+
+
 ---
 spring:
   config:
@@ -32,6 +39,10 @@ spring:
         format_sql: true
     defer-datasource-initialization: true # (2.5~) Hibernate ??? ?? data.sql ??
 
+    data:
+      redis:
+        host: ${REDIS_HOST}
+        port: ${REDIS_PORT}
 ---
 spring:
   config:
@@ -52,6 +63,11 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
   h2:
     console:
       enabled: true
