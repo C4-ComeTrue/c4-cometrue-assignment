@@ -52,7 +52,7 @@ public class SavingAccount extends BaseEntity {
                 .build();
     }
 
-    public void addMoney(long money) {
+    public void deposit(long money) {
         this.balance += money;
     }
 }

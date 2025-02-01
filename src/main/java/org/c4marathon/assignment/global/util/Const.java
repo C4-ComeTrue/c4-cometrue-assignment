@@ -8,4 +8,7 @@ public class Const {
     public static final long CHARGE_LIMIT = 3_000_000L;
     public static final long DEFAULT_BALANCE = 0L;
     public static final long CHARGE_AMOUNT = 10_000L;
+    public static final long MAX_RETRIES = 3;
+
+
 }

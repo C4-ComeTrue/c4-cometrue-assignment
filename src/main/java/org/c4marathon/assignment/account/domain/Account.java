@@ -44,15 +44,15 @@ public class Account extends BaseEntity {
                 .build();
     }
 
-    public void chargeAccount(long money) {
-        this.money += money;
-    }
-
-    public void minusMoney(long money) {
+    public void withdraw(long money) {
         this.money -= money;
     }
 
-    public boolean canChargeWithinDailyLimit(long money) {
+    public void deposit(long money) {
+        this.money += money;
+    }
+
+    public boolean isChargeWithinDailyLimit(long money) {
         if (this.chargeLimit < money) {
             return false;
         }
@@ -64,11 +64,4 @@ public class Account extends BaseEntity {
         return this.money > money;
     }
 
-    public void withdraw(long money) {
-        this.money -= money;
-    }
-
-    public void deposit(long money) {
-        this.money += money;
-    }
 }
