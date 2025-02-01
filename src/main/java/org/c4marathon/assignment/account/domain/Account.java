@@ -52,7 +52,7 @@ public class Account extends BaseEntity {
         this.money -= money;
     }
 
-    public boolean isCharge(long money) {
+    public boolean canChargeWithinDailyLimit(long money) {
         if (this.chargeLimit < money) {
             return false;
         }
@@ -64,4 +64,11 @@ public class Account extends BaseEntity {
         return this.money > money;
     }
 
+    public void withdraw(long money) {
+        this.money -= money;
+    }
+
+    public void deposit(long money) {
+        this.money += money;
+    }
 }

@@ -4,18 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.SavingAccount;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
+import org.c4marathon.assignment.account.domain.repository.ExternalAccountRepository;
 import org.c4marathon.assignment.account.domain.repository.SavingAccountRepository;
+import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
-import org.c4marathon.assignment.account.exception.InsufficientBalanceException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.c4marathon.assignment.global.util.Const.CHARGE_AMOUNT;
 import static org.c4marathon.assignment.global.util.Const.DEFAULT_BALANCE;
 
 
@@ -25,7 +27,8 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final MemberRepository memberRepository;
     private final SavingAccountRepository savingAccountRepository;
-    private final JdbcTemplate jdbcTemplate;
+    private final ExternalAccountRepository externalAccountRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public void createAccount(Long memberId) {
@@ -42,8 +45,6 @@ public class AccountService {
     /**
      * 메인 계좌에 돈을 충전하다.
      * 한 번에 메인 계좌에다가 충전을 여러 번 할 수도 있다. 어떻게 관리해야하나?
-     * 나의 외부계좌에서 내 메인 계좌로 충전하는 것이 충돌 가능성이 그렇게 높지는 않을 것 같다.
-     * 굳이 비관적 락을 사용할 필요는 없을 것 같다. 낙관적 락을 사용
      * @param accountId
      * @param money
      */
@@ -53,11 +54,10 @@ public class AccountService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(NotFoundAccountException::new);
 
-        if (!account.isCharge(money)) {
+        if (!account.canChargeWithinDailyLimit(money)) {
             throw new DailyChargeLimitExceededException();
         }
 
-        //OptimisticLockException 예외 발생시 globalHandlerException 에서 잡자
         account.chargeAccount(money);
         accountRepository.save(account);
     }
@@ -68,7 +68,7 @@ public class AccountService {
                 .orElseThrow(NotFoundAccountException::new);
 
         if (!account.isSend(money)) {
-            throw new InsufficientBalanceException();
+            autoCharge(money, account);
         }
 
         SavingAccount savingAccount = savingAccountRepository.findById(savingAccountId)
@@ -79,6 +79,48 @@ public class AccountService {
 
         savingAccount.addMoney(money);
         savingAccountRepository.save(savingAccount);
+    }
+
+    /**
+     * 송금 시 출금하는 로직
+     * 잔액 확인 후 잔액 부족시 10,000 단위로 충전 후 Redis Hash 에다가 금액을 누적
+     * @param senderAccountId
+     * @param request
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void withdraw(Long senderAccountId, WithdrawRequest request) {
+        Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+                .orElseThrow(NotFoundAccountException::new);
+
+        if (!senderAccount.isSend(request.money())) {
+            autoCharge(request.money(), senderAccount);
+        }
+
+        senderAccount.withdraw(request.money());
+        accountRepository.save(senderAccount);
+
+        redisTemplate.opsForHash().increment(
+                "pending-deposits",
+                request.receiverAccountId(),
+                request.money()
+        );
+    }
+
+    /**
+     * 송금할 때 메인 계좌에 잔액이 부족할 때 10,000원 단위로 충전하는 로직
+     * @param money
+     * @param senderAccount
+     */
+    private void autoCharge(long money, Account senderAccount) {
+
+        long needMoney = money - senderAccount.getMoney();
+        long chargeMoney = ((needMoney + CHARGE_AMOUNT - 1) / CHARGE_AMOUNT) * CHARGE_AMOUNT;
+
+        if (!senderAccount.canChargeWithinDailyLimit(chargeMoney)) {
+            throw new DailyChargeLimitExceededException();
+        }
+
+        senderAccount.chargeAccount(chargeMoney);
     }
 
 }
