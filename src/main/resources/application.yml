@@ -65,8 +65,8 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: localhost
+      port: 6379
 
   h2:
     console:
