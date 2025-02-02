@@ -5,18 +5,22 @@ import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.SavingAccount;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.domain.repository.SavingAccountRepository;
+import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
-import org.c4marathon.assignment.account.exception.InsufficientBalanceException;
+import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.c4marathon.assignment.global.util.Const.DEFAULT_BALANCE;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
@@ -31,11 +35,15 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
     @AfterEach
     void tearDown() {
         accountRepository.deleteAllInBatch();
         savingAccountRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
+        redisTemplate.delete("pending-deposits");
 
     }
 
@@ -116,13 +124,14 @@ class AccountServiceTest extends IntegrationTestSupport {
         assertThat(updatedSavingAccount.getBalance()).isEqualTo(6_000L);
     }
 
-    @DisplayName("송금 시도할 때 메인 계좌 잔액이 부족하면 예외가 발생한다.")
+    @DisplayName("송금 시도할 때 메인 계좌 잔액이 부족하면 10,000원 단위로 충전 후 송금 한다.")
     @Test
     void sendToSavingAccountWithInsufficientBalance() throws Exception {
+        // given
         Member member = Member.create("test@test.com", "테스트", "testPassword");
         memberRepository.save(member);
 
-        Account account = Account.create(10000L);
+        Account account = Account.create(12000L);
         member.setMainAccountId(account.getId());
         accountRepository.save(account);
 
@@ -131,9 +140,81 @@ class AccountServiceTest extends IntegrationTestSupport {
 
         long sendMoney = 20_000L;
 
-        // when & then
-        assertThatThrownBy(() -> accountService.sendToSavingAccount(account.getId(), savingAccount.getId(), sendMoney))
-                .isInstanceOf(InsufficientBalanceException.class);
+        // when
+        accountService.sendToSavingAccount(account.getId(), savingAccount.getId(), sendMoney);
+
+        // then
+        Account updatedAccount = accountRepository.findById(account.getId())
+                .orElseThrow(NotFoundAccountException::new);
+        SavingAccount updatedSavingAccount = savingAccountRepository.findById(savingAccount.getId())
+                .orElseThrow(NotFoundAccountException::new);
+
+        assertThat(updatedAccount.getMoney()).isEqualTo(2000L);
+        assertThat(updatedSavingAccount.getBalance()).isEqualTo(21000L);
+
+    }
+
+    @DisplayName("송금 시 메인 계좌에서 출금하고 Redis에 출금 기록이 저장된다.")
+    @Test
+    void withdraw() throws Exception {
+        // given
+        Account senderAccount = Account.create(50000L);
+        accountRepository.save(senderAccount);
+
+        WithdrawRequest request = new WithdrawRequest(2L, 20000L);
+
+        // when
+        accountService.withdraw(senderAccount.getId(), request);
+
+        // then
+        Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
+                .orElseThrow(NotFoundAccountException::new);
+        assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
+
+        String redisData = redisTemplate.opsForList().leftPop("pending-deposits");
+        assertNotNull(redisData);
+        assertTrue(redisData.contains(String.valueOf(senderAccount.getId())));
+        assertTrue(redisData.contains(String.valueOf(request.receiverAccountId())));
+        assertTrue(redisData.contains(String.valueOf(request.money())));
+    }
+
+    @DisplayName("송금 시 메인 계좌에 잔액이 부족하면 충전을 하고 충전을 하며 Redis에 출금 기록이 저장된다.")
+    @Test
+    void withdrawWithInsufficientBalance() throws Exception {
+        // given
+        Account senderAccount = Account.create(50000L);
+        accountRepository.save(senderAccount);
+
+        WithdrawRequest request = new WithdrawRequest(2L, 200000L);
+
+        // when
+        accountService.withdraw(senderAccount.getId(), request);
+
+        // then
+        Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
+                .orElseThrow(NotFoundAccountException::new);
+        assertThat(updatedSenderAccount.getMoney()).isEqualTo(0L);
+
+        String redisData = redisTemplate.opsForList().leftPop("pending-deposits");
+        assertNotNull(redisData);
+        assertTrue(redisData.contains(String.valueOf(senderAccount.getId())));
+        assertTrue(redisData.contains(String.valueOf(request.receiverAccountId())));
+        assertTrue(redisData.contains(String.valueOf(request.money())));
+
+    }
+
+    @DisplayName("송금 시 잔액이 부족해 충전할 때 일일 한도를 초과하면 예외가 발생한다.")
+    @Test
+    void withdrawWithDailyChargeLimit() throws Exception {
+        // given
+        Account senderAccount = Account.create(5000L);
+        accountRepository.save(senderAccount);
+
+        WithdrawRequest request = new WithdrawRequest(2L, 3_500_000L);
+
+        // when // then
+        assertThatThrownBy(() -> accountService.withdraw(senderAccount.getId(), request))
+                .isInstanceOf(DailyChargeLimitExceededException.class);
     }
 
 }
