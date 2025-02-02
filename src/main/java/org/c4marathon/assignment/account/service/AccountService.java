@@ -82,34 +82,14 @@ public class AccountService {
         savingAccountRepository.save(savingAccount);
     }
 
+
     /**
-     * 송금 시 출금하는 로직
-     * 잔액 확인 후 잔액 부족시 10,000 단위로 충전 후 Redis Hash 에다가 금액을 누적
+     * 출금 시 Redis List 에 출금 기록을 저장
      * @param senderAccountId
      * @param request
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void withdraw(Long senderAccountId, WithdrawRequest request) {
-        Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
-                .orElseThrow(NotFoundAccountException::new);
-
-        if (!senderAccount.isSend(request.money())) {
-            autoCharge(request.money(), senderAccount);
-        }
-
-        senderAccount.withdraw(request.money());
-        accountRepository.save(senderAccount);
-
-
-        redisTemplate.opsForHash().increment(
-                "pending-deposits",
-                request.receiverAccountId(),
-                request.money()
-        );
-    }
-
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void withdraw2(Long senderAccountId, WithdrawRequest request) {
         Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
                 .orElseThrow(NotFoundAccountException::new);
 
@@ -145,4 +125,23 @@ public class AccountService {
         senderAccount.deposit(chargeMoney);
     }
 
+   /* @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void withdraw(Long senderAccountId, WithdrawRequest request) {
+        Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+                .orElseThrow(NotFoundAccountException::new);
+
+        if (!senderAccount.isSend(request.money())) {
+            autoCharge(request.money(), senderAccount);
+        }
+
+        senderAccount.withdraw(request.money());
+        accountRepository.save(senderAccount);
+
+
+        redisTemplate.opsForHash().increment(
+                "pending-deposits",
+                request.receiverAccountId(),
+                request.money()
+        );
+    }*/
 }
