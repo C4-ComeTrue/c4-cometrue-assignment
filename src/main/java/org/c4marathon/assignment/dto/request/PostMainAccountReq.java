@@ -7,6 +7,6 @@ public record PostMainAccountReq(
 	long userId,
 
 	@Positive(message = "이체 금액은 양수가 되어야 합니다.")
-	int amount
+	long amount
 ) {
 }

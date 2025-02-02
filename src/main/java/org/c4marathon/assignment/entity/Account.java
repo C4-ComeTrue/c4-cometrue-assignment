@@ -24,7 +24,7 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "account")
 public class Account extends BaseEntity {
-    private static final int DEFAULT_CHARGE_LIMIT = 3_000_000;
+    private static final long DEFAULT_CHARGE_LIMIT = 3_000_000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,10 +41,10 @@ public class Account extends BaseEntity {
     private Long balance;
 
     @Column(name = "daily_limit", nullable = false)
-    private Integer dailyLimit;
+    private Long dailyLimit;
 
     @Column(name = "daily_charged_amount", nullable = false)
-    private Integer dailyChargeAmount ;
+    private Long dailyChargeAmount ;
 
     @Column(name = "daily_charged_amount_updated_date", nullable = false)
     private Instant dailyChargeAmountUpdatedDate;
@@ -53,7 +53,7 @@ public class Account extends BaseEntity {
         this.userId = userId;
         this.balance = 0L;
         this.dailyLimit = DEFAULT_CHARGE_LIMIT;
-        this.dailyChargeAmount = 0;
+        this.dailyChargeAmount = 0L;
         this.dailyChargeAmountUpdatedDate = Instant.now();
     }
 
@@ -62,22 +62,22 @@ public class Account extends BaseEntity {
         LocalDate now = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
 
         if(updatedDate.isBefore(now)) {
-            this.dailyChargeAmount = 0;
+            this.dailyChargeAmount = 0L;
         }
 
         return this.dailyLimit < dailyChargeAmount + amount ? true : false;
     }
 
-    public void deposit(int amount) {
+    public void deposit(long amount) {
         this.dailyChargeAmount += amount;
         this.balance += amount;
     }
 
-    public boolean isBalanceInsufficient(int amount) {
+    public boolean isBalanceInsufficient(long amount) {
         return this.balance < amount ? true : false;
     }
 
-    public void withdraw(int amount) {
+    public void withdraw(long amount) {
         this.balance -= amount;
     }
 }

@@ -8,6 +8,6 @@ public record WithdrawMainAccountReq(
 	@Positive(message = "적금 계좌번호는 양수가 되어야 합니다.")
 	long savingsAccount,
 	@Positive(message = " 금액은 양수가 되어야 합니다.")
-	int amount
+	long amount
 ) {
 }
