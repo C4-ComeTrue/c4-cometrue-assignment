@@ -24,4 +24,8 @@ public class AccountRepository {
 	public boolean existsById(long receiverMainAccount) {
 		return accountJpaRepository.existsById(receiverMainAccount);
 	}
+
+	public void updateBalance(long receiverMainAccount, long amount) {
+		accountJpaRepository.updateBalance(receiverMainAccount,amount);
+	}
 }
