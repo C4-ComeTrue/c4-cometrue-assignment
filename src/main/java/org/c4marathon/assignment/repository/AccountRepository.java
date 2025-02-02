@@ -20,4 +20,8 @@ public class AccountRepository {
 	public Optional<Account> findByIdWithWriteLock(Long id) {
 		return accountJpaRepository.findByIdWithWriteLock(id);
 	}
+
+	public boolean existsById(long receiverMainAccount) {
+		return accountJpaRepository.existsById(receiverMainAccount);
+	}
 }
