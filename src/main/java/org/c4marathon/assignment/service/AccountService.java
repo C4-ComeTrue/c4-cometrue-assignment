@@ -40,13 +40,16 @@ public class AccountService {
 		Account account = accountRepository.findByIdWithWriteLock(user.getMainAccount())
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
 
-		if (account.isDailyLimitExceeded(postMainAccountReq.amount())) {
-			throw new CustomException(ErrorCode.EXCEEDED_DEPOSIT_LIMIT);
-		}
-
-		account.deposit(postMainAccountReq.amount());
+		charge(postMainAccountReq.amount(), account);
 
 		return new MainAccountInfoRes(account);
+	}
+
+	public void charge(long amount, Account account) {
+		if (account.isDailyLimitExceeded(amount)) {
+			throw new CustomException(ErrorCode.EXCEEDED_DEPOSIT_LIMIT);
+		}
+		account.deposit(amount);
 	}
 
 	@Transactional
