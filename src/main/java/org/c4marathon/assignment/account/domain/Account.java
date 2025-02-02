@@ -28,9 +28,6 @@ public class Account extends BaseEntity {
     @Column(nullable = false)
     private long chargeLimit;
 
-    @Version
-    private Integer version;
-
     @Builder
     private Account(long money, long chargeLimit) {
         this.money = money;

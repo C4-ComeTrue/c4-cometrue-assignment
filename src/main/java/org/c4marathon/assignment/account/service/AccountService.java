@@ -52,7 +52,7 @@ public class AccountService {
     //기본값 -> Repeatable Read
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void chargeMoney(Long accountId, long money) {
-        Account account = accountRepository.findById(accountId)
+        Account account = accountRepository.findByIdWithLock(accountId)
                 .orElseThrow(NotFoundAccountException::new);
 
         if (!account.isChargeWithinDailyLimit(money)) {
@@ -65,7 +65,7 @@ public class AccountService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void sendToSavingAccount(Long accountId, Long savingAccountId, long money) {
-        Account account = accountRepository.findById(accountId)
+        Account account = accountRepository.findByIdWithLock(accountId)
                 .orElseThrow(NotFoundAccountException::new);
 
         if (!account.isSend(money)) {
