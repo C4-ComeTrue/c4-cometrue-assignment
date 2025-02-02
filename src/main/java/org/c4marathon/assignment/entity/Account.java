@@ -57,7 +57,7 @@ public class Account extends BaseEntity {
         this.dailyChargeAmountUpdatedDate = Instant.now();
     }
 
-    public boolean isDailyLimitExceeded(int amount) {
+    public boolean isDailyLimitExceeded(long amount) {
         LocalDate updatedDate = this.dailyChargeAmountUpdatedDate.atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate now = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
 

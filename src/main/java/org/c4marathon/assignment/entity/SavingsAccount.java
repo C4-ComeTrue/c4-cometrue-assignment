@@ -34,12 +34,12 @@ public class SavingsAccount extends BaseEntity {
 	@Column(name = "balance", nullable = false)
 	private Long balance;
 
-	public SavingsAccount(Long userId) {
+	public SavingsAccount(long userId) {
 		this.userId = userId;
 		this.balance = 0L;
 	}
 
-	public void deposit(int amount) {
+	public void deposit(long amount) {
 		this.balance += amount;
 	}
 }
