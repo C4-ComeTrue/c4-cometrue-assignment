@@ -51,8 +51,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Test
     void createAccount() throws Exception {
         // given
-        Member member = Member.create("test@test.com", "테스트", "testPassword");
-        memberRepository.save(member);
+        Member member = createMember();
 
         // when
         accountService.createAccount(member.getId());
@@ -64,12 +63,12 @@ class AccountServiceTest extends IntegrationTestSupport {
         Account account = accountRepository.findById(updatedMember.getAccountId()).orElseThrow();
         assertThat(account).isNotNull();
     }
+
     @DisplayName("메인 계좌에 돈을 충전한다.")
     @Test
     void chargeMoney() throws Exception {
         // given
-        Account account =Account.create(DEFAULT_BALANCE);
-        accountRepository.save(account);
+        Account account = createAccount(DEFAULT_BALANCE);
 
         long chargeAmount = 50_000L;
 
@@ -86,8 +85,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Test
     void chargeMoneyWithDailyLimitExceeded() throws Exception {
         // given
-        Account account = Account.create(DEFAULT_BALANCE);
-        accountRepository.save(account);
+        Account account = createAccount(DEFAULT_BALANCE);
 
         long chargeAmount = 3_500_000L;
 
@@ -101,8 +99,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Test
     void sendToSavingAccount() throws Exception {
         // given
-        Member member = Member.create("test@test.com", "테스트", "testPassword");
-        memberRepository.save(member);
+        Member member = createMember();
 
         Account account = Account.create(10000L);
         member.setMainAccountId(account.getId());
@@ -128,8 +125,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Test
     void sendToSavingAccountWithInsufficientBalance() throws Exception {
         // given
-        Member member = Member.create("test@test.com", "테스트", "testPassword");
-        memberRepository.save(member);
+        Member member = createMember();
 
         Account account = Account.create(12000L);
         member.setMainAccountId(account.getId());
@@ -158,8 +154,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Test
     void withdraw() throws Exception {
         // given
-        Account senderAccount = Account.create(50000L);
-        accountRepository.save(senderAccount);
+        Account senderAccount = createAccount(50000L);
 
         WithdrawRequest request = new WithdrawRequest(2L, 20000L);
 
@@ -182,8 +177,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Test
     void withdrawWithInsufficientBalance() throws Exception {
         // given
-        Account senderAccount = Account.create(50000L);
-        accountRepository.save(senderAccount);
+        Account senderAccount = createAccount(50000L);
 
         WithdrawRequest request = new WithdrawRequest(2L, 200000L);
 
@@ -207,14 +201,25 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Test
     void withdrawWithDailyChargeLimit() throws Exception {
         // given
-        Account senderAccount = Account.create(5000L);
-        accountRepository.save(senderAccount);
+        Account senderAccount = createAccount(5000L);
 
         WithdrawRequest request = new WithdrawRequest(2L, 3_500_000L);
 
         // when // then
         assertThatThrownBy(() -> accountService.withdraw(senderAccount.getId(), request))
                 .isInstanceOf(DailyChargeLimitExceededException.class);
+    }
+
+    private Account createAccount(long money) {
+        Account senderAccount = Account.create(money);
+        accountRepository.save(senderAccount);
+        return senderAccount;
+    }
+
+    private Member createMember() {
+        Member member = Member.create("test@test.com", "테스트", "testPassword");
+        memberRepository.save(member);
+        return member;
     }
 
 }
