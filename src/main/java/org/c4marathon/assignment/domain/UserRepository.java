@@ -12,8 +12,8 @@ import org.springframework.data.repository.query.Param;
 public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Modifying
-	@Query("UPDATE User u SET u.chargeLimit = 0 WHERE u.id = :id")
-	int initChargeLimit(@Param("ids") Collection<Long> id);
+	@Query("UPDATE User u SET u.accCharge = 0 WHERE u.id IN :ids")
+	int initChargeLimit(@Param("ids") Collection<Long> ids);
 
 	@Modifying
 	@Query("UPDATE User u SET u.accCharge = u.accCharge + :money WHERE u.id = :id AND u.accCharge + :money <= u.chargeLimit")
