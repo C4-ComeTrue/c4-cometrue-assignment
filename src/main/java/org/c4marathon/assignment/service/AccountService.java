@@ -63,13 +63,6 @@ public class AccountService {
 		return new MainAccountInfoRes(account);
 	}
 
-	public void charge(long amount, Account account) {
-		if (account.isDailyLimitExceeded(amount)) {
-			throw new CustomException(ErrorCode.EXCEEDED_DEPOSIT_LIMIT);
-		}
-		account.deposit(amount);
-	}
-
 	/**
 	 * 메인 계좌에서 적금 계좌로 돈을 인출하는 기능
 	 */
@@ -141,6 +134,13 @@ public class AccountService {
 		log.debug("{} init daily charge", Thread.currentThread().getName());
 
 		accountRepository.initDailyChargedAmount(Instant.now());
+	}
+
+	public void charge(long amount, Account account) {
+		if (account.isDailyLimitExceeded(amount)) {
+			throw new CustomException(ErrorCode.EXCEEDED_DEPOSIT_LIMIT);
+		}
+		account.deposit(amount);
 	}
 
 	public User getUserById(long userId) {
