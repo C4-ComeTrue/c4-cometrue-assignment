@@ -39,6 +39,9 @@ public class AccountService {
 	private final AccountRepository accountRepository;
 	private final TransferTransactionEventPublisher transferTransactionEventPublisher;
 
+	/**
+	 * 적금 계좌를 생성한다.
+	 */
 	public void createSavingsAccount(PostSavingsAccountReq postSavingsAccountReq) {
 		User user = userRepository.findByEmail(postSavingsAccountReq.email())
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_EMAIL));
@@ -46,6 +49,9 @@ public class AccountService {
 		savingsAccountRepository.save(new SavingsAccount(user.getId()));
 	}
 
+	/**
+	 * 메인 계좌에 돈 충전 기능
+	 */
 	@Transactional
 	public MainAccountInfoRes depositMainAccount(PostMainAccountReq postMainAccountReq) {
 		User user = userRepository.findById(postMainAccountReq.userId())
@@ -66,6 +72,9 @@ public class AccountService {
 		account.deposit(amount);
 	}
 
+	/**
+	 * 메인 계좌에서 적금 계좌로 돈을 인출하는 기능
+	 */
 	@Transactional
 	public WithdrawInfoRes withdrawForSavings(WithdrawMainAccountReq withdrawMainAccountReq) {
 		User user = userRepository.findById(withdrawMainAccountReq.userId())
@@ -89,6 +98,12 @@ public class AccountService {
 		return new WithdrawInfoRes(account.getBalance(), savingsAccount.getBalance());
 	}
 
+	/**
+	 * 송금 기능
+	 * 1. 유효성 검증 수행
+	 * 2. 이체자의 계좌 잔액 감소 및 송금 내역 추가
+	 * 3. 송금 수취인의 계좌 잔액 증가 관련 이벤트 발행
+	 */
 	@Transactional
 	public TransferRes transfer(TransferReq transferReq) {
 		User sender = userRepository.findById(transferReq.senderId())
@@ -123,6 +138,9 @@ public class AccountService {
 		return new TransferRes(account.getBalance());
 	}
 
+	/**
+	 * 0시 0분 0초에 일일 한도를 초기화 하는 스케줄러
+	 */
 	@Async(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
 	@Scheduled(cron = "0 0 0 * * *")
 	public void initDailyCharge() {

@@ -26,6 +26,11 @@ public class TransactionService {
 		return transferTransactionRepository.save(transferTransaction);
 	}
 
+	/**
+	 * 비정상 송금 내역 처리 스케줄러
+	 * 1. 정상 처리가 안된 송금 내역 조회
+	 * 2. 1에서 찾은 송금 내역을 바탕으로 메세지 큐에 이벤트 발행
+	 */
 	@Async(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
 	@Scheduled(cron = "0 * * * * *")
 	public void findAndPostMessage() {
