@@ -1,6 +1,5 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
