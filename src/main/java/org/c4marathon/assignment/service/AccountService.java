@@ -128,7 +128,6 @@ public class AccountService {
 	/**
 	 * 0시 0분 0초에 일일 한도를 초기화 하는 스케줄러
 	 */
-	@Async(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
 	@Scheduled(cron = "0 0 0 * * *")
 	public void initDailyCharge() {
 		log.debug("{} init daily charge", Thread.currentThread().getName());
