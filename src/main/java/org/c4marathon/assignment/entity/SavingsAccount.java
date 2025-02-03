@@ -16,7 +16,6 @@ import org.hibernate.annotations.ColumnDefault;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Setter
 @Entity
 @Table(name = "savings_account")
 public class SavingsAccount extends BaseEntity {

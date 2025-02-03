@@ -7,7 +7,6 @@ import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Setter
 @Entity
 @Table(name = "user")
 public class User extends BaseEntity {

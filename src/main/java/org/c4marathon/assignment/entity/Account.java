@@ -20,7 +20,6 @@ import jakarta.validation.constraints.NotNull;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Setter
 @Entity
 @Table(name = "account")
 public class Account extends BaseEntity {
