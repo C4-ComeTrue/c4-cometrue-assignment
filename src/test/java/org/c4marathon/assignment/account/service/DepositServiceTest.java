@@ -3,21 +3,33 @@ package org.c4marathon.assignment.account.service;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.global.core.MiniPayThreadPoolExecutor;
+import org.c4marathon.assignment.global.util.StringUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -37,13 +49,110 @@ class DepositServiceTest {
     @Mock
     private ValueOperations<String, String> valueOperations;
 
-    @InjectMocks
+    @Spy
+    private MiniPayThreadPoolExecutor threadPoolExecutor = new MiniPayThreadPoolExecutor(8, 32);
     private DepositService depositService;
 
     @BeforeEach
     void setUp() {
+        depositService = new DepositService(accountRepository, redisTemplate);
+        ReflectionTestUtils.setField(depositService, "threadPoolExecutor", threadPoolExecutor);
         when(redisTemplate.opsForList()).thenReturn(listOperations);
     }
+
+    @DisplayName("ThreadPool이 초기화되고 모든 태스크가 병렬로 처리되는지 검증")
+    @Test
+    void depositsWithMultiThread() throws Exception {
+        // given
+        int numberOfDeposits = 16;
+        CountDownLatch processLatch = new CountDownLatch(numberOfDeposits);
+        AtomicInteger concurrentExecutions = new AtomicInteger(0);
+        AtomicInteger maxConcurrentExecutions = new AtomicInteger(0);
+
+        List<String> deposits = new ArrayList<>();
+        for (int i = 0; i < numberOfDeposits; i++) {
+            deposits.add(StringUtil.format("tx{}:{}:{}:{}", i, i + 1L, i + 2L, 1000));
+        }
+        given(listOperations.range("pending-deposits", 0, -1)).willReturn(deposits);
+
+        for (int i = 0; i < numberOfDeposits; i++) {
+            Account account = mock(Account.class);
+            given(accountRepository.findByIdWithLock(i + 2L)).willReturn(Optional.of(account));
+
+            doAnswer(invocation -> {
+                int current = concurrentExecutions.incrementAndGet();
+                maxConcurrentExecutions.updateAndGet(max -> Math.max(max, current));
+                Thread.sleep(100);
+                concurrentExecutions.decrementAndGet();
+                processLatch.countDown();
+                return null;
+            }).when(account).deposit(anyLong());
+        }
+
+        // When
+        long startTime = System.currentTimeMillis();
+        depositService.deposits();
+        boolean allProcessed = processLatch.await(5, TimeUnit.SECONDS);
+
+        // Then
+        assertThat(allProcessed).isTrue();
+        assertThat(maxConcurrentExecutions.get()).isEqualTo(8); // threadCount
+        long executionTime = System.currentTimeMillis() - startTime;
+        // 순차 처리였다면 16 * 100ms = 1600ms 걸렸을 것
+        assertThat(executionTime).isLessThan(1000L);
+    }
+
+    @DisplayName("같은 계좌에 동시에 입금 요청이 와도 동시성 문제 없이 정확한 금액이 입금된다.")
+    @Test
+    void deposits_ConcurrencyTest() throws Exception {
+
+        // given
+        int numberOfDeposits = 100;
+        CountDownLatch processLatch = new CountDownLatch(numberOfDeposits);
+
+        long expectedTotalAmount = IntStream.range(0, numberOfDeposits)
+                .mapToLong(i -> 100L * i)
+                .sum();
+
+        AtomicLong actualTotalAmount = new AtomicLong(0);
+
+        ConcurrentHashMap<Long, AtomicInteger> accountDepositCounts = new ConcurrentHashMap<>();
+        ConcurrentHashMap<Long, AtomicLong> accountDepositAmounts = new ConcurrentHashMap<>();
+
+        // 같은 계좌에 대한 여러 입금 요청 생성
+        List<String> deposits = IntStream.range(0, numberOfDeposits)
+                .mapToObj(i -> StringUtil.format("tx{}:{}:{}:{}", i, i + 3L, 2L, 100 * i))
+                .toList();
+
+        given(listOperations.range("pending-deposits", 0, -1))
+                .willReturn(deposits);
+
+        Account account = mock(Account.class);
+        given(accountRepository.findByIdWithLock(2L))
+                .willReturn(Optional.of(account));
+
+        // 동시성 및 정확성 검증을 위한 모킹
+        doAnswer(invocation -> {
+            long amount = invocation.getArgument(0);
+            accountDepositCounts.computeIfAbsent(2L, k -> new AtomicInteger(0)).incrementAndGet(); // 동시 실행 계수 추적
+            actualTotalAmount.addAndGet(amount); // 실제 입금 총액 추적
+            accountDepositAmounts.computeIfAbsent(2L, k -> new AtomicLong(0)).addAndGet(amount); // 계좌별 입금 금액 추적
+            Thread.sleep(10); // 입금 시뮬레이션을 위한 작은 지연
+            processLatch.countDown();
+            return null;
+        }).when(account).deposit(anyLong());
+
+        // when
+        depositService.deposits();
+        boolean allProcessed = processLatch.await(5, TimeUnit.SECONDS);
+
+        // then
+        assertThat(allProcessed).isTrue(); // 모든 입금 요청이 처리되었는지 검증
+        assertThat(accountDepositCounts.get(2L).get()).isEqualTo(numberOfDeposits); // 입금 횟수 검증
+        assertThat(actualTotalAmount.get()).isEqualTo(expectedTotalAmount); // 총 입금 금액 검증
+    }
+
+
 
     @DisplayName("Redis에 입금 대기 데이터가 존재할 경우, 모든 입금 요청을 처리하고 Redis에서 삭제한다.")
     @Test
