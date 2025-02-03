@@ -54,11 +54,9 @@ public class AccountService {
 	 */
 	@Transactional
 	public MainAccountInfoRes depositMainAccount(PostMainAccountReq postMainAccountReq) {
-		User user = userRepository.findById(postMainAccountReq.userId())
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_USER_ID));
+		User user = getUserById(postMainAccountReq.userId());
 
-		Account account = accountRepository.findByIdWithWriteLock(user.getMainAccount())
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
+		Account account = getAccountByIdWithWriteLock(user.getId());
 
 		charge(postMainAccountReq.amount(), account);
 
@@ -77,11 +75,9 @@ public class AccountService {
 	 */
 	@Transactional
 	public WithdrawInfoRes withdrawForSavings(WithdrawMainAccountReq withdrawMainAccountReq) {
-		User user = userRepository.findById(withdrawMainAccountReq.userId())
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_USER_ID));
+		User user = getUserById(withdrawMainAccountReq.userId());
 
-		Account account = accountRepository.findByIdWithWriteLock(user.getMainAccount())
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
+		Account account = getAccountByIdWithWriteLock(user.getId());
 
 		if (account.isBalanceInsufficient(withdrawMainAccountReq.amount())) {
 			throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
@@ -106,8 +102,7 @@ public class AccountService {
 	 */
 	@Transactional
 	public TransferRes transfer(TransferReq transferReq) {
-		User sender = userRepository.findById(transferReq.senderId())
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_USER_ID));
+		User sender = getUserById(transferReq.senderId());
 
 		if (sender.getMainAccount() == transferReq.receiverMainAccount()) {
 			throw new CustomException(ErrorCode.INVALID_TRANSFER_REQUEST);
@@ -117,25 +112,24 @@ public class AccountService {
 			throw new CustomException(ErrorCode.INVALID_RECEIVER_MAIN_ACCOUNT);
 		}
 
-		Account account = accountRepository.findByIdWithWriteLock(sender.getMainAccount())
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
+		Account senderAccount = getAccountByIdWithWriteLock(sender.getId());
 
-		if (account.isBalanceInsufficient(transferReq.amount())) {
-			long chargeAmount = ((transferReq.amount() - account.getBalance()) / CHARGE_UNIT + 1) * CHARGE_UNIT;
+		if (senderAccount.isBalanceInsufficient(transferReq.amount())) {
+			long chargeAmount = ((transferReq.amount() - senderAccount.getBalance()) / CHARGE_UNIT + 1) * CHARGE_UNIT;
 
-			charge(chargeAmount, account);
+			charge(chargeAmount, senderAccount);
 		}
 
-		account.withdraw(transferReq.amount());
+		senderAccount.withdraw(transferReq.amount());
 
 		transferTransactionEventPublisher.publishTransferTransactionEvent(TransferTransactionEvent.builder()
 			.userName(sender.getUsername())
-			.senderMainAccount(account.getId())
+			.senderMainAccount(senderAccount.getId())
 			.receiverMainAccount(transferReq.receiverMainAccount())
 			.amount(transferReq.amount())
 			.build());
 
-		return new TransferRes(account.getBalance());
+		return new TransferRes(senderAccount.getBalance());
 	}
 
 	/**
@@ -147,5 +141,17 @@ public class AccountService {
 		log.debug("{} init daily charge", Thread.currentThread().getName());
 
 		accountRepository.initDailyChargedAmount(Instant.now());
+	}
+
+	public User getUserById(long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_USER_ID));
+		return user;
+	}
+
+	public Account getAccountByIdWithWriteLock(long mainAccount) {
+		Account account = accountRepository.findByIdWithWriteLock(mainAccount)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
+		return account;
 	}
 }
