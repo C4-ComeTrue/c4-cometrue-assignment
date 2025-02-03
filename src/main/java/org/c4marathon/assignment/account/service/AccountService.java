@@ -104,7 +104,7 @@ public class AccountService {
 
         redisTemplate.opsForList().rightPush(
                 "pending-deposits",
-                StringUtil.format("{} : {} : {} : {}", transactionId, senderAccountId, request.receiverAccountId(), request.money())
+                StringUtil.format("{}:{}:{}:{}", transactionId, senderAccountId, request.receiverAccountId(), request.money())
         );
     }
 
