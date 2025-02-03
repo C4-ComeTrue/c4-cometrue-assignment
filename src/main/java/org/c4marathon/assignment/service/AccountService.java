@@ -1,5 +1,9 @@
 package org.c4marathon.assignment.service;
 
+import static org.c4marathon.assignment.config.AsyncConfig.*;
+
+import java.time.Instant;
+
 import org.c4marathon.assignment.dto.TransferTransactionEvent;
 import org.c4marathon.assignment.dto.request.PostMainAccountReq;
 import org.c4marathon.assignment.dto.request.PostSavingsAccountReq;
@@ -17,11 +21,15 @@ import org.c4marathon.assignment.exception.ErrorCode;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.SavingsAccountRepository;
 import org.c4marathon.assignment.repository.UserRepository;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -113,5 +121,13 @@ public class AccountService {
 			.build());
 
 		return new TransferRes(account.getBalance());
+	}
+
+	@Async(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
+	@Scheduled(cron = "0 0 0 * * *")
+	public void initDailyCharge() {
+		log.debug("{} init daily charge", Thread.currentThread().getName());
+
+		accountRepository.initDailyChargedAmount(Instant.now());
 	}
 }

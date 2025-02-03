@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.c4marathon.assignment.entity.Account;
@@ -25,4 +26,13 @@ public interface AccountJpaRepository extends JpaRepository<Account, Long> {
 			WHERE a.id = :id
 		""")
 	int updateBalance(@Param("id") long receiverMainAccount, @Param("amount") long amount);
+
+	@Transactional
+	@Modifying
+	@Query(value = """
+			UPDATE Account a
+			SET a.dailyChargeAmount = 0, a.dailyChargeAmountUpdatedDate = :now, a.updatedDate = :now
+			WHERE DATE(a.dailyChargeAmountUpdatedDate) < DATE(:now)
+		""")
+	void initDailyChargedAmount(Instant now);
 }

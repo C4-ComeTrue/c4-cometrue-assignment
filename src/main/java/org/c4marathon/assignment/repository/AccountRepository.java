@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -27,5 +28,9 @@ public class AccountRepository {
 
 	public int updateBalance(long receiverMainAccount, long amount) {
 		return accountJpaRepository.updateBalance(receiverMainAccount,amount);
+	}
+
+	public void initDailyChargedAmount(Instant now) {
+		accountJpaRepository.initDailyChargedAmount(now);
 	}
 }
