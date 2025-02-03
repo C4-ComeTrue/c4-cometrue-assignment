@@ -25,4 +25,26 @@ public class TransactionService {
 	public TransferTransaction saveTransferTransaction(TransferTransaction transferTransaction) {
 		return transferTransactionRepository.save(transferTransaction);
 	}
+
+	@Async(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
+	@Scheduled(cron = "0 * * * * *")
+	public void findAndPostMessage() {
+		log.debug("{} post message start", Thread.currentThread().getName());
+
+		List<TransferTransaction> transferTransactions = transferTransactionRepository.getTransferTransactionsByStatus(
+			TransactionStatus.PENDING);
+
+		if (transferTransactions.isEmpty()) {
+			return;
+		}
+
+		transferTransactions.forEach((transferTransaction -> {
+			messageService.sendTransaction(MessageDto.builder()
+				.transferTransactionId(transferTransaction.getId())
+				.senderMainAccount(transferTransaction.getSenderMainAccount())
+				.receiverMainAccount(transferTransaction.getReceiverMainAccount())
+				.amount(transferTransaction.getAmount())
+				.build());
+		}));
+	}
 }

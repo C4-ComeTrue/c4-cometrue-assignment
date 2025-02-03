@@ -20,4 +20,6 @@ public interface TransferTransactionJpaRepository extends JpaRepository<Transfer
 		""")
 	int updateStatus(@Param("id") long transferTransactionId, @Param("findStatus") TransactionStatus findStatus,
 		@Param("status") TransactionStatus status);
+
+	List<TransferTransaction> findAllByStatus(TransactionStatus status);
 }

@@ -20,4 +20,9 @@ public class TransferTransactionRepository {
 	public int updateStatus(long transferTransactionId, TransactionStatus findStatus, TransactionStatus status) {
 		return transferTransactionJpaRepository.updateStatus(transferTransactionId, findStatus, status);
 	}
+
+	public List<TransferTransaction> getTransferTransactionsByStatus(TransactionStatus status) {
+		return transferTransactionJpaRepository.findAllByStatus(status);
+	}
+
 }

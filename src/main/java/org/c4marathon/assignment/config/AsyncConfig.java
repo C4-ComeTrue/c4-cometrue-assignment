@@ -9,6 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableAsync
 public class AsyncConfig {
 	public static final String ASYNC_LISTENER_TASK_EXECUTOR_NAME = "AsyncListenerTaskExecutor";
+	public static final String ASYNC_SCHEDULER_TASK_EXECUTOR_NAME = "AsyncSchedulerTaskExecutor";
 	private static final int CORE_POOL_SIZE = 2;
 	private static final int MAX_POOL_SIZE = 4;
 
@@ -16,6 +17,12 @@ public class AsyncConfig {
 	public ThreadPoolTaskExecutor asyncListenerTaskExecutor() {
 		return getThreadPoolTaskExecutor(ASYNC_LISTENER_TASK_EXECUTOR_NAME);
 	}
+
+	@Bean(name = ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
+	public ThreadPoolTaskExecutor asyncSchedulerTaskExecutor() {
+		return getThreadPoolTaskExecutor(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME);
+	}
+
 	private ThreadPoolTaskExecutor getThreadPoolTaskExecutor(String asyncSchedulerTaskExecutorName) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(CORE_POOL_SIZE);
