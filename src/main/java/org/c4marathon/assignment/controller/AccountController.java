@@ -2,8 +2,10 @@ package org.c4marathon.assignment.controller;
 
 import org.c4marathon.assignment.dto.request.PostMainAccountReq;
 import org.c4marathon.assignment.dto.request.PostSavingsAccountReq;
+import org.c4marathon.assignment.dto.request.TransferReq;
 import org.c4marathon.assignment.dto.request.WithdrawMainAccountReq;
 import org.c4marathon.assignment.dto.response.MainAccountInfoRes;
+import org.c4marathon.assignment.dto.response.TransferRes;
 import org.c4marathon.assignment.dto.response.WithdrawInfoRes;
 import org.c4marathon.assignment.service.AccountService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,5 +33,10 @@ public class AccountController {
 	@PostMapping("/savings/withdraw")
 	public WithdrawInfoRes withdrawForSavings(@RequestBody @Valid WithdrawMainAccountReq withdrawMainAccountReq) {
 		return accountService.withdrawForSavings(withdrawMainAccountReq);
+	}
+
+	@PostMapping("/main/transfer")
+	public TransferRes transfer(@RequestBody @Valid TransferReq transferReq) {
+		return accountService.transfer(transferReq);
 	}
 }
