@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Modifying
 	@Query("UPDATE User u SET u.accCharge = u.accCharge + :money WHERE u.id = :id AND u.accCharge + :money <= u.chargeLimit")
-	int charge(@Param("id") Long id, @Param("money") long money, @Param("chargeTime") LocalDateTime chargeTime);
+	int charge(@Param("id") Long id, @Param("money") long money);
 
 	@Query(value = "SELECT * FROM user u WHERE u.id > :cursor LIMIT :limit", nativeQuery = true)
 	List<User> findAllByCursor(@Param("cursor") long cursor, @Param("limit") int limit);
