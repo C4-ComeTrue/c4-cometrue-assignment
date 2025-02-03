@@ -6,7 +6,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 import org.c4marathon.assignment.entity.Account;
-import org.c4marathon.assignment.entity.User;
 import org.springframework.stereotype.Repository;
 
 @Repository

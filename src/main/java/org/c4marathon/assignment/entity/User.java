@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import org.springframework.boot.autoconfigure.web.WebProperties;
-
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
