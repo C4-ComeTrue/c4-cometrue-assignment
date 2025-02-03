@@ -25,7 +25,7 @@ public class AccountRepository {
 		return accountJpaRepository.existsById(receiverMainAccount);
 	}
 
-	public void updateBalance(long receiverMainAccount, long amount) {
-		accountJpaRepository.updateBalance(receiverMainAccount,amount);
+	public int updateBalance(long receiverMainAccount, long amount) {
+		return accountJpaRepository.updateBalance(receiverMainAccount,amount);
 	}
 }

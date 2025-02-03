@@ -24,5 +24,5 @@ public interface AccountJpaRepository extends JpaRepository<Account, Long> {
 			SET a.balance = a.balance + :amount
 			WHERE a.id = :id
 		""")
-	void updateBalance(@Param("id") long receiverMainAccount, @Param("amount") long amount);
+	int updateBalance(@Param("id") long receiverMainAccount, @Param("amount") long amount);
 }
