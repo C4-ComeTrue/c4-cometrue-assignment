@@ -19,8 +19,8 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      port: 6379
+      host: localhost
 
 
 
@@ -41,8 +41,8 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      port: 6379
+      host: localhost
 ---
 spring:
   config:
@@ -65,8 +65,8 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      port: 6379
+      host: localhost
 
   h2:
     console:
