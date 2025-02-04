@@ -24,7 +24,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.c4marathon.assignment.global.util.Const.DEFAULT_BALANCE;
+import static org.c4marathon.assignment.global.util.Const.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.when;
 
@@ -182,7 +182,7 @@ class AccountServiceTest extends IntegrationTestSupport {
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
 
         verify(listOperations).rightPush(
-                eq("pending-deposits"),
+                eq(PENDING_DEPOSIT),
                 matches(".*:" + senderAccount.getId() + ":2:20000")
         );
     }
@@ -205,20 +205,21 @@ class AccountServiceTest extends IntegrationTestSupport {
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(0L);
 
         verify(listOperations).rightPush(
-                eq("pending-deposits"),
+                eq(PENDING_DEPOSIT),
                 matches(".*:" + senderAccount.getId() + ":2:200000")
         );
     }
 
     @DisplayName("송금 시 잔액이 부족해 충전할 때 일일 한도를 초과하면 예외가 발생한다.")
     @Test
-    void withdrawWithDailyChargeLimit() throws Exception {
+    void withdrawWithDailyChargeLimit() {
         // given
         Account senderAccount = createAccount(5000L);
         WithdrawRequest request = new WithdrawRequest(2L, 3_500_000L);
 
         // when // then
-        assertThatThrownBy(() -> accountService.withdraw(senderAccount.getId(), request))
+        Long senderAccountId = senderAccount.getId();
+        assertThatThrownBy(() -> accountService.withdraw(senderAccountId, request))
                 .isInstanceOf(DailyChargeLimitExceededException.class);
     }
 
