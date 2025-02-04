@@ -67,6 +67,9 @@ spring:
     redis:
       port: 6379
       host: localhost
+      lettuce:
+        pool:
+          enabled: false
 
   h2:
     console:
