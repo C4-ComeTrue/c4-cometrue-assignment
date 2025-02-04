@@ -11,13 +11,19 @@ import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.c4marathon.assignment.global.util.Const.DEFAULT_BALANCE;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
@@ -31,6 +37,20 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @MockBean
+    private RedisTemplate<String, String> redisTemplate;
+
+    @MockBean
+    private ListOperations<String, String> listOperations;
+/*
+
+
+    @BeforeEach
+    void setUp() {
+        when(redisTemplate.opsForList()).thenReturn(listOperations);
+    }
+*/
 
     @AfterEach
     void tearDown() {
@@ -148,9 +168,9 @@ class AccountServiceTest extends IntegrationTestSupport {
     void withdraw() throws Exception {
         // given
         Account senderAccount = createAccount(50000L);
-
         WithdrawRequest request = new WithdrawRequest(2L, 20000L);
 
+        given(redisTemplate.opsForList()).willReturn(listOperations);
         // when
         accountService.withdraw(senderAccount.getId(), request);
 
@@ -166,8 +186,9 @@ class AccountServiceTest extends IntegrationTestSupport {
     void withdrawWithInsufficientBalance() throws Exception {
         // given
         Account senderAccount = createAccount(50000L);
-
         WithdrawRequest request = new WithdrawRequest(2L, 200000L);
+
+        given(redisTemplate.opsForList()).willReturn(listOperations);
 
         // when
         accountService.withdraw(senderAccount.getId(), request);
@@ -184,7 +205,6 @@ class AccountServiceTest extends IntegrationTestSupport {
     void withdrawWithDailyChargeLimit() throws Exception {
         // given
         Account senderAccount = createAccount(5000L);
-
         WithdrawRequest request = new WithdrawRequest(2L, 3_500_000L);
 
         // when // then
