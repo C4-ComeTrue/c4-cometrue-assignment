@@ -185,7 +185,7 @@ class DepositServiceTest {
 
 	@DisplayName("Redis에 입금 대기 데이터가 없는 경우, 입금 처리를 하지 않는다.")
 	@Test
-	void deposits_ShouldNotProcess_WhenNoPendingDepositsExist() throws Exception {
+	void deposits_ShouldNotProcess_WhenNoPendingDepositsExist() {
 
 		// given
 		given(listOperations.range(PENDING_DEPOSIT, 0, -1)).willReturn(List.of());
@@ -210,13 +210,13 @@ class DepositServiceTest {
 		depositService.deposits();
 
 		// then
-		verify(listOperations).remove(eq(PENDING_DEPOSIT), eq(1L), eq(deposit));
+		verify(listOperations).remove(PENDING_DEPOSIT, 1L, deposit);
 		verify(listOperations).rightPush(FAILED_DEPOSIT, deposit);
 	}
 
 	@DisplayName("실패한 입금들은 재시도를 한다.")
 	@Test
-	void rollbackDeposits_RetrySuccess() throws Exception {
+	void rollbackDeposits_RetrySuccess() {
 		// given
 		String failedDeposit = "tx1:1:2:1000";
 		given(listOperations.range(FAILED_DEPOSIT, 0, -1))
@@ -230,14 +230,14 @@ class DepositServiceTest {
 		depositService.rollbackDeposits();
 
 		// then
-		verify(listOperations).remove(eq(FAILED_DEPOSIT), eq(1L), eq(failedDeposit));
+		verify(listOperations).remove(FAILED_DEPOSIT, 1L, failedDeposit);
 		verify(receiverAccount).deposit(1000);
 		verify(accountRepository).save(receiverAccount);
 	}
 
 	@DisplayName("최대 재시도 횟수 초과 시 출금을 롤백 한다.")
 	@Test
-	void rollbackDeposits_ExceedMaxRetries() throws Exception {
+	void rollbackDeposits_ExceedMaxRetries() {
 
 		// given
 		String failedDeposit = "tx1:1:2:1000";
@@ -257,7 +257,7 @@ class DepositServiceTest {
 		// when
 		depositService.rollbackDeposits();
 		// then
-		verify(listOperations).remove(eq(FAILED_DEPOSIT), eq(1L), eq(failedDeposit));
+		verify(listOperations).remove(FAILED_DEPOSIT, 1L, failedDeposit);
 		verify(redisTemplate).delete("deposit-failures:tx1");
 		verify(senderAccount).deposit(1000);
 		verify(accountRepository).save(senderAccount);

@@ -202,7 +202,7 @@ class AccountServiceTest extends IntegrationTestSupport {
         // then
         Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
                 .orElseThrow(NotFoundAccountException::new);
-        assertThat(updatedSenderAccount.getMoney()).isEqualTo(0L);
+        assertThat(updatedSenderAccount.getMoney()).isZero();
 
         verify(listOperations).rightPush(
                 eq(PENDING_DEPOSIT),
