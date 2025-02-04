@@ -14,13 +14,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.c4marathon.assignment.global.util.Const.DEFAULT_BALANCE;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
@@ -35,15 +32,11 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
-
     @AfterEach
     void tearDown() {
         accountRepository.deleteAllInBatch();
         savingAccountRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
-        redisTemplate.delete("pending-deposits");
 
     }
 
@@ -150,7 +143,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     }
 
-    @DisplayName("송금 시 메인 계좌에서 출금하고 Redis에 출금 기록이 저장된다.")
+    @DisplayName("송금 시 메인 계좌에서 출금한다.")
     @Test
     void withdraw() throws Exception {
         // given
@@ -166,14 +159,9 @@ class AccountServiceTest extends IntegrationTestSupport {
                 .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
 
-        String redisData = redisTemplate.opsForList().leftPop("pending-deposits");
-        assertNotNull(redisData);
-        assertTrue(redisData.contains(String.valueOf(senderAccount.getId())));
-        assertTrue(redisData.contains(String.valueOf(request.receiverAccountId())));
-        assertTrue(redisData.contains(String.valueOf(request.money())));
     }
 
-    @DisplayName("송금 시 메인 계좌에 잔액이 부족하면 충전을 하고 충전을 하며 Redis에 출금 기록이 저장된다.")
+    @DisplayName("송금 시 메인 계좌에 잔액이 부족하면 충전을 하고 출금한다.")
     @Test
     void withdrawWithInsufficientBalance() throws Exception {
         // given
@@ -188,12 +176,6 @@ class AccountServiceTest extends IntegrationTestSupport {
         Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
                 .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(0L);
-
-        String redisData = redisTemplate.opsForList().leftPop("pending-deposits");
-        assertNotNull(redisData);
-        assertTrue(redisData.contains(String.valueOf(senderAccount.getId())));
-        assertTrue(redisData.contains(String.valueOf(request.receiverAccountId())));
-        assertTrue(redisData.contains(String.valueOf(request.money())));
 
     }
 
