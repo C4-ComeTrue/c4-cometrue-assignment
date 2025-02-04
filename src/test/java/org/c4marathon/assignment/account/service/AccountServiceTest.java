@@ -14,17 +14,21 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.c4marathon.assignment.global.util.Const.DEFAULT_BALANCE;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
     private AccountService accountService;
@@ -38,20 +42,17 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
-    @MockBean
+    @Mock
     private RedisTemplate<String, String> redisTemplate;
 
-    @MockBean
+    @Mock
     private ListOperations<String, String> listOperations;
-/*
 
 
     @BeforeEach
     void setUp() {
-        when(redisTemplate.opsForList()).thenReturn(listOperations);
+        ReflectionTestUtils.setField(accountService, "redisTemplate", redisTemplate);
     }
-*/
-
     @AfterEach
     void tearDown() {
         accountRepository.deleteAllInBatch();
@@ -163,15 +164,16 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     }
 
-    @DisplayName("송금 시 메인 계좌에서 출금한다.")
+    @DisplayName("송금 시 메인 계좌에서 출금하고 Redis에 기록한다.")
     @Test
     void withdraw() throws Exception {
         // given
         Account senderAccount = createAccount(50000L);
         WithdrawRequest request = new WithdrawRequest(2L, 20000L);
 
-        given(redisTemplate.opsForList()).willReturn(listOperations);
+
         // when
+        when(redisTemplate.opsForList()).thenReturn(listOperations);
         accountService.withdraw(senderAccount.getId(), request);
 
         // then
@@ -179,18 +181,22 @@ class AccountServiceTest extends IntegrationTestSupport {
                 .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
 
+        verify(listOperations).rightPush(
+                eq("pending-deposits"),
+                matches(".*:" + senderAccount.getId() + ":2:20000")
+        );
     }
+
 
     @DisplayName("송금 시 메인 계좌에 잔액이 부족하면 충전을 하고 출금한다.")
     @Test
-    void withdrawWithInsufficientBalance() throws Exception {
+    void withdrawWithInsufficientBalance() {
         // given
         Account senderAccount = createAccount(50000L);
         WithdrawRequest request = new WithdrawRequest(2L, 200000L);
 
-        given(redisTemplate.opsForList()).willReturn(listOperations);
-
         // when
+        when(redisTemplate.opsForList()).thenReturn(listOperations);
         accountService.withdraw(senderAccount.getId(), request);
 
         // then
@@ -198,6 +204,10 @@ class AccountServiceTest extends IntegrationTestSupport {
                 .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(0L);
 
+        verify(listOperations).rightPush(
+                eq("pending-deposits"),
+                matches(".*:" + senderAccount.getId() + ":2:200000")
+        );
     }
 
     @DisplayName("송금 시 잔액이 부족해 충전할 때 일일 한도를 초과하면 예외가 발생한다.")
