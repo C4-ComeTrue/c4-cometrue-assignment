@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.account.service;
 
-import lombok.RequiredArgsConstructor;
+import static org.c4marathon.assignment.global.util.Const.*;
+
 import org.c4marathon.assignment.account.domain.SavingAccount;
 import org.c4marathon.assignment.account.domain.repository.SavingAccountRepository;
 import org.c4marathon.assignment.account.dto.SavingAccountCreateResponse;
@@ -10,7 +11,7 @@ import org.c4marathon.assignment.member.exception.NotFoundMemberException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.c4marathon.assignment.global.util.Const.DEFAULT_BALANCE;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
