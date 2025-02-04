@@ -3,6 +3,8 @@ package org.c4marathon.assignment.service;
 import static org.c4marathon.assignment.config.AsyncConfig.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 import org.c4marathon.assignment.dto.TransferTransactionEvent;
 import org.c4marathon.assignment.dto.request.PostMainAccountReq;
@@ -131,8 +133,7 @@ public class AccountService {
 	@Scheduled(cron = "0 0 0 * * *")
 	public void initDailyCharge() {
 		log.debug("{} init daily charge", Thread.currentThread().getName());
-
-		accountRepository.initDailyChargedAmount(Instant.now());
+		accountRepository.initDailyChargedAmount(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
 	}
 
 	public void charge(long amount, Account account) {

@@ -32,7 +32,7 @@ public interface AccountJpaRepository extends JpaRepository<Account, Long> {
 	@Query(value = """
 			UPDATE Account a
 			SET a.dailyChargeAmount = 0, a.dailyChargeAmountUpdatedDate = :now, a.updatedDate = :now
-			WHERE DATE(a.dailyChargeAmountUpdatedDate) < DATE(:now)
+			WHERE a.dailyChargeAmountUpdatedDate < :now
 		""")
 	void initDailyChargedAmount(Instant now);
 }
