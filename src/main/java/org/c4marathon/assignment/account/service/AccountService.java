@@ -11,11 +11,11 @@ import org.c4marathon.assignment.account.domain.repository.SavingAccountReposito
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.global.util.StringUtil;
+import org.c4marathon.assignment.global.event.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class AccountService {
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
 	private final SavingAccountRepository savingAccountRepository;
-	private final RedisTemplate<String, String> redisTemplate;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional
 	public void createAccount(Long memberId) {
@@ -100,10 +100,13 @@ public class AccountService {
 
 		String transactionId = UUID.randomUUID().toString();
 
-		redisTemplate.opsForList().rightPush(
-			PENDING_DEPOSIT,
-			StringUtil.format("{}:{}:{}:{}", transactionId, senderAccountId, request.receiverAccountId(),
-				request.money())
+		eventPublisher.publishEvent(
+			new WithdrawCompletedEvent(
+				transactionId,
+				senderAccountId,
+				request.receiverAccountId(),
+				request.money()
+			)
 		);
 	}
 
