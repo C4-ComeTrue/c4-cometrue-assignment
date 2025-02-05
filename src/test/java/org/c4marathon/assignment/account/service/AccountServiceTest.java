@@ -1,5 +1,9 @@
 package org.c4marathon.assignment.account.service;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.c4marathon.assignment.global.util.Const.*;
+import static org.mockito.BDDMockito.*;
+
 import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.SavingAccount;
@@ -8,6 +12,7 @@ import org.c4marathon.assignment.account.domain.repository.SavingAccountReposito
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.global.event.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -15,18 +20,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.ListOperations;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.c4marathon.assignment.global.util.Const.*;
-import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.when;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest extends IntegrationTestSupport {
@@ -42,16 +41,13 @@ class AccountServiceTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Mock
-    private RedisTemplate<String, String> redisTemplate;
-
-    @Mock
-    private ListOperations<String, String> listOperations;
+    @MockBean
+    private ApplicationEventPublisher eventPublisher;
 
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(accountService, "redisTemplate", redisTemplate);
+        ReflectionTestUtils.setField(accountService, "eventPublisher", eventPublisher);
     }
     @AfterEach
     void tearDown() {
@@ -105,7 +101,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 
         // when // then
         assertThatThrownBy(() -> accountService.chargeMoney(account.getId(), chargeAmount))
-                .isInstanceOf(DailyChargeLimitExceededException.class);
+            .isInstanceOf(DailyChargeLimitExceededException.class);
     }
 
 
@@ -155,9 +151,9 @@ class AccountServiceTest extends IntegrationTestSupport {
 
         // then
         Account updatedAccount = accountRepository.findById(account.getId())
-                .orElseThrow(NotFoundAccountException::new);
+            .orElseThrow(NotFoundAccountException::new);
         SavingAccount updatedSavingAccount = savingAccountRepository.findById(savingAccount.getId())
-                .orElseThrow(NotFoundAccountException::new);
+            .orElseThrow(NotFoundAccountException::new);
 
         assertThat(updatedAccount.getMoney()).isEqualTo(2000L);
         assertThat(updatedSavingAccount.getBalance()).isEqualTo(21000L);
@@ -171,20 +167,16 @@ class AccountServiceTest extends IntegrationTestSupport {
         Account senderAccount = createAccount(50000L);
         WithdrawRequest request = new WithdrawRequest(2L, 20000L);
 
-
         // when
-        when(redisTemplate.opsForList()).thenReturn(listOperations);
         accountService.withdraw(senderAccount.getId(), request);
 
         // then
         Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
-                .orElseThrow(NotFoundAccountException::new);
+            .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
 
-        verify(listOperations).rightPush(
-                eq(PENDING_DEPOSIT),
-                matches(".*:" + senderAccount.getId() + ":2:20000")
-        );
+        verify(eventPublisher, times(1)).publishEvent(any(WithdrawCompletedEvent.class));
+
     }
 
 
@@ -196,18 +188,15 @@ class AccountServiceTest extends IntegrationTestSupport {
         WithdrawRequest request = new WithdrawRequest(2L, 200000L);
 
         // when
-        when(redisTemplate.opsForList()).thenReturn(listOperations);
         accountService.withdraw(senderAccount.getId(), request);
 
         // then
         Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
-                .orElseThrow(NotFoundAccountException::new);
+            .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isZero();
 
-        verify(listOperations).rightPush(
-                eq(PENDING_DEPOSIT),
-                matches(".*:" + senderAccount.getId() + ":2:200000")
-        );
+        verify(eventPublisher, times(1)).publishEvent(any(WithdrawCompletedEvent.class));
+
     }
 
     @DisplayName("송금 시 잔액이 부족해 충전할 때 일일 한도를 초과하면 예외가 발생한다.")
@@ -220,7 +209,7 @@ class AccountServiceTest extends IntegrationTestSupport {
         // when // then
         Long senderAccountId = senderAccount.getId();
         assertThatThrownBy(() -> accountService.withdraw(senderAccountId, request))
-                .isInstanceOf(DailyChargeLimitExceededException.class);
+            .isInstanceOf(DailyChargeLimitExceededException.class);
     }
 
     private Account createAccount(long money) {
