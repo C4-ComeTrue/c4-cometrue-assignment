@@ -42,7 +42,7 @@ class DepositFailureHandlerTest {
 
 	@DisplayName("successDeposit에서 예외 발생 시 Redis List PENDING_DEPOSIT을 제거되고, FAILED_DEPOSIT에 추가된다. ")
 	@Test
-	void handleDepositFailure() throws Exception {
+	void handleDepositFailure() {
 
 		// given
 		String deposit = "tx1:1:2:1000";

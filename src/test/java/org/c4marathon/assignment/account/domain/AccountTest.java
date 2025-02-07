@@ -10,7 +10,7 @@ class AccountTest {
 
 	@DisplayName("입금이 성공한다")
 	@Test
-	void deposit() throws Exception {
+	void deposit() {
 	    // given
 		Account account = Account.create(10000L);
 
@@ -22,7 +22,7 @@ class AccountTest {
 	}
 	@DisplayName("출금이 성공한다.")
 	@Test
-	void withdraw() throws Exception {
+	void withdraw() {
 		// given
 		Account account = Account.create(10000L);
 

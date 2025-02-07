@@ -125,7 +125,7 @@ class DepositSchedulerTest {
 
 	@DisplayName("PENDING_DEPOSIT에서 데이터를 가져와 successDeposit이 호출된다.")
 	@Test
-	void deposits() throws Exception {
+	void deposits() {
 	    // given
 		List<String> pendingDeposits = List.of(
 			"tx1:1:2:1000",

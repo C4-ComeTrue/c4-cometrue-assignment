@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DepositService {
@@ -28,6 +29,7 @@ public class DepositService {
 	public void successDeposit(String deposit) {
 		processDeposit(deposit);
 	}
+
 	/**
 	 * 실패한 입금을 재시도하는 로직
 	 * 재입금이 정상적으로 커밋 완료 시 -> 이벤트 발행을 하며 Redis에 저장된 송금 기록을 삭제
@@ -53,5 +55,8 @@ public class DepositService {
 		accountRepository.save(receiverAccount);
 
 		eventPublisher.publishEvent(new DepositCompletedEvent(deposit));
+
+		log.debug("입금 성공 : transactionId : {}, senderAccountId : {}, receiverAccountId : {}, money : {}",
+			transactionId, senderAccountId, receiverAccountId, money);
 	}
 }

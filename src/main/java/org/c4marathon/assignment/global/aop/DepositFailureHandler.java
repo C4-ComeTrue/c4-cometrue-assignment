@@ -18,8 +18,7 @@ public class DepositFailureHandler {
 	private final RedisTemplate<String, String> redisTemplate;
 	private final AccountService accountService;
 
-	@AfterThrowing(pointcut = "execution(* org.c4marathon.assignment.account.service.DepositService.successDeposit(..))",
-		throwing = "ex")
+	@AfterThrowing(pointcut = "execution(* org.c4marathon.assignment.account.service.DepositService.successDeposit(..))", throwing = "ex")
 	public void handleDepositFailure(JoinPoint joinPoint, Exception ex) {
 
 		Object[] args = joinPoint.getArgs();
@@ -29,8 +28,7 @@ public class DepositFailureHandler {
 		redisTemplate.opsForList().rightPush(FAILED_DEPOSIT, deposit);
 	}
 
-	@AfterThrowing(pointcut = "execution(* org.c4marathon.assignment.account.service.DepositService.failedDeposit(..))",
-		throwing = "ex")
+	@AfterThrowing(pointcut = "execution(* org.c4marathon.assignment.account.service.DepositService.failedDeposit(..))", throwing = "ex")
 	public void handleFailedDepositFailure(JoinPoint joinPoint, Exception ex) {
 		Object[] args = joinPoint.getArgs();
 		String failedDeposit = (String) args[0];
