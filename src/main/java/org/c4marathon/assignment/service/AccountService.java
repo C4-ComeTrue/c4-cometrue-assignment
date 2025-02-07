@@ -78,7 +78,7 @@ public class AccountService {
 			throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
 		}
 
-		SavingsAccount savingsAccount = savingsAccountRepository.findByIdAndUserId(
+		SavingsAccount savingsAccount = savingsAccountRepository.findByIdAndUserIdWithWriteLock(
 				withdrawMainAccountReq.savingsAccount(),
 				withdrawMainAccountReq.userId())
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_SAVINGS_ACCOUNT));

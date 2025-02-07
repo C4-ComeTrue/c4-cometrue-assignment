@@ -16,7 +16,7 @@ public class SavingsAccountRepository {
 		savingsAccountJpaRepository.save(savingsAccount);
 	}
 
-	public Optional<SavingsAccount> findByIdAndUserId(long savingsAccountId, long userId) {
-		return savingsAccountJpaRepository.findByIdAndUserId(savingsAccountId, userId);
+	public Optional<SavingsAccount> findByIdAndUserIdWithWriteLock(long savingsAccount, long userId) {
+		return savingsAccountJpaRepository.findByIdAndUserIdWithWriteLock(savingsAccount, userId);
 	}
 }
