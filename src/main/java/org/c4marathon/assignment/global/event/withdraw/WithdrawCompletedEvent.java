@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.global.event;
+package org.c4marathon.assignment.global.event.withdraw;
 
 public record WithdrawCompletedEvent(
 	String transactionId,

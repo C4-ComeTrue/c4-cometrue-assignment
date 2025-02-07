@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.global.event;
+package org.c4marathon.assignment.global.event.withdraw;
 
 import static org.c4marathon.assignment.global.util.Const.*;
 
