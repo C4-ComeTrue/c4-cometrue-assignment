@@ -11,7 +11,7 @@ import org.c4marathon.assignment.account.domain.repository.SavingAccountReposito
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.global.event.WithdrawCompletedEvent;
+import org.c4marathon.assignment.global.event.withdraw.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
@@ -110,6 +110,15 @@ public class AccountService {
 		);
 	}
 
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public void rollbackWithdraw(Long senderAccountId, long money) {
+		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+			.orElseThrow(NotFoundAccountException::new);
+
+		senderAccount.deposit(money);
+		accountRepository.save(senderAccount);
+	}
+
 	/**
 	 * 송금할 때 메인 계좌에 잔액이 부족할 때 10,000원 단위로 충전하는 로직
 	 * @param money
@@ -126,4 +135,5 @@ public class AccountService {
 
 		senderAccount.deposit(chargeMoney);
 	}
+
 }

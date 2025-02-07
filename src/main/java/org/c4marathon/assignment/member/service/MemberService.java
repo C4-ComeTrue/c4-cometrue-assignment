@@ -9,7 +9,7 @@ import org.c4marathon.assignment.member.dto.MemberRegisterResponse;
 import org.c4marathon.assignment.member.exception.DuplicateEmailException;
 import org.c4marathon.assignment.member.exception.InvalidPasswordException;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
-import org.c4marathon.assignment.global.event.MemberRegisteredEvent;
+import org.c4marathon.assignment.global.event.member.MemberRegisteredEvent;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
