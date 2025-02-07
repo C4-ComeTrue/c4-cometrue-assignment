@@ -1,6 +1,10 @@
 package org.c4marathon.assignment.account.presentation;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.c4marathon.assignment.ControllerTestSupport;
+import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.global.session.SessionConst;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,10 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class AccountControllerTest extends ControllerTestSupport {
+
     @BeforeEach
     void initSession() {
         session = new MockHttpSession();
@@ -40,8 +42,10 @@ class AccountControllerTest extends ControllerTestSupport {
     @DisplayName("money가 음수일 경우 예외가 발생한다.")
     @Test
     void chargeWithInvalidMoney() throws Exception {
+        // given
         long invalidMoney = -500L;
 
+        // when // then
         mockMvc.perform(
                         post("/api/charge")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -50,4 +54,37 @@ class AccountControllerTest extends ControllerTestSupport {
                 )
                 .andExpect(status().isBadRequest());
     }
+
+    @DisplayName("다른 메인 계좌로 송금 성공")
+    @Test
+    void withdraw() throws Exception {
+        // given
+        WithdrawRequest request = new WithdrawRequest(1L, 5000L);
+
+        // when // then
+        mockMvc.perform(
+                post("/api/withdraw")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .session(session)
+            )
+            .andExpect(status().isOk());
+    }
+
+    @DisplayName("출금 금액이 음수일 경우 예외가 발생한다.")
+    @Test
+    void withdrawWithNegativeAmount() throws Exception {
+        // given
+        WithdrawRequest request = new WithdrawRequest(2L, -5000L); // 음수 금액
+
+        // when // then
+        mockMvc.perform(
+                post("/api/withdraw")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .session(session)
+            )
+            .andExpect(status().isBadRequest());
+    }
+
 }
