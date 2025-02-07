@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.global.event;
+package org.c4marathon.assignment.global.event.member;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
