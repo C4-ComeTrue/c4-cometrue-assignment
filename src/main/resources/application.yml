@@ -6,6 +6,11 @@ spring:
     url: jdbc:mysql://${DB_URL}/${DB_schema}?socketTimeout=2000
     hikari:
       connection-timeout: 3000
+    rabbitmq:
+      host: ${RABBITMQ_URL}
+      port: ${RABBITMQ_PORD}
+      username: ${RABBITMQ_USERNAME}
+      password: ${RABBITMQ_PASSWORD}
   jpa:
     show-sql: true
     hibernate:
@@ -15,3 +20,10 @@ spring:
         format_sql: true
         use_sql_comments: true
         dialect: org.hibernate.dialect.MySQLDialect
+rabbitmq:
+  queue:
+    name: ${RABBITMQ_QUEUE_NAME}
+  exchange:
+    name: ${RABBITMQ_EXCHANGE_NAME}
+  routing:
+    key: ${RABBITMQ_ROUTING_NAME}
