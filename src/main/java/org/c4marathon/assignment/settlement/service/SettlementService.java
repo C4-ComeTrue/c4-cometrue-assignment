@@ -53,6 +53,51 @@ public class SettlementService {
 		}
 	}
 
+
+	/**
+	 * 정산 요청한 리스트 조회(받을 돈을 조회)
+	 * @param requestAccountId
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	public List<SettlementResponse> getSettlement(Long requestAccountId) {
+		List<Settlement> settlements = settlementRepository.findByRequestAccountId(requestAccountId);
+
+		return settlements.stream()
+			.map(settlement -> new SettlementResponse(
+				settlement.getId(),
+				settlement.getRequestAccountId(),
+				settlement.getTotalAmount(),
+				settlement.getSettlementDetails().stream()
+					.map(detail -> new SettlementDetailInfo(
+						detail.getId(),
+						detail.getAccountId(),
+						detail.getAmount()
+					)).toList()
+			))
+			.toList();
+	}
+
+	/**
+	 * 요청받은 정산 리스트 조회(보내야 할 돈 조회)
+	 * @param accountId
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	public List<ReceivedSettlementResponse> getReceivedSettlements(Long accountId) {
+		List<SettlementDetail> settlementDetails = settlementDetailRepository.findByAccountId(accountId);
+
+		return settlementDetails.stream()
+			.map(detail -> new ReceivedSettlementResponse(
+				detail.getSettlement().getId(),
+				detail.getSettlement().getRequestAccountId(),
+				detail.getSettlement().getTotalAmount(),
+				detail.getAccountId(),
+				detail.getAmount()
+			))
+			.toList();
+	}
+
 	/**
 	 * 10원 단위로 랜덤한 금액을 N - 1명에게 정산하고 남은 금액을 남은 1명에게 정산하는 방법
 	 * @param totalAmount
