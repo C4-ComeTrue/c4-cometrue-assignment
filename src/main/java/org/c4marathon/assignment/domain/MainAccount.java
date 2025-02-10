@@ -1,5 +1,9 @@
 package org.c4marathon.assignment.domain;
 
+import java.time.LocalDateTime;
+
+import org.springframework.cglib.core.Local;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,14 +36,27 @@ public class MainAccount extends BaseEntity{
 	@Column(name = "balance", nullable = false)
 	private long balance;
 
-	public MainAccount(User user, String accountNumber, long balance){
+	@Column(name = "charge_limit", nullable = false)
+	private long limit;
+
+	@Column(name = "charge_date", nullable = false)
+	private LocalDateTime chargeDate;
+
+	public MainAccount(User user, String accountNumber, long balance, long limit, LocalDateTime chargeDate){
 		this.user = user;
 		this.accountNumber = accountNumber;
 		this.balance = balance;
+		this.limit = limit;
+		this.chargeDate = chargeDate;
 	}
 
 	public void chargeMoney(long money) {
 		this.balance += money;
+		this.limit -= money;
+	}
+
+	public void updateChargeDate(){
+		this.chargeDate = LocalDateTime.now();
 	}
 
 	public void withdrawMoney(long money){
