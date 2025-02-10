@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.settlement.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -34,25 +35,18 @@ public class SettlementService {
 	public void createSettlement(Long requestAccountId, SettlementRequest request) {
 
 		Settlement settlement = Settlement.create(requestAccountId, request.totalAmount(), request.type());
-		settlementRepository.save(settlement);
 
 		List<Integer> amounts = calculateSettlementAmounts(request.totalAmount(), request.totalNumber(), request.type());
 
+		settlement.setAmount(amounts.get(0));
+		settlementRepository.save(settlement);
+
 		List<SettlementDetail> settlementDetails = IntStream.range(0, request.accountIds().size())
-			.mapToObj(i -> SettlementDetail.create(settlement, request.accountIds().get(i), amounts.get(i)))
+			.mapToObj(i -> SettlementDetail.create(settlement, request.accountIds().get(i), amounts.get(i + 1)))
 			.toList();
 
 		settlementDetailRepository.saveAll(settlementDetails);
 	}
-
-	private List<Integer> calculateSettlementAmounts(int totalAmount, int totalNumber, SettlementType type) {
-		if (type == SettlementType.EQUAL) {
-			return getEquallySettlement(totalAmount, totalNumber);
-		} else {
-			return getRandomSettlement(totalAmount, totalNumber);
-		}
-	}
-
 
 	/**
 	 * 정산 요청한 리스트 조회(받을 돈을 조회)
@@ -98,6 +92,14 @@ public class SettlementService {
 			.toList();
 	}
 
+	private List<Integer> calculateSettlementAmounts(int totalAmount, int totalNumber, SettlementType type) {
+		if (type == SettlementType.EQUAL) {
+			return getEquallySettlement(totalAmount, totalNumber);
+		} else {
+			return getRandomSettlement(totalAmount, totalNumber);
+		}
+	}
+
 	/**
 	 * 10원 단위로 랜덤한 금액을 N - 1명에게 정산하고 남은 금액을 남은 1명에게 정산하는 방법
 	 * @param totalAmount
@@ -138,8 +140,12 @@ public class SettlementService {
 		int baseAmount = totalAmount / totalNumber;
 		int remainder = totalAmount % totalNumber;
 
-		return IntStream.range(0, totalNumber)
+		List<Integer> result = IntStream.range(0, totalNumber)
 			.mapToObj(i -> baseAmount + (i < remainder ? 1 : 0))  // 앞에서부터 remainder 개수만큼 +1 배분
 			.collect(Collectors.toList());
+		Collections.shuffle(result);
+
+		return result;
+
 	}
 }
