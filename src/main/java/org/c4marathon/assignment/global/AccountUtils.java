@@ -3,7 +3,7 @@ package org.c4marathon.assignment.global;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-public class AccountUtils {
+public abstract class AccountUtils {
 	static final Random RANDOM = new Random();
 	static final int LIMIT = 13;
 
