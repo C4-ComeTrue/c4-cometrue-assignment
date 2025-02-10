@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.repository;
 
+import java.util.List;
 import java.util.Optional;
 import org.c4marathon.assignment.domain.MainAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +16,7 @@ public interface MainAccountRepository extends JpaRepository<MainAccount, Long> 
 	Optional<MainAccount> findByIdWithXLock(@Param("accountId") Long accountId);
 
 	@Modifying
-	@Query("UPDATE MainAccount m SET m.limit = :chargeLimit WHERE m.id = :accountId")
-	void updateChargeLimit(@Param("accountId") Long accountId, @Param("chargeLimit") Long chargeLimit);
+	@Query("UPDATE MainAccount m SET m.limit = :chargeLimit WHERE m.id IN :accountIds")
+	void batchUpdateChargeLimit(@Param("accountIds") List<Long> accountIds, @Param("chargeLimit") Long chargeLimit);
 
 }
