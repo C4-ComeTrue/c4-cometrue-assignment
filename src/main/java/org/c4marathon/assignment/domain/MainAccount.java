@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "main_account")
 @Getter
 @NoArgsConstructor
-public class MainAccount extends BaseEntity{
+public class MainAccount extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "main_account_id", nullable = false)
@@ -42,7 +42,7 @@ public class MainAccount extends BaseEntity{
 	@Column(name = "charge_date", nullable = false)
 	private LocalDateTime chargeDate;
 
-	public MainAccount(User user, String accountNumber, long balance, long limit, LocalDateTime chargeDate){
+	public MainAccount(User user, String accountNumber, long balance, long limit, LocalDateTime chargeDate) {
 		this.user = user;
 		this.accountNumber = accountNumber;
 		this.balance = balance;
@@ -55,15 +55,23 @@ public class MainAccount extends BaseEntity{
 		this.limit -= money;
 	}
 
-	public void updateChargeDate(){
+	public void updateBalance(long money) {
+		this.balance += money;
+	}
+
+	public void updateLimit(long limit) {
+		this.limit += limit;
+	}
+
+	public void updateChargeDate() {
 		this.chargeDate = LocalDateTime.now();
 	}
 
-	public void withdrawMoney(long money){
+	public void withdrawMoney(long money) {
 		this.balance -= money;
 	}
 
-	public boolean checkBalanceAvailability(long money){
+	public boolean checkBalanceAvailability(long money) {
 		return this.balance >= money;
 	}
 
