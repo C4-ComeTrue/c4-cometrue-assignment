@@ -1,8 +1,8 @@
-package org.c4marathon.assignment.settlement.entity.repository;
+package org.c4marathon.assignment.settlement.domain.repository;
 
 import java.util.List;
 
-import org.c4marathon.assignment.settlement.entity.SettlementDetail;
+import org.c4marathon.assignment.settlement.domain.SettlementDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,3 +18,4 @@ public interface SettlementDetailRepository extends JpaRepository<SettlementDeta
 	List<SettlementDetail> findByAccountId(@Param("accountId") Long accountId);
 
 }
+

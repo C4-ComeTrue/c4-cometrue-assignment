@@ -9,11 +9,11 @@ import org.c4marathon.assignment.settlement.dto.ReceivedSettlementResponse;
 import org.c4marathon.assignment.settlement.dto.SettlementDetailInfo;
 import org.c4marathon.assignment.settlement.dto.SettlementRequest;
 import org.c4marathon.assignment.settlement.dto.SettlementResponse;
-import org.c4marathon.assignment.settlement.entity.Settlement;
-import org.c4marathon.assignment.settlement.entity.SettlementDetail;
-import org.c4marathon.assignment.settlement.entity.SettlementType;
-import org.c4marathon.assignment.settlement.entity.repository.SettlementDetailRepository;
-import org.c4marathon.assignment.settlement.entity.repository.SettlementRepository;
+import org.c4marathon.assignment.settlement.domain.Settlement;
+import org.c4marathon.assignment.settlement.domain.SettlementDetail;
+import org.c4marathon.assignment.settlement.domain.SettlementType;
+import org.c4marathon.assignment.settlement.domain.repository.SettlementDetailRepository;
+import org.c4marathon.assignment.settlement.domain.repository.SettlementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

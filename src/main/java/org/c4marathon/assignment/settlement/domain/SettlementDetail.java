@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.settlement.entity;
+package org.c4marathon.assignment.settlement.domain;
 
 import org.c4marathon.assignment.global.entity.BaseEntity;
 
