@@ -49,7 +49,7 @@ class AccountServiceTest {
 			Account account = Account.builder()
 				.accountNumber(String.valueOf(i))
 				.accountType(AccountType.CHECKING)
-				.balance(i * 10000L)
+				.balance(i * 100L)
 				.isMain(false)
 				.userId(savedUser.getId())
 				.build();
@@ -57,11 +57,13 @@ class AccountServiceTest {
 			return accountRepository.save(account);
 		}).toList();
 
-		long sendMoney = 10000L;
+		long sendMoney = 100L;
 
 		// when
 		CountDownLatch countDownLatch = new CountDownLatch(TEST_USERS - 1);
 		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+		long start = System.currentTimeMillis();
 		IntStream.range(1, TEST_USERS).forEach(idx ->
 			threadPool.execute(() -> {
 				try {
@@ -76,9 +78,10 @@ class AccountServiceTest {
 		);
 
 		countDownLatch.await(5000L, TimeUnit.MILLISECONDS);
+		System.out.println("time: " + (System.currentTimeMillis() - start) + "ms");
 		// then
 		Account account = accountRepository.findById(testAccounts.get(0).getId()).get();
-		assertThat(account.getBalance()).isEqualTo(10000L * (TEST_USERS - 1));
+		assertThat(account.getBalance()).isEqualTo(sendMoney * (TEST_USERS - 1));
 
 	}
 
@@ -105,9 +108,11 @@ class AccountServiceTest {
 
 		// when
 		AtomicInteger exceptionCount = new AtomicInteger();
-		CountDownLatch countDownLatch = new CountDownLatch(TEST_USERS - 10);
+		CountDownLatch countDownLatch = new CountDownLatch(TEST_USERS - 1);
 		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		IntStream.range(10, TEST_USERS).forEach(idx ->
+
+		long start = System.currentTimeMillis();
+		IntStream.range(1, TEST_USERS).forEach(idx ->
 			threadPool.execute(() -> {
 				try {
 					accountService.transfer(
@@ -123,10 +128,11 @@ class AccountServiceTest {
 		);
 
 		countDownLatch.await(5000L, TimeUnit.MILLISECONDS);
+		System.out.println("time: " + (System.currentTimeMillis() - start) + "ms");
 
 		// then
 		Account account = accountRepository.findById(testAccounts.get(0).getId()).get();
 		assertThat(account.getBalance()).isEqualTo(3000000L); // 충전 한도 도달
-		assertThat(exceptionCount.get()).isEqualTo(60);
+		assertThat(exceptionCount.get()).isEqualTo(TEST_USERS - 31);
 	}
 }
