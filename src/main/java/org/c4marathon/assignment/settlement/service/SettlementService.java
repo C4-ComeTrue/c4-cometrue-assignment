@@ -54,7 +54,7 @@ public class SettlementService {
 	 * @return
 	 */
 	@Transactional(readOnly = true)
-	public List<SettlementResponse> getSettlement(Long requestAccountId) {
+	public List<SettlementResponse> getRequestedSettlements(Long requestAccountId) {
 		List<Settlement> settlements = settlementRepository.findByRequestAccountId(requestAccountId);
 
 		return settlements.stream()

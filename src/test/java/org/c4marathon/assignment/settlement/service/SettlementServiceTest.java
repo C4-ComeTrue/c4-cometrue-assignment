@@ -139,7 +139,7 @@ class SettlementServiceTest extends IntegrationTestSupport {
 	@DisplayName("정산 요청 리스트를 조회한다.(받을 돈을 조회)")
 	@Transactional
 	@Test
-	void getSettlement() {
+	void getRequestedSettlements() {
 	    // given
 		int totalAmount = 30000;
 		Settlement settlement = Settlement.create(REQUEST_ACCOUNT_ID, totalAmount, SettlementType.EQUAL);
@@ -152,7 +152,7 @@ class SettlementServiceTest extends IntegrationTestSupport {
 		settlementDetailRepository.saveAll(settlementDetails);
 
 	    // when
-		List<SettlementResponse> response = settlementService.getSettlement(REQUEST_ACCOUNT_ID);
+		List<SettlementResponse> response = settlementService.getRequestedSettlements(REQUEST_ACCOUNT_ID);
 
 		// then
 		assertThat(response).hasSize(1);
