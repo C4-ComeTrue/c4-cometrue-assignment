@@ -25,7 +25,6 @@ public class CacheScheduler {
 	@Scheduled(cron = "00 00 00 * * *")
 	public void resetDailyLimit() {
 
-		/* 23시 50분 부터 20분동안 은행 계좌 점검 => 20분동안 일일 한도 초기화 */
 		String lockKey = "reset";
 		redisTemplate.opsForValue().set(lockKey, 1L, Duration.ofMinutes(10));
 
