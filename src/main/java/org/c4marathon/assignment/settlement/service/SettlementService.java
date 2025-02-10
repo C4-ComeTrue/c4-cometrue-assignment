@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.settlement.service;
 
+import static org.c4marathon.assignment.global.util.SettlementUtil.*;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -7,6 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.c4marathon.assignment.global.util.SettlementUtil;
 import org.c4marathon.assignment.settlement.dto.ReceivedSettlementResponse;
 import org.c4marathon.assignment.settlement.dto.SettlementDetailInfo;
 import org.c4marathon.assignment.settlement.dto.SettlementRequest;
@@ -113,7 +116,7 @@ public class SettlementService {
 
 		// 총 인원 - 1명을 대상으로 10원 단위로 랜덤한 금액을 배정
 		List<Integer> amounts = IntStream.range(0, totalNumber - 1)
-			.mapToObj(i -> ThreadLocalRandom.current().nextInt(totalAmountDivided - (totalNumber - i - 1)) + 1)
+			.mapToObj(i -> getRandomInt(totalAmountDivided - (totalNumber - i - 1)) + 1)
 			.sorted()
 			.toList();
 
