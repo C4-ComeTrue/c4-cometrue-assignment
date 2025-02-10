@@ -108,8 +108,6 @@ public class SettlementService {
 	 * @return
 	 */
 	private List<Integer> getRandomSettlement(int totalAmount, int totalNumber) {
-		Random random = new Random();
-
 		// 총 금액을 10원 단위로 변환
 		int totalAmountDivided = totalAmount / 10;
 
