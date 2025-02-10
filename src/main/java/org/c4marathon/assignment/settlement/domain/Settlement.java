@@ -32,7 +32,9 @@ public class Settlement extends BaseEntity {
 
 	private Long requestAccountId; //정산 요청한 계좌 ID
 
-	private int totalAmount;
+	private int totalAmount; //총 정산 금액
+
+	private int amount; //내 정산 금액
 
 	@Enumerated(EnumType.STRING)
 	private SettlementType type;
@@ -53,6 +55,10 @@ public class Settlement extends BaseEntity {
 			.totalAmount(totalAmount)
 			.type(type)
 			.build();
+	}
+
+	public void setAmount(int amount) {
+		this.amount = amount;
 	}
 
 	public void addSettlementDetail(SettlementDetail settlementDetail) {
