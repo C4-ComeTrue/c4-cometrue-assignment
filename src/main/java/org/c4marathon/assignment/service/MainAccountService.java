@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.service;
 
-import java.util.Random;
+import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.common.exception.BalanceUpdateException;
 import org.c4marathon.assignment.common.exception.NotFoundException;
@@ -12,7 +12,9 @@ import org.c4marathon.assignment.dto.request.ChargeMainAccountRequestDto;
 import org.c4marathon.assignment.repository.MainAccountRepository;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -25,7 +27,8 @@ public class MainAccountService {
 
 	@Transactional
 	public void createMainAccount(User user){
-		MainAccount mainAccount = new MainAccount(user, BankSystemUtil.createAccountNumber(counter), 0);
+		MainAccount mainAccount = new MainAccount(user, BankSystemUtil.createAccountNumber(counter), 0, chargeLimit,
+			LocalDateTime.now());
 		mainAccountRepository.save(mainAccount);
 	}
 
@@ -45,10 +48,10 @@ public class MainAccountService {
 	/**
 	 * 메인 계좌 충전 Method
 	 * [1] Redis를 통해 일일 충전 한도가 넘었는지 확인
-	 * [2] balance 업데이트
+	 * [2] balance 업데이트 성공 했을 경우에 DB에도 저장
 	 * [3] balance 업데이트 실패했을때 rollback
 	 * */
-	@Transactional
+	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void chargeMainAccount(ChargeMainAccountRequestDto requestDto){
 
 		/* mainAccountId가 존재하는지 여부 파악 (existId는 Lock을 걸지 않고 조회한다.) */
@@ -98,11 +101,14 @@ public class MainAccountService {
 
 	/** [2]
 	 * balance를 update하기 위해서 Lock 을 걸고 조회 수행
+	 * limit에도 -money 만큼 한도를 뺼수 있도록 조정
+	 * 트랜잭션 시간을 지금으로 설정
 	 * */
 	private void updateMainAccountBalance(long mainAccountId, long money){
 		try {
 			MainAccount mainAccount = getMainAccountWithXLock(mainAccountId);
 			mainAccount.chargeMoney(money);
+			mainAccount.updateChargeDate();
 			mainAccountRepository.save(mainAccount);
 		} catch (Exception e){
 			throw new BalanceUpdateException(ErrorCode.NOT_FOUND_MAIN_ACCOUNT);
