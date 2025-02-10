@@ -1,7 +1,8 @@
-package org.c4marathon.assignment.global.event;
+package org.c4marathon.assignment.global.event.member;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.c4marathon.assignment.account.service.AccountService;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class MemberEventListener {
 
     private final AccountService accountService;
+
     @EventListener
     public void handleMemberRegisteredEvent(MemberRegisteredEvent event) {
         accountService.createAccount(event.memberId());

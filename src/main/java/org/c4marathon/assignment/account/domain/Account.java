@@ -28,9 +28,6 @@ public class Account extends BaseEntity {
     @Column(nullable = false)
     private long chargeLimit;
 
-    @Version
-    private Integer version;
-
     @Builder
     private Account(long money, long chargeLimit) {
         this.money = money;
@@ -44,15 +41,15 @@ public class Account extends BaseEntity {
                 .build();
     }
 
-    public void chargeAccount(long money) {
-        this.money += money;
-    }
-
-    public void minusMoney(long money) {
+    public void withdraw(long money) {
         this.money -= money;
     }
 
-    public boolean isCharge(long money) {
+    public void deposit(long money) {
+        this.money += money;
+    }
+
+    public boolean isChargeWithinDailyLimit(long money) {
         if (this.chargeLimit < money) {
             return false;
         }

@@ -36,9 +36,6 @@ public class SavingAccount extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Version
-    private Integer version;
-
     @Builder
     private SavingAccount(long balance, Member member) {
         this.balance = balance;
@@ -52,7 +49,7 @@ public class SavingAccount extends BaseEntity {
                 .build();
     }
 
-    public void addMoney(long money) {
+    public void deposit(long money) {
         this.balance += money;
     }
 }
