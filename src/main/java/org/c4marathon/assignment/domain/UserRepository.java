@@ -20,4 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query(value = "SELECT * FROM user u WHERE u.id > :cursor LIMIT :limit", nativeQuery = true)
 	List<User> findAllByCursor(@Param("cursor") long cursor, @Param("limit") int limit);
+
+	@Query(value = "SELECT * FROM user u WHERE u.id IN :ids", nativeQuery = true)
+	List<User> findAllById(@Param("ids") List<Long> ids);
 }

@@ -1,11 +1,15 @@
 package org.c4marathon.assignment.application;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
+import org.c4marathon.assignment.domain.SettlementType;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.domain.UserRepository;
+import org.c4marathon.assignment.domain.dto.request.SettlementRequest;
+import org.c4marathon.assignment.domain.dto.response.SettlementResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,5 +39,24 @@ public class UserService {
 	@Transactional
 	public void initChargeLimit(List<Long> userIds) {
 		userRepository.initChargeLimit(userIds);
+	}
+
+	/**
+	 * 정산 기능. 선택된 사용자만큼 타입에 따라 정산합니다.
+	 * @param request
+	 * @return
+	 */
+	public List<SettlementResult> settle(SettlementRequest request) {
+		List<Long> userIds = request.userIds();
+		long money = request.money();
+		SettlementType settlementType = request.settlementType();
+
+		List<Long> settled = settlementType.settle(userIds.size(), money);
+		List<User> users = userRepository.findAllById(userIds);
+
+		return IntStream.range(0, userIds.size())
+			.mapToObj(idx ->
+				new SettlementResult(users.get(idx).getId(), users.get(idx).getEmail(), settled.get(idx)))
+			.toList();
 	}
 }
