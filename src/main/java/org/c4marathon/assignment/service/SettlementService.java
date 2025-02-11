@@ -3,19 +3,24 @@ package org.c4marathon.assignment.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import org.c4marathon.assignment.common.exception.NotFoundException;
+import org.c4marathon.assignment.common.exception.enums.ErrorCode;
 import org.c4marathon.assignment.domain.Settlement;
 import org.c4marathon.assignment.domain.SettlementMember;
 import org.c4marathon.assignment.domain.enums.SettlementStatus;
 import org.c4marathon.assignment.domain.enums.SettlementType;
 import org.c4marathon.assignment.dto.request.RemittanceRequestDto;
 import org.c4marathon.assignment.dto.request.SettlementRequestDto;
+import org.c4marathon.assignment.repository.SettlementMemberRepository;
 import org.c4marathon.assignment.repository.SettlementRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class SettlementService {
 
 	private final SettlementRepository settlementRepository;
+	private final SettlementMemberRepository settlementMemberRepository;
 
 	/**
 	 * [Step3] 정산
@@ -51,7 +57,7 @@ public class SettlementService {
 		long remainAmount = totalAmount % totalPeople;
 
 		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalAmount, totalPeople,
-			SettlementType.EQUAL, null);
+			SettlementType.EQUAL, SettlementStatus.PENDING, null);
 
 		//기본 금액 전체 할당
 		List<SettlementMember> updatedMembers = settlementMemberIds.stream().map(memberId -> new SettlementMember(
@@ -83,7 +89,7 @@ public class SettlementService {
 		Random random = new Random();
 
 		//Settlement
-		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalAmount, totalPeople, SettlementType.RANDOM, null);
+		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalAmount, totalPeople, SettlementType.RANDOM, SettlementStatus.PENDING, null);
 
 		//랜덤으로 돈 배정
 		Collections.shuffle(settlementMemberIds);
@@ -117,9 +123,30 @@ public class SettlementService {
 		settlementRepository.save(settlement);
 	}
 
-	@Transactional
+	/**
+	 * [Step3] 정산을 위한 송금하기
+	 * member는 상태값만 변경하고
+	 * settlement의 remainAmount를 차감한다.
+	 * */
+	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void remittanceMoney(RemittanceRequestDto requestDto) {
-		// 돈 내면 pending, success
-		//돈을 내면 Settlement
+
+		SettlementMember member = settlementMemberRepository.findByAccountIdWithXLock(requestDto.settlementId(),
+			requestDto.settlementMemberAccountId()).orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_SETTLEMENT_MEMBER));
+
+		if (member.getStatus() == SettlementStatus.SUCCESS) {
+			throw new IllegalStateException(ErrorCode.ALREADY_REMITTANCE_SUCCESS.getMessage());
+		}
+
+		Settlement settlement = settlementRepository.findByIdWithXLock(requestDto.settlementId()).orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_SETTLEMENT));
+
+		member.updateStatus(SettlementStatus.SUCCESS);//정산 상태 처리
+		settlement.updateRemainAmount(settlement.getRemainAmount() - member.getAmount()); //남은 정산금액 업데이트
+		if (settlement.getRemainAmount() == 0) { //마지막 사람이 정산 하면
+			settlement.updateStatus(SettlementStatus.SUCCESS); //정산 완료 처리
+		}
+
+		settlementMemberRepository.save(member);
+		settlementRepository.save(settlement);
 	}
 }
