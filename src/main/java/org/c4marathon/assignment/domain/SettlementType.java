@@ -19,30 +19,34 @@ public enum SettlementType {
 		if (money % size != 0) {
 			int startIdx = CommonUtils.getRandom(0, size);
 
-			IntStream.range(0, (int)(money % size)).forEach(next -> divided.set(startIdx + next, divided.get(startIdx + next) + 1));
+			IntStream.range(0, (int)(money % size)).forEach(plus -> {
+				int nextIdx = (startIdx + plus) % size;
+				divided.set(nextIdx, divided.get(nextIdx) + 1);
+			});
 		}
 
 		return divided;
 	}),
 	/**
-	 * 랜덤의 경우, 남은 금액 내에서 랜덤하게 지불 금액을 선택합니다. 이를 사용자 수만큼 반복합니다.
+	 * 랜덤의 경우, 금액 내에서 경계를 (사용자 수 - 1) 만큼 랜덤 선택합니다. 그리고 경계를 기준으로 금액을 분배합니다.
 	 */
 	RANDOM((size, money) -> {
 		List<Long> divided = new ArrayList<>();
 
-		long curLimit = 0L;
-		for (int i = 0; i < size - 1; i++) {
-			long preLimit = curLimit;
+		long[] boundaries = IntStream.range(0, size).mapToLong(i -> {
+			if (i == size - 1)
+				return money;
 
-			curLimit = curLimit + CommonUtils.getRandom(0L, money - curLimit);
-			divided.add(curLimit - preLimit);
-		}
-		divided.add(money - curLimit);
+			return CommonUtils.getRandom(0, money + 1);
+		}).sorted().toArray();
+
+		divided.add(boundaries[0]);
+		IntStream.range(1, size).forEach(idx -> divided.add(boundaries[idx] - boundaries[idx - 1]));
 
 		return divided;
 	});
 
-	private BiFunction<Integer, Long, List<Long>> settlementFunc;
+	private final BiFunction<Integer, Long, List<Long>> settlementFunc;
 
 	SettlementType(BiFunction<Integer, Long, List<Long>> settlementFunc) {
 		this.settlementFunc = settlementFunc;
