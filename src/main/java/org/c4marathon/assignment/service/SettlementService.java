@@ -50,7 +50,7 @@ public class SettlementService {
 		long baseAmount = totalAmount / totalPeople;
 		long remainAmount = totalAmount % totalPeople;
 
-		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalPeople,
+		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalAmount, totalPeople,
 			SettlementType.EQUAL, null);
 
 		//기본 금액 전체 할당
@@ -83,7 +83,7 @@ public class SettlementService {
 		Random random = new Random();
 
 		//Settlement
-		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalPeople, SettlementType.RANDOM, null);
+		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalAmount, totalPeople, SettlementType.RANDOM, null);
 
 		//랜덤으로 돈 배정
 		Collections.shuffle(settlementMemberIds);
@@ -120,5 +120,6 @@ public class SettlementService {
 	@Transactional
 	public void remittanceMoney(RemittanceRequestDto requestDto) {
 		// 돈 내면 pending, success
+		//돈을 내면 Settlement
 	}
 }

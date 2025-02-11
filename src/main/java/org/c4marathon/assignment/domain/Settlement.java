@@ -2,6 +2,7 @@ package org.c4marathon.assignment.domain;
 
 import java.util.List;
 
+import org.c4marathon.assignment.domain.enums.SettlementStatus;
 import org.c4marathon.assignment.domain.enums.SettlementType;
 
 import jakarta.persistence.CascadeType;
@@ -32,7 +33,10 @@ public class Settlement extends BaseEntity{
 	private Long requestAccountId;
 
 	@Column(name = "total_amount", nullable = false)
-	private int totalAmount;
+	private long totalAmount;
+
+	@Column(name = "remain_amount", nullable = false)
+	private long remainAmount;
 
 	@Column(name = "people", nullable = false)
 	private int people;
@@ -41,20 +45,34 @@ public class Settlement extends BaseEntity{
 	@Enumerated(EnumType.STRING)
 	private SettlementType type;
 
+	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private SettlementStatus status;
+
 	@OneToMany(mappedBy = "settlement", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<SettlementMember> settlementMembers;
 
-	public Settlement(Long requestAccountId, int totalAmount, int people, SettlementType type,
+	public Settlement(Long requestAccountId, long totalAmount,long remainAmount, int people, SettlementType type, SettlementStatus status,
 		List<SettlementMember> settlementMembers) {
 		this.requestAccountId = requestAccountId;
 		this.totalAmount = totalAmount;
+		this.remainAmount = remainAmount;
 		this.people = people;
 		this.type = type;
+		this.status = status;
 		this.settlementMembers = settlementMembers;
 	}
 
 	public void addSettlementMembers(List<SettlementMember> members){
 		this.settlementMembers = members;
+	}
+
+	public void updateRemainAmount(long remainAmount){
+		this.remainAmount = remainAmount;
+	}
+
+	public void updateStatus(SettlementStatus status){
+		this.status = status;
 	}
 
 }

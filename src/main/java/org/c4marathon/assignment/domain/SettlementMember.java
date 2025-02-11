@@ -49,4 +49,8 @@ public class SettlementMember {
 	public void updateAmount(long money) {
 		this.amount += money;
 	}
+
+	public void updateStatus(SettlementStatus status) {
+		this.status = status;
+	}
 }
