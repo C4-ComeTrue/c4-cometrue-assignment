@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-public class SettlementMemebr {
+public class SettlementMember {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,11 +39,14 @@ public class SettlementMemebr {
 	@JoinColumn(name = "settlement_id", nullable = false)
 	private Settlement settlement;
 
-	public SettlementMemebr(Long id, long accountId, long amount, SettlementStatus status, Settlement settlement) {
-		this.id = id;
+	public SettlementMember(long accountId, long amount, SettlementStatus status, Settlement settlement) {
 		this.accountId = accountId;
 		this.amount = amount;
 		this.status = status;
 		this.settlement = settlement;
+	}
+
+	public void updateAmount(long money) {
+		this.amount += money;
 	}
 }

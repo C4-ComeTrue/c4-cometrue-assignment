@@ -1,8 +1,9 @@
 package org.c4marathon.assignment.controller;
 
+import java.util.List;
+
 import org.c4marathon.assignment.common.dto.SuccessNonDataResponse;
 import org.c4marathon.assignment.common.exception.enums.SuccessCode;
-import org.c4marathon.assignment.dto.request.SettleMemberRequestDto;
 import org.c4marathon.assignment.dto.request.SettlementRequestDto;
 import org.c4marathon.assignment.service.SettlementService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +22,8 @@ public class SettlementController {
 	private final SettlementService settleService;
 
 	@PostMapping("/request")
-	public SuccessNonDataResponse requestSettlement(@RequestBody @Valid SettlementRequestDto requestDto, @RequestBody @Valid
-		SettleMemberRequestDto memberRequestDto) {
-		settleService.divideMoney(requestDto, memberRequestDto);
+	public SuccessNonDataResponse requestSettlement(@RequestBody @Valid SettlementRequestDto requestDto) {
+		settleService.divideMoney(requestDto);
 		return SuccessNonDataResponse.success(SuccessCode.REQUEST_SETTLEMENT_SUCCESS);
 	}
 
