@@ -71,7 +71,7 @@ public class TransferService {
 				sender.updateLimit(chargeAmount); // 돈 다시 추가
 				mainAccountRepository.save(sender);
 
-				mainAccountService.rollbackDailyChargeLimit(senderAccountId, chargeAmount);
+				// mainAccountService.rollbackDailyChargeLimit(senderAccountId, chargeAmount); //[step2] 에서 개선
 				log.info("송금 롤백 완료: 보낸 사람 ID={}, 금액={}원 복구 완료", senderAccountId, chargeAmount);
 
 				redisTemplate.delete(key);
