@@ -10,6 +10,7 @@ import org.c4marathon.assignment.domain.Settlement;
 import org.c4marathon.assignment.domain.SettlementMember;
 import org.c4marathon.assignment.domain.enums.SettlementStatus;
 import org.c4marathon.assignment.domain.enums.SettlementType;
+import org.c4marathon.assignment.dto.request.RemittanceRequestDto;
 import org.c4marathon.assignment.dto.request.SettlementRequestDto;
 import org.c4marathon.assignment.repository.SettlementRepository;
 import org.springframework.stereotype.Service;
@@ -117,7 +118,7 @@ public class SettlementService {
 	}
 
 	@Transactional
-	public void remittanceMoney(long settlementMemberId) {
+	public void remittanceMoney(RemittanceRequestDto requestDto) {
 		// 돈 내면 pending, success
 	}
 }

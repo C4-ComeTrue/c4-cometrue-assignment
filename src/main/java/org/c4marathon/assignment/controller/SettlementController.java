@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.c4marathon.assignment.common.dto.SuccessNonDataResponse;
 import org.c4marathon.assignment.common.exception.enums.SuccessCode;
+import org.c4marathon.assignment.dto.request.RemittanceRequestDto;
 import org.c4marathon.assignment.dto.request.SettlementRequestDto;
 import org.c4marathon.assignment.service.SettlementService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -28,8 +28,8 @@ public class SettlementController {
 	}
 
 	@PostMapping("/remittance")
-	public SuccessNonDataResponse remittanceSettlement(@RequestParam(value = "settlementMemberId") long settlementMemberId) {
-		settleService.remittanceMoney(settlementMemberId);
+	public SuccessNonDataResponse remittanceSettlement(@RequestBody @Valid RemittanceRequestDto requestDto) {
+		settleService.remittanceMoney(requestDto);
 		return SuccessNonDataResponse.success(SuccessCode.REMITTANCE_SETTLEMENT_SUCCESS);
 	}
 
