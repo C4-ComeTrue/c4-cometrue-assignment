@@ -42,15 +42,19 @@ public class Settlement extends BaseEntity{
 	private SettlementType type;
 
 	@OneToMany(mappedBy = "settlement", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	private List<SettlementMemebr> settlementMemebrs;
+	private List<SettlementMember> settlementMembers;
 
-	public Settlement(Long id, Long requestAccountId, int totalAmount, int people, SettlementType type,
-		List<SettlementMemebr> settlementMemebrs) {
-		this.id = id;
+	public Settlement(Long requestAccountId, int totalAmount, int people, SettlementType type,
+		List<SettlementMember> settlementMembers) {
 		this.requestAccountId = requestAccountId;
 		this.totalAmount = totalAmount;
 		this.people = people;
 		this.type = type;
-		this.settlementMemebrs = settlementMemebrs;
+		this.settlementMembers = settlementMembers;
 	}
+
+	public void addSettlementMembers(List<SettlementMember> members){
+		this.settlementMembers = members;
+	}
+
 }
