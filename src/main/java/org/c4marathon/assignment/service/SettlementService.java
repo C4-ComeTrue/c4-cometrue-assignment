@@ -76,5 +76,48 @@ public class SettlementService {
 	 * */
 	@Transactional
 	protected void divideRandom(SettlementRequestDto requestDto) {
+		List<Long> settlementMemberIds = requestDto.settlementMemberIds();
+		int totalPeople = settlementMemberIds.size();
+		int totalAmount = requestDto.totalAmount();
+		Random random = new Random();
+
+		//Settlement
+		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalPeople, SettlementType.RANDOM, null);
+
+		//랜덤으로 돈 배정
+		Collections.shuffle(settlementMemberIds);
+		int remainAmount = totalAmount;
+		List<SettlementMember> updatedMembers = new ArrayList<>();
+
+		for(int i = 0; i < totalPeople - 1; i++) {
+			int randomAmount = random.nextInt(remainAmount + 1);
+			remainAmount -= randomAmount;
+			if (randomAmount > 0) { // 0원을 받는 사람은 저장X
+				updatedMembers.add(new SettlementMember(
+					settlementMemberIds.get(i),
+					randomAmount,
+					SettlementStatus.PENDING,
+					settlement
+				));
+			}
+		}
+
+		//남은 돈이 있으면 마지막 사람에게 할당
+		if(remainAmount > 0) {
+			updatedMembers.add(new SettlementMember(
+				settlementMemberIds.get(totalPeople - 1),
+				remainAmount,
+				SettlementStatus.PENDING,
+				settlement
+			));
+		}
+
+		settlement.addSettlementMembers(updatedMembers);
+		settlementRepository.save(settlement);
+	}
+
+	@Transactional
+	public void remittanceMoney(long settlementMemberId) {
+		// 돈 내면 pending, success
 	}
 }
