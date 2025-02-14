@@ -8,7 +8,6 @@ import org.c4marathon.assignment.account.service.DepositService;
 import org.c4marathon.assignment.global.core.MiniPayThreadPoolExecutor;
 import org.c4marathon.assignment.transactional.domain.TransferTransactional;
 import org.c4marathon.assignment.transactional.service.TransactionalService;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +55,7 @@ public class DepositScheduler {
 	 *  나중에 멀티 스레드 성능 테스트 후 결정
 	 */
 	@Scheduled(fixedRate = 12000)
-	public void rollbackDeposits() {
+	public void retryDeposit() {
 		Long lastId = null;
 		while (true) {
 		List<TransferTransactional> transactionals = transactionalService.findTransactionalByStatusWithLastId(
