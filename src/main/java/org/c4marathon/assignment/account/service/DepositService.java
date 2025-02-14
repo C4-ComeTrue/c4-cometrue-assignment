@@ -1,10 +1,14 @@
 package org.c4marathon.assignment.account.service;
 
+import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
+
+import java.time.LocalDateTime;
+
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.global.event.deposit.DepositCompletedEvent;
-import org.springframework.context.ApplicationEventPublisher;
+import org.c4marathon.assignment.transactional.domain.TransferTransactional;
+import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,46 +21,45 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class DepositService {
 	private final AccountRepository accountRepository;
-	private final ApplicationEventPublisher eventPublisher;
+	private final TransactionalRepository transactionalRepository;
 
 	/**
-	 * 입금을 시도하는 로직.
-	 * 입금이 정상적으로 커밋 완료 시 -> 이벤트 발행을 하며 Redis에 저장된 송금 기록을 삭제
-	 * 입금 중 예외가 발생 시 -> AOP를 통해 예외를 감지하여 Redis에 실패 송금 기록을 저장
-	 * @param deposit
+	 * 송금 내역 데이터를 조회해서 출금 로직 실행
+	 * status = WITHDRAW인 송금 내역을 조회해서 입금 처리를 함
+	 * 입금 성공 : 송금 내역 status를 SUCCESS_DEPOSIT, 입금 한 시간을 업데이트 한다.
+	 * 입금 실패 : AOP를 통해 송금 내역 status를 FAILED_DEPOSIT로 변경한다.
+	 * @param transactional
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void successDeposit(String deposit) {
-		processDeposit(deposit);
+	public void successDeposit(TransferTransactional transactional) {
+		processDeposit(transactional);
 	}
 
 	/**
-	 * 실패한 입금을 재시도하는 로직
-	 * 재입금이 정상적으로 커밋 완료 시 -> 이벤트 발행을 하며 Redis에 저장된 송금 기록을 삭제
-	 * 재입금 중 예외(실패) 시 -> AOP를 통해 예외를 감지하여 송금 롤백 시도
-	 * @param failedDeposit
+	 * 송금 내역 데이터를 조회해서 출금 로직 실행
+	 * status = FAILED_DEPOSIT인 송금 내역을 조회해서 입금 재시도를 함
+	 * 입금 성공 : 송금 내역 status를 SUCCESS_DEPOSIT, 입금 한 시간을 업데이트 한다.
+	 * 입금 재시도 실패 : AOP를 통해 송금 내역 status를 CANCEL로 변경 후 송금 취소한다.
+	 * @param transactional
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void failedDeposit(String failedDeposit) {
-		processDeposit(failedDeposit);
+	public void failedDeposit(TransferTransactional transactional) {
+		processDeposit(transactional);
 	}
 
-	private void processDeposit(String deposit) {
-		String[] parts = deposit.split(":");
-		String transactionId = parts[0];
-		Long senderAccountId = Long.valueOf(parts[1]);
-		Long receiverAccountId = Long.valueOf(parts[2]);
-		long money = Long.parseLong(parts[3]);
+	private void processDeposit(TransferTransactional transactional) {
+		Long receiverAccountId = transactional.getReceiverAccountId();
+		long amount = transactional.getAmount();
 
 		Account receiverAccount = accountRepository.findByIdWithLock(receiverAccountId)
 			.orElseThrow(NotFoundAccountException::new);
 
-		receiverAccount.deposit(money);
+		receiverAccount.deposit(amount);
 		accountRepository.save(receiverAccount);
 
-		eventPublisher.publishEvent(new DepositCompletedEvent(deposit));
+		transactional.setReceiverTime(LocalDateTime.now());
+		transactional.updateStatus(SUCCESS_DEPOSIT);
+		transactionalRepository.save(transactional);
 
-		log.debug("입금 성공 : transactionId : {}, senderAccountId : {}, receiverAccountId : {}, money : {}",
-			transactionId, senderAccountId, receiverAccountId, money);
 	}
 }

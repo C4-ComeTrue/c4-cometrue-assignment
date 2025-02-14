@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Transactional {
+public class TransferTransactional {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "transactional_id")
@@ -26,6 +26,7 @@ public class Transactional {
 	@Column(nullable = false)
 	private Long senderAccountId;
 
+	@Column(nullable = false)
 	private Long receiverAccountId;
 
 	@Column(nullable = false)
@@ -45,7 +46,7 @@ public class Transactional {
 	private LocalDateTime receiverTime;
 
 	@Builder
-	private Transactional(Long senderAccountId, Long receiverAccountId, long amount, TransactionalType type,
+	private TransferTransactional(Long senderAccountId, Long receiverAccountId, long amount, TransactionalType type,
 		TransactionalStatus status, LocalDateTime sendTime, LocalDateTime receiverTime) {
 		this.senderAccountId = senderAccountId;
 		this.receiverAccountId = receiverAccountId;
@@ -56,17 +57,27 @@ public class Transactional {
 		this.receiverTime = receiverTime;
 	}
 
-	public static Transactional create(Long senderAccountId, long amount, TransactionalType type,
-		TransactionalStatus status, LocalDateTime sendTime) {
+	public static TransferTransactional create(Long senderAccountId, Long receiverAccountId, long amount,
+		TransactionalType type, TransactionalStatus status, LocalDateTime sendTime) {
 
-		return Transactional.builder()
+		return TransferTransactional.builder()
 			.senderAccountId(senderAccountId)
+			.receiverAccountId(receiverAccountId)
 			.amount(amount)
 			.type(type)
 			.status(status)
 			.sendTime(sendTime)
 			.build();
 	}
+
+	public void setReceiverTime(LocalDateTime localDateTime) {
+		this.receiverTime = localDateTime;
+	}
+
+	public void updateStatus(TransactionalStatus status) {
+		this.status = status;
+	}
+
 
 
 
