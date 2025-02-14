@@ -1,7 +1,9 @@
 package org.c4marathon.assignment.account.service;
 
 import static org.c4marathon.assignment.global.util.Const.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.c4marathon.assignment.account.domain.Account;
@@ -11,10 +13,12 @@ import org.c4marathon.assignment.account.domain.repository.SavingAccountReposito
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.global.event.transactional.TransactionalCreateEvent;
 import org.c4marathon.assignment.global.event.withdraw.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
+import org.c4marathon.assignment.transactional.domain.TransactionalStatus;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -28,6 +32,7 @@ public class AccountService {
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
 	private final SavingAccountRepository savingAccountRepository;
+
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional
@@ -82,7 +87,7 @@ public class AccountService {
 	}
 
 	/**
-	 * 출금 시 Redis List 에 출금 기록을 저장
+	 * 송금 시 송금 내역을 저장하는 이벤트 발행 후 커밋
 	 * @param senderAccountId
 	 * @param request
 	 */
@@ -98,14 +103,16 @@ public class AccountService {
 		senderAccount.withdraw(request.money());
 		accountRepository.save(senderAccount);
 
-		String transactionId = UUID.randomUUID().toString();
+		// String transactionId = UUID.randomUUID().toString();
 
 		eventPublisher.publishEvent(
-			new WithdrawCompletedEvent(
-				transactionId,
+			new TransactionalCreateEvent(
 				senderAccountId,
 				request.receiverAccountId(),
-				request.money()
+				request.money(),
+				request.type(),
+				WITHDRAW,
+				LocalDateTime.now()
 			)
 		);
 	}
