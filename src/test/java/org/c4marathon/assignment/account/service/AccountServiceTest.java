@@ -2,6 +2,7 @@ package org.c4marathon.assignment.account.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.util.Const.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
 import static org.mockito.BDDMockito.*;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
@@ -12,9 +13,11 @@ import org.c4marathon.assignment.account.domain.repository.SavingAccountReposito
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.global.event.transactional.TransactionalCreateEvent;
 import org.c4marathon.assignment.global.event.withdraw.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
+import org.c4marathon.assignment.transactional.domain.TransactionalType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -159,12 +162,12 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     }
 
-    @DisplayName("송금 시 메인 계좌에서 출금하고 Redis에 기록한다.")
+    @DisplayName("송금 시 메인 계좌에서 출금하고 TransferTransactional 생성 이벤트를 발행한다.")
     @Test
     void withdraw() throws Exception {
         // given
         Account senderAccount = createAccount(50000L);
-        WithdrawRequest request = new WithdrawRequest(2L, 20000L);
+        WithdrawRequest request = new WithdrawRequest(2L, 20000L, IMMEDIATE_TRANSFER);
 
         // when
         accountService.withdraw(senderAccount.getId(), request);
@@ -174,7 +177,7 @@ class AccountServiceTest extends IntegrationTestSupport {
             .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
 
-        verify(eventPublisher, times(1)).publishEvent(any(WithdrawCompletedEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(TransactionalCreateEvent.class));
 
     }
 
@@ -184,7 +187,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     void withdrawWithInsufficientBalance() {
         // given
         Account senderAccount = createAccount(50000L);
-        WithdrawRequest request = new WithdrawRequest(2L, 200000L);
+        WithdrawRequest request = new WithdrawRequest(2L, 200000L, IMMEDIATE_TRANSFER);
 
         // when
         accountService.withdraw(senderAccount.getId(), request);
@@ -194,7 +197,7 @@ class AccountServiceTest extends IntegrationTestSupport {
             .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isZero();
 
-        verify(eventPublisher, times(1)).publishEvent(any(WithdrawCompletedEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(TransactionalCreateEvent.class));
 
     }
 
@@ -203,7 +206,7 @@ class AccountServiceTest extends IntegrationTestSupport {
     void withdrawWithDailyChargeLimit() {
         // given
         Account senderAccount = createAccount(5000L);
-        WithdrawRequest request = new WithdrawRequest(2L, 3_500_000L);
+        WithdrawRequest request = new WithdrawRequest(2L, 3_500_000L, IMMEDIATE_TRANSFER);
 
         // when // then
         Long senderAccountId = senderAccount.getId();

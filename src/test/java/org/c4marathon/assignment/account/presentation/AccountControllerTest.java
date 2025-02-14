@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.account.presentation;
 
+import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -7,6 +8,7 @@ import org.c4marathon.assignment.ControllerTestSupport;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.global.session.SessionConst;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
+import org.c4marathon.assignment.transactional.domain.TransactionalType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,7 +61,7 @@ class AccountControllerTest extends ControllerTestSupport {
     @Test
     void withdraw() throws Exception {
         // given
-        WithdrawRequest request = new WithdrawRequest(1L, 5000L);
+        WithdrawRequest request = new WithdrawRequest(1L, 5000L, IMMEDIATE_TRANSFER);
 
         // when // then
         mockMvc.perform(
@@ -75,7 +77,7 @@ class AccountControllerTest extends ControllerTestSupport {
     @Test
     void withdrawWithNegativeAmount() throws Exception {
         // given
-        WithdrawRequest request = new WithdrawRequest(2L, -5000L); // 음수 금액
+        WithdrawRequest request = new WithdrawRequest(2L, -5000L, IMMEDIATE_TRANSFER); // 음수 금액
 
         // when // then
         mockMvc.perform(
