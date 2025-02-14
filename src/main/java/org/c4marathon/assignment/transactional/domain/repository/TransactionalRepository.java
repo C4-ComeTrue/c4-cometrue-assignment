@@ -14,7 +14,7 @@ public interface TransactionalRepository extends JpaRepository<TransferTransacti
 	@Query("""
 		SELECT t
 		FROM TransferTransactional t
-		WHERE t.status = :status AND t.id > :id
+		WHERE t.status = :status AND t.id > :lastId
 		ORDER BY t.id
 		LIMIT :size
 		""")
