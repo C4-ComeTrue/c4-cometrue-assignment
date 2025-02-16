@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class AccountService {
-	private static final long CHARGE_UNIT = 10_000;
+	private static final long CHARGE_UNIT = 10_000L;
 	private final SavingsAccountRepository savingsAccountRepository;
 	private final UserRepository userRepository;
 	private final AccountRepository accountRepository;

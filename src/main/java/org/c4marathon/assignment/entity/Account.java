@@ -23,7 +23,7 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "account")
 public class Account extends BaseEntity {
-    private static final long DEFAULT_CHARGE_LIMIT = 3_000_000;
+    private static final long DEFAULT_CHARGE_LIMIT = 3_000_000L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
