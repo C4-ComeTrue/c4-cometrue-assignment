@@ -3,7 +3,6 @@ package org.c4marathon.assignment.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.dto.request.PostSettlementReq;
@@ -17,6 +16,7 @@ import org.c4marathon.assignment.exception.ErrorCode;
 import org.c4marathon.assignment.repository.SettlementDetailRepository;
 import org.c4marathon.assignment.repository.SettlementRepository;
 import org.c4marathon.assignment.repository.UserRepository;
+import org.c4marathon.assignment.utils.RandomUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,12 +103,11 @@ public class SettlementService {
 	 * 랜덤 정산 금액 계산
 	 */
 	private List<Long> generateRandomAmount(int count, long totalAmount) {
-		ThreadLocalRandom random = ThreadLocalRandom.current();
 		List<Long> amounts = new ArrayList<>();
 		long sum = 0;
 
 		for (int i = 0; i < count - 1; i++) {
-			long amount = (long)(random.nextDouble() * (totalAmount - sum) / (count - i));
+			long amount = RandomUtil.getRandom(totalAmount - sum + 1);
 			amounts.add(amount);
 			sum += amount;
 		}
