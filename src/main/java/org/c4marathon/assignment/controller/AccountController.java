@@ -8,6 +8,8 @@ import org.c4marathon.assignment.dto.response.MainAccountInfoRes;
 import org.c4marathon.assignment.dto.response.TransferRes;
 import org.c4marathon.assignment.dto.response.WithdrawInfoRes;
 import org.c4marathon.assignment.service.AccountService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,8 +25,9 @@ public class AccountController {
 	private final AccountService accountService;
 
 	@PostMapping("/savings")
-	public void createSavingsAccount(@RequestBody @Valid PostSavingsAccountReq postSavingsAccountReq) {
+	public ResponseEntity<Void> createSavingsAccount(@RequestBody @Valid PostSavingsAccountReq postSavingsAccountReq) {
 		accountService.createSavingsAccount(postSavingsAccountReq);
+		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 	@PostMapping("/main/deposit")
 	public MainAccountInfoRes depositMainAccount(@RequestBody @Valid PostMainAccountReq postMainAccountReq) {
