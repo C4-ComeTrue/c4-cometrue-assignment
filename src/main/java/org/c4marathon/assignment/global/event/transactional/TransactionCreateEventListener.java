@@ -15,6 +15,6 @@ public class TransactionCreateEventListener {
 
 	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
 	public void handleTransactionalCreate(TransactionCreateEvent event) {
-		transactionService.createTransactional(event);
+		transactionService.createTransaction(event);
 	}
 }
