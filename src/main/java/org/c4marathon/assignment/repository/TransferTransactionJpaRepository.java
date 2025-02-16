@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.repository;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.c4marathon.assignment.entity.TransactionStatus;
@@ -23,4 +24,13 @@ public interface TransferTransactionJpaRepository extends JpaRepository<Transfer
 		@Param("status") TransactionStatus status);
 
 	List<TransferTransaction> findAllByStatusAndType(TransactionStatus status, TransactionType type);
+
+	@Query(value = """
+			SELECT t FROM TransferTransaction t
+			WHERE t.status = :status
+			AND t.type = :type
+			AND t.createDate = :targetTime
+		""")
+	List<TransferTransaction> findPendingTransactions(@Param("status") TransactionStatus status,
+		@Param("type") TransactionType type, @Param("targetTime") Instant cutoffTime);
 }

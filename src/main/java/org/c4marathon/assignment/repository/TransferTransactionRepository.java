@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.repository;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.c4marathon.assignment.entity.TransactionStatus;
@@ -22,8 +23,13 @@ public class TransferTransactionRepository {
 		return transferTransactionJpaRepository.updateStatus(transferTransactionId, findStatus, status);
 	}
 
-	public List<TransferTransaction> getTransferTransactionsByStatusAndType(TransactionStatus status, TransactionType type) {
+	public List<TransferTransaction> getTransferTransactionsByStatusAndType(TransactionStatus status,
+		TransactionType type) {
 		return transferTransactionJpaRepository.findAllByStatusAndType(status, type);
 	}
 
+	public List<TransferTransaction> findPendingTransactions(TransactionStatus status, TransactionType type,
+		Instant targetTime) {
+		return transferTransactionJpaRepository.findPendingTransactions(status, type, targetTime);
+	}
 }

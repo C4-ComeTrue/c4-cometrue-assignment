@@ -2,6 +2,8 @@ package org.c4marathon.assignment.service;
 
 import static org.c4marathon.assignment.config.AsyncConfig.*;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.c4marathon.assignment.dto.MessageDto;
@@ -51,6 +53,27 @@ public class TransactionService {
 				.receiverMainAccount(transferTransaction.getReceiverMainAccount())
 				.amount(transferTransaction.getAmount())
 				.build());
+		}));
+	}
+
+	/**
+	 * 24시간 남은 송금 알림 스케줄러
+	 * 1. 24시간 남은 송금 내역 조회
+	 * 2. 알림 발송
+	 */
+	@Async(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
+	@Scheduled(cron = "0 * * * * *")
+	public void ReminderForPendingTransactions() {
+		Instant targetTime = Instant.now().minus(48, ChronoUnit.HOURS);
+		List<TransferTransaction> transferTransactions = transferTransactionRepository.findPendingTransactions(
+			TransactionStatus.PENDING, TransactionType.PENDING, targetTime);
+
+		if (transferTransactions.isEmpty()) {
+			return;
+		}
+
+		transferTransactions.forEach((transferTransaction -> {
+			log.debug("{} 알림 발송", Thread.currentThread().getName());
 		}));
 	}
 }
