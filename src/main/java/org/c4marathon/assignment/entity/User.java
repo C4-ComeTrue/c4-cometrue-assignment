@@ -30,8 +30,8 @@ public class User extends BaseEntity {
 	@Column(name = "nickname", nullable = false, length = 10)
 	private String nickname;
 
-	@Column(name = "main_account")
-	private Long mainAccount;
+	@Column(name = "main_account_id")
+	private Long mainAccountId;
 
 	@Builder
 	public User(String username, String email, String nickname) {
@@ -40,7 +40,7 @@ public class User extends BaseEntity {
 		this.nickname = nickname;
 	}
 
-	public void changeMainAccount(Long mainAccount) {
-		this.mainAccount = mainAccount;
+	public void changeMainAccount(Long mainAccountId) {
+		this.mainAccountId = mainAccountId;
 	}
 }
