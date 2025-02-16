@@ -29,7 +29,7 @@ public class DepositScheduler {
 
 		Long lastId = null;
 		while (true) {
-			List<Transaction> transactionals = transactionService.findTransactionalByStatusWithLastId(
+			List<Transaction> transactionals = transactionService.findTransactionByStatusWithLastId(
 				WITHDRAW, lastId, PAGE_SIZE);
 
 			if (transactionals == null || transactionals.isEmpty()) {
@@ -58,7 +58,7 @@ public class DepositScheduler {
 	public void retryDeposit() {
 		Long lastId = null;
 		while (true) {
-		List<Transaction> transactionals = transactionService.findTransactionalByStatusWithLastId(
+		List<Transaction> transactionals = transactionService.findTransactionByStatusWithLastId(
 			FAILED_DEPOSIT, lastId, PAGE_SIZE);
 
 			if (transactionals == null || transactionals.isEmpty()) {

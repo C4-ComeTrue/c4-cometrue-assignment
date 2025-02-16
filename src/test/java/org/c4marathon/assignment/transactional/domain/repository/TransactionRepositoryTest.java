@@ -40,14 +40,14 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 
 	@DisplayName("특정 상태의 트랜잭션을 ID 기반 커서 페이징으로 조회한다.")
 	@Test
-	void findTransactionalByStatusWithLastId() throws Exception {
+	void findTransactionByStatusWithLastId() throws Exception {
 	    // given
 		TransactionStatus status = WITHDRAW;
 		Long lastId = 1L;
 		int pageSize = 2;
 
 		// when
-		List<Transaction> result = transactionRepository.findTransactionalByStatusWithLastId(status,
+		List<Transaction> result = transactionRepository.findTransactionByStatusWithLastId(status,
 			lastId, pageSize);
 
 		// then
@@ -64,13 +64,13 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 
 	@DisplayName("lastId가 없으면 지정된 pageSize만큼 조회한다.")
 	@Test
-	void findTransactionalByStatus() throws Exception {
+	void findTransactionByStatus() throws Exception {
 	    // given
 		TransactionStatus status = WITHDRAW;
 		int pageSize = 3;
 
 		// when
-		List<Transaction> result = transactionRepository.findTransactionalByStatus(status,
+		List<Transaction> result = transactionRepository.findTransactionByStatus(status,
 			pageSize);
 		// then
 		assertThat(result).hasSize(3);

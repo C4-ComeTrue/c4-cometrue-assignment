@@ -57,17 +57,17 @@ public class DepositService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void deposit(Long receiverAccountId, Long transactionalId) {
-		Transaction transactional = transactionRepository.findTransactionalByTransactionalIdWithLock(
+		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(
 				transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
-		validationTransactional(receiverAccountId, transactional);
+		validationTransaction(receiverAccountId, transaction);
 
 		Account receiverAccount = accountRepository.findByIdWithLock(receiverAccountId)
 			.orElseThrow(NotFoundAccountException::new);
 
-		receiverAccount.deposit(transactional.getAmount());
-		transactional.updateStatus(SUCCESS_DEPOSIT);
+		receiverAccount.deposit(transaction.getAmount());
+		transaction.updateStatus(SUCCESS_DEPOSIT);
 	}
 
 	private void processDeposit(Transaction transactional) {
@@ -86,12 +86,12 @@ public class DepositService {
 
 	}
 
-	private static void validationTransactional(Long receiverAccountId, Transaction transactional) {
-		if (!transactional.getReceiverAccountId().equals(receiverAccountId)) {
+	private static void validationTransaction(Long receiverAccountId, Transaction transaction) {
+		if (!transaction.getReceiverAccountId().equals(receiverAccountId)) {
 			throw new UnauthorizedTransactionException();
 		}
 
-		if (!transactional.getStatus().equals(PENDING_DEPOSIT)) {
+		if (!transaction.getStatus().equals(PENDING_DEPOSIT)) {
 			throw new InvalidTransactionStatusException();
 		}
 	}

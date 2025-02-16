@@ -143,16 +143,16 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void cancelWithdraw(Long senderAccountId, Long transactionalId) {
-		Transaction transactional = transactionRepository.findTransactionalByTransactionalIdWithLock(transactionalId)
+		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
-		validationTransactional(senderAccountId, transactional);
+		validationTransactional(senderAccountId, transaction);
 
 		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
 			.orElseThrow(NotFoundAccountException::new);
 
-		senderAccount.deposit(transactional.getAmount());
-		transactional.updateStatus(CANCEL);
+		senderAccount.deposit(transaction.getAmount());
+		transaction.updateStatus(CANCEL);
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
@@ -182,12 +182,12 @@ public class AccountService {
 	}
 
 
-	private static void validationTransactional(Long senderAccountId, Transaction transactional) {
-		if (!transactional.getSenderAccountId().equals(senderAccountId)) {
+	private static void validationTransactional(Long senderAccountId, Transaction transaction) {
+		if (!transaction.getSenderAccountId().equals(senderAccountId)) {
 			throw new UnauthorizedTransactionException();
 		}
 
-		if (!transactional.getStatus().equals(PENDING_DEPOSIT)) {
+		if (!transaction.getStatus().equals(PENDING_DEPOSIT)) {
 			throw new InvalidTransactionStatusException();
 		}
 	}

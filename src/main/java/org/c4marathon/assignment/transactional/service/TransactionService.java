@@ -17,9 +17,9 @@ public class TransactionService {
 	private final TransactionRepository transactionRepository;
 
 	@Transactional
-	public void createTransactional(TransactionCreateEvent request) {
+	public void createTransaction(TransactionCreateEvent request) {
 
-		Transaction transactional = Transaction.create(
+		Transaction transaction = Transaction.create(
 			request.senderAccountId(),
 			request.receiverAccountId(),
 			request.amount(),
@@ -27,15 +27,15 @@ public class TransactionService {
 			request.status(),
 			request.sendTime()
 		);
-		transactionRepository.save(transactional);
+		transactionRepository.save(transaction);
 	}
 
 	@Transactional(readOnly = true)
-	public List<Transaction> findTransactionalByStatusWithLastId(TransactionStatus status, Long lastId, int size) {
+	public List<Transaction> findTransactionByStatusWithLastId(TransactionStatus status, Long lastId, int size) {
 		if (lastId == null) {
-			return transactionRepository.findTransactionalByStatus(status, size);
+			return transactionRepository.findTransactionByStatus(status, size);
 		}
-		return transactionRepository.findTransactionalByStatusWithLastId(status, lastId, size);
+		return transactionRepository.findTransactionByStatusWithLastId(status, lastId, size);
 	}
 
 }

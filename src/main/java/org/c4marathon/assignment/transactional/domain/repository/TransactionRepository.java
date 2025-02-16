@@ -22,7 +22,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		ORDER BY t.id
 		LIMIT :size
 		""")
-	List<Transaction> findTransactionalByStatusWithLastId(
+	List<Transaction> findTransactionByStatusWithLastId(
 		@Param("status") TransactionStatus status,
 		@Param("lastId") Long lastId,
 		@Param("size") int size
@@ -36,7 +36,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		LIMIT :size
 
 		""")
-	List<Transaction> findTransactionalByStatus(
+	List<Transaction> findTransactionByStatus(
 		@Param("status") TransactionStatus status,
 		@Param("size") int size
 	);
@@ -47,6 +47,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		FROM Transaction t
 		WHERE t.id = :id
 		""")
-	Optional<Transaction> findTransactionalByTransactionalIdWithLock(@Param("id") Long id);
+	Optional<Transaction> findTransactionalByTransactionIdWithLock(@Param("id") Long id);
 
 }

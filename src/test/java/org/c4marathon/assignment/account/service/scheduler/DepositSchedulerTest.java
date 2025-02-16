@@ -73,7 +73,7 @@ class DepositSchedulerTest {
 			transactionals.add(transactional);
 		}
 
-		given(transactionService.findTransactionalByStatusWithLastId(
+		given(transactionService.findTransactionByStatusWithLastId(
 			eq(WITHDRAW), isNull(), eq(PAGE_SIZE)))
 			.willReturn(transactionals)
 			.willReturn(Collections.emptyList());
@@ -105,7 +105,7 @@ class DepositSchedulerTest {
 
 		verify(depositService, times(numberOfDeposits)).successDeposit(any(Transaction.class));
 		verify(transactionService, times(2))
-			.findTransactionalByStatusWithLastId(any(), any(), eq(PAGE_SIZE));
+			.findTransactionByStatusWithLastId(any(), any(), eq(PAGE_SIZE));
 	}
 
 	@DisplayName("같은 계좌에 동시에 입금 요청이 와도 동시성 문제 없이 정확한 금액이 입금된다.")
@@ -131,7 +131,7 @@ class DepositSchedulerTest {
 			))
 			.toList();
 
-		given(transactionService.findTransactionalByStatusWithLastId(
+		given(transactionService.findTransactionByStatusWithLastId(
 			eq(WITHDRAW), isNull(), eq(PAGE_SIZE)))
 			.willReturn(transactionals)
 			.willReturn(Collections.emptyList());
@@ -172,7 +172,7 @@ class DepositSchedulerTest {
 			.toList();
 
 
-		given(transactionService.findTransactionalByStatusWithLastId(
+		given(transactionService.findTransactionByStatusWithLastId(
 			eq(FAILED_DEPOSIT), isNull(), eq(PAGE_SIZE)))
 			.willReturn(transactionals)
 			.willReturn(Collections.emptyList());
@@ -182,7 +182,7 @@ class DepositSchedulerTest {
 
 		// then
 		verify(transactionService, times(2))
-			.findTransactionalByStatusWithLastId(eq(FAILED_DEPOSIT), any(), eq(PAGE_SIZE));
+			.findTransactionByStatusWithLastId(eq(FAILED_DEPOSIT), any(), eq(PAGE_SIZE));
 
 		verify(depositService, times(numberOfDeposits)).failedDeposit(any(Transaction.class));
 
