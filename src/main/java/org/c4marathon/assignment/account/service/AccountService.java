@@ -1,12 +1,11 @@
 package org.c4marathon.assignment.account.service;
 
 import static org.c4marathon.assignment.global.util.Const.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.PENDING_DEPOSIT;
-import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionStatus.PENDING_DEPOSIT;
+import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.SavingAccount;
@@ -15,15 +14,15 @@ import org.c4marathon.assignment.account.domain.repository.SavingAccountReposito
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.global.event.transactional.TransactionalCreateEvent;
+import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
+import org.c4marathon.assignment.transactional.domain.Transaction;
 import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
-import org.c4marathon.assignment.transactional.exception.InvalidTransactionalStatusException;
-import org.c4marathon.assignment.transactional.exception.NotFoundTransactionalException;
-import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionalException;
+import org.c4marathon.assignment.transactional.exception.InvalidTransactionStatusException;
+import org.c4marathon.assignment.transactional.exception.NotFoundTransactionException;
+import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -113,7 +112,7 @@ public class AccountService {
 
 		if (request.type().equals(IMMEDIATE_TRANSFER)) {
 			eventPublisher.publishEvent(
-				new TransactionalCreateEvent(
+				new TransactionCreateEvent(
 					senderAccountId,
 					request.receiverAccountId(),
 					request.money(),
@@ -124,7 +123,7 @@ public class AccountService {
 			);
 		} else if (request.type().equals(PENDING_TRANSFER)) {
 			eventPublisher.publishEvent(
-				new TransactionalCreateEvent(
+				new TransactionCreateEvent(
 					senderAccountId,
 					request.receiverAccountId(),
 					request.money(),
@@ -144,8 +143,8 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void cancelWithdraw(Long senderAccountId, Long transactionalId) {
-		TransferTransactional transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(transactionalId)
-			.orElseThrow(NotFoundTransactionalException::new);
+		Transaction transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(transactionalId)
+			.orElseThrow(NotFoundTransactionException::new);
 
 		validationTransactional(senderAccountId, transactional);
 
@@ -183,13 +182,13 @@ public class AccountService {
 	}
 
 
-	private static void validationTransactional(Long senderAccountId, TransferTransactional transactional) {
+	private static void validationTransactional(Long senderAccountId, Transaction transactional) {
 		if (!transactional.getSenderAccountId().equals(senderAccountId)) {
-			throw new UnauthorizedTransactionalException();
+			throw new UnauthorizedTransactionException();
 		}
 
 		if (!transactional.getStatus().equals(PENDING_DEPOSIT)) {
-			throw new InvalidTransactionalStatusException();
+			throw new InvalidTransactionStatusException();
 		}
 	}
 

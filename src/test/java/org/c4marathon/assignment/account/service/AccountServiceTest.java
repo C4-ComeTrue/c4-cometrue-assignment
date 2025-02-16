@@ -2,7 +2,7 @@ package org.c4marathon.assignment.account.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.util.Const.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
 import static org.mockito.BDDMockito.*;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
@@ -13,11 +13,10 @@ import org.c4marathon.assignment.account.domain.repository.SavingAccountReposito
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.global.event.transactional.TransactionalCreateEvent;
+import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.global.event.withdraw.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
-import org.c4marathon.assignment.transactional.domain.TransactionalType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -177,7 +176,7 @@ class AccountServiceTest extends IntegrationTestSupport {
             .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
 
-        verify(eventPublisher, times(1)).publishEvent(any(TransactionalCreateEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(TransactionCreateEvent.class));
 
     }
 
@@ -197,7 +196,7 @@ class AccountServiceTest extends IntegrationTestSupport {
             .orElseThrow(NotFoundAccountException::new);
         assertThat(updatedSenderAccount.getMoney()).isZero();
 
-        verify(eventPublisher, times(1)).publishEvent(any(TransactionalCreateEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(TransactionCreateEvent.class));
 
     }
 

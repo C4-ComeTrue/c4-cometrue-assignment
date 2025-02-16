@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.account.presentation;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -8,7 +8,6 @@ import org.c4marathon.assignment.ControllerTestSupport;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.global.session.SessionConst;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
-import org.c4marathon.assignment.transactional.domain.TransactionalType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

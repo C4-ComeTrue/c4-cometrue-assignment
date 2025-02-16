@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TransferTransactional {
+public class Transaction {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "transactional_id")
@@ -34,11 +34,11 @@ public class TransferTransactional {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private TransactionalType type;
+	private TransactionType type;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private TransactionalStatus status;
+	private TransactionStatus status;
 
 	@Column(nullable = false)
 	private LocalDateTime sendTime;
@@ -46,8 +46,8 @@ public class TransferTransactional {
 	private LocalDateTime receiverTime;
 
 	@Builder
-	private TransferTransactional(Long senderAccountId, Long receiverAccountId, long amount, TransactionalType type,
-		TransactionalStatus status, LocalDateTime sendTime, LocalDateTime receiverTime) {
+	private Transaction(Long senderAccountId, Long receiverAccountId, long amount, TransactionType type,
+		TransactionStatus status, LocalDateTime sendTime, LocalDateTime receiverTime) {
 		this.senderAccountId = senderAccountId;
 		this.receiverAccountId = receiverAccountId;
 		this.amount = amount;
@@ -57,10 +57,10 @@ public class TransferTransactional {
 		this.receiverTime = receiverTime;
 	}
 
-	public static TransferTransactional create(Long senderAccountId, Long receiverAccountId, long amount,
-		TransactionalType type, TransactionalStatus status, LocalDateTime sendTime) {
+	public static Transaction create(Long senderAccountId, Long receiverAccountId, long amount,
+		TransactionType type, TransactionStatus status, LocalDateTime sendTime) {
 
-		return TransferTransactional.builder()
+		return Transaction.builder()
 			.senderAccountId(senderAccountId)
 			.receiverAccountId(receiverAccountId)
 			.amount(amount)
@@ -74,7 +74,7 @@ public class TransferTransactional {
 		this.receiverTime = localDateTime;
 	}
 
-	public void updateStatus(TransactionalStatus status) {
+	public void updateStatus(TransactionStatus status) {
 		this.status = status;
 	}
 

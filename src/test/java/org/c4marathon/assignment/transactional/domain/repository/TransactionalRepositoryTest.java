@@ -1,17 +1,15 @@
 package org.c4marathon.assignment.transactional.domain.repository;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
-import org.c4marathon.assignment.transactional.domain.TransactionalStatus;
-import org.c4marathon.assignment.transactional.domain.TransactionalType;
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
+import org.c4marathon.assignment.transactional.domain.TransactionStatus;
+import org.c4marathon.assignment.transactional.domain.Transaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,12 +23,12 @@ class TransactionalRepositoryTest extends IntegrationTestSupport {
 
 	@BeforeEach
 	void setUp() {
-		List<TransferTransactional> transactionals = List.of(
-			TransferTransactional.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			TransferTransactional.create(2L, 3L, 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
-			TransferTransactional.create(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			TransferTransactional.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
-			TransferTransactional.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
+		List<Transaction> transactionals = List.of(
+			Transaction.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create(2L, 3L, 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
+			Transaction.create(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
+			Transaction.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
 		);
 		transactionalRepository.saveAll(transactionals);
 	}
@@ -44,12 +42,12 @@ class TransactionalRepositoryTest extends IntegrationTestSupport {
 	@Test
 	void findTransactionalByStatusWithLastId() throws Exception {
 	    // given
-		TransactionalStatus status = WITHDRAW;
+		TransactionStatus status = WITHDRAW;
 		Long lastId = 1L;
 		int pageSize = 2;
 
 		// when
-		List<TransferTransactional> result = transactionalRepository.findTransactionalByStatusWithLastId(status,
+		List<Transaction> result = transactionalRepository.findTransactionalByStatusWithLastId(status,
 			lastId, pageSize);
 
 		// then
@@ -68,11 +66,11 @@ class TransactionalRepositoryTest extends IntegrationTestSupport {
 	@Test
 	void findTransactionalByStatus() throws Exception {
 	    // given
-		TransactionalStatus status = WITHDRAW;
+		TransactionStatus status = WITHDRAW;
 		int pageSize = 3;
 
 		// when
-		List<TransferTransactional> result = transactionalRepository.findTransactionalByStatus(status,
+		List<Transaction> result = transactionalRepository.findTransactionalByStatus(status,
 			pageSize);
 		// then
 		assertThat(result).hasSize(3);

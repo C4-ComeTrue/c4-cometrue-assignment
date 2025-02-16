@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.global.event.transactional;
 
-import org.c4marathon.assignment.transactional.service.TransactionalService;
+import org.c4marathon.assignment.transactional.service.TransactionService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -9,12 +9,12 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class TransactionalCreateEventListener {
+public class TransactionCreateEventListener {
 
-	private final TransactionalService transactionalService;
+	private final TransactionService transactionService;
 
 	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-	public void handleTransactionalCreate(TransactionalCreateEvent event) {
-		transactionalService.createTransactional(event);
+	public void handleTransactionalCreate(TransactionCreateEvent event) {
+		transactionService.createTransactional(event);
 	}
 }

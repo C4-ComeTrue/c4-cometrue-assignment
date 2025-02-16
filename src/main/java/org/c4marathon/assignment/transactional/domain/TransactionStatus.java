@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.transactional.domain;
 
-public enum TransactionalStatus {
+public enum TransactionStatus {
 	WITHDRAW,
 	PENDING_DEPOSIT,
 	SUCCESS_DEPOSIT,

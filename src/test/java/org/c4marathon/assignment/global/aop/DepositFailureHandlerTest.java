@@ -1,11 +1,11 @@
 package org.c4marathon.assignment.global.aop;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
 import static org.mockito.BDDMockito.*;
 
 import org.aspectj.lang.JoinPoint;
 import org.c4marathon.assignment.account.service.AccountService;
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
+import org.c4marathon.assignment.transactional.domain.Transaction;
 import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ class DepositFailureHandlerTest {
 	@Test
 	void handleDepositFailure_ShouldUpdateStatusToFailedDeposit() {
 		// given
-		TransferTransactional transactional = mock(TransferTransactional.class);
+		Transaction transactional = mock(Transaction.class);
 		JoinPoint joinPoint = mock(JoinPoint.class);
 
 		given(joinPoint.getArgs()).willReturn(new Object[]{transactional});
@@ -49,7 +49,7 @@ class DepositFailureHandlerTest {
 	@Test
 	void handleFailedDepositFailure_ShouldUpdateStatusToCancelAndRollbackWithdraw() {
 		// given
-		TransferTransactional transactional = mock(TransferTransactional.class);
+		Transaction transactional = mock(Transaction.class);
 		given(transactional.getSenderAccountId()).willReturn(100L);
 		given(transactional.getAmount()).willReturn(5000L);
 

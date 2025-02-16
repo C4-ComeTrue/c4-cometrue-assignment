@@ -1,8 +1,8 @@
 package org.c4marathon.assignment.account.service.scheduler;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
@@ -17,8 +17,8 @@ import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.account.service.DepositService;
 import org.c4marathon.assignment.global.core.MiniPayThreadPoolExecutor;
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
-import org.c4marathon.assignment.transactional.service.TransactionalService;
+import org.c4marathon.assignment.transactional.domain.Transaction;
+import org.c4marathon.assignment.transactional.service.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class DepositSchedulerTest {
 	private DepositService depositService;
 
 	@Mock
-	private TransactionalService transactionalService;
+	private TransactionService transactionService;
 
 	@InjectMocks
 	private DepositScheduler depositScheduler;
@@ -60,9 +60,9 @@ class DepositSchedulerTest {
 		AtomicInteger concurrentExecutions = new AtomicInteger(0);
 		AtomicInteger maxConcurrentExecutions = new AtomicInteger(0);
 
-		List<TransferTransactional> transactionals = new ArrayList<>();
+		List<Transaction> transactionals = new ArrayList<>();
 		for (int i = 0; i < numberOfDeposits; i++) {
-			TransferTransactional transactional = TransferTransactional.create(
+			Transaction transactional = Transaction.create(
 				i + 1L,
 				i + 2L,
 				1000L,
@@ -73,7 +73,7 @@ class DepositSchedulerTest {
 			transactionals.add(transactional);
 		}
 
-		given(transactionalService.findTransactionalByStatusWithLastId(
+		given(transactionService.findTransactionalByStatusWithLastId(
 			eq(WITHDRAW), isNull(), eq(PAGE_SIZE)))
 			.willReturn(transactionals)
 			.willReturn(Collections.emptyList());
@@ -90,7 +90,7 @@ class DepositSchedulerTest {
 				processLatch.countDown();
 			}
 			return null;
-		}).when(depositService).successDeposit(any(TransferTransactional.class));
+		}).when(depositService).successDeposit(any(Transaction.class));
 
 	    // when
 		long startTime = System.currentTimeMillis();
@@ -103,8 +103,8 @@ class DepositSchedulerTest {
 		assertThat(maxConcurrentExecutions.get()).isEqualTo(8);
 		assertThat(executionTime).isLessThan(400L);
 
-		verify(depositService, times(numberOfDeposits)).successDeposit(any(TransferTransactional.class));
-		verify(transactionalService, times(2))
+		verify(depositService, times(numberOfDeposits)).successDeposit(any(Transaction.class));
+		verify(transactionService, times(2))
 			.findTransactionalByStatusWithLastId(any(), any(), eq(PAGE_SIZE));
 	}
 
@@ -120,8 +120,8 @@ class DepositSchedulerTest {
 
 		AtomicLong actualTotalAmount = new AtomicLong(0);
 
-		List<TransferTransactional> transactionals = IntStream.range(0, numberOfDeposits)
-			.mapToObj(i -> TransferTransactional.create(
+		List<Transaction> transactionals = IntStream.range(0, numberOfDeposits)
+			.mapToObj(i -> Transaction.create(
 				i + 1L,
 				i + 2L,
 				100L * i,
@@ -131,18 +131,18 @@ class DepositSchedulerTest {
 			))
 			.toList();
 
-		given(transactionalService.findTransactionalByStatusWithLastId(
+		given(transactionService.findTransactionalByStatusWithLastId(
 			eq(WITHDRAW), isNull(), eq(PAGE_SIZE)))
 			.willReturn(transactionals)
 			.willReturn(Collections.emptyList());
 
 		doAnswer(invocation -> {
-			TransferTransactional transactional = invocation.getArgument(0);
+			Transaction transactional = invocation.getArgument(0);
 			actualTotalAmount.addAndGet(transactional.getAmount());
 			Thread.sleep(10);
 			processLatch.countDown();
 			return null;
-		}).when(depositService).successDeposit(any(TransferTransactional.class));
+		}).when(depositService).successDeposit(any(Transaction.class));
 
 		// when
 		depositScheduler.deposits();
@@ -151,7 +151,7 @@ class DepositSchedulerTest {
 		// then
 		assertThat(allProcessed).isTrue();
 		assertThat(actualTotalAmount.get()).isEqualTo(expectedTotalAmount);
-		verify(depositService, times(numberOfDeposits)).successDeposit(any(TransferTransactional.class));
+		verify(depositService, times(numberOfDeposits)).successDeposit(any(Transaction.class));
 
 	}
 
@@ -160,8 +160,8 @@ class DepositSchedulerTest {
 	void retryDeposit() {
 		// given
 		int numberOfDeposits = 10;
-		List<TransferTransactional> transactionals = IntStream.range(0, numberOfDeposits)
-			.mapToObj(i -> TransferTransactional.create(
+		List<Transaction> transactionals = IntStream.range(0, numberOfDeposits)
+			.mapToObj(i -> Transaction.create(
 				i + 1L,
 				i + 2L,
 				100L * i,
@@ -172,7 +172,7 @@ class DepositSchedulerTest {
 			.toList();
 
 
-		given(transactionalService.findTransactionalByStatusWithLastId(
+		given(transactionService.findTransactionalByStatusWithLastId(
 			eq(FAILED_DEPOSIT), isNull(), eq(PAGE_SIZE)))
 			.willReturn(transactionals)
 			.willReturn(Collections.emptyList());
@@ -181,10 +181,10 @@ class DepositSchedulerTest {
 		depositScheduler.retryDeposit();
 
 		// then
-		verify(transactionalService, times(2))
+		verify(transactionService, times(2))
 			.findTransactionalByStatusWithLastId(eq(FAILED_DEPOSIT), any(), eq(PAGE_SIZE));
 
-		verify(depositService, times(numberOfDeposits)).failedDeposit(any(TransferTransactional.class));
+		verify(depositService, times(numberOfDeposits)).failedDeposit(any(Transaction.class));
 
 	}
 }

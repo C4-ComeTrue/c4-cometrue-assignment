@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.transactional.domain;
 
-public enum TransactionalType {
+public enum TransactionType {
 	IMMEDIATE_TRANSFER,
 	PENDING_TRANSFER
 }

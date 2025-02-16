@@ -3,8 +3,8 @@ package org.c4marathon.assignment.transactional.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
-import org.c4marathon.assignment.transactional.domain.TransactionalStatus;
+import org.c4marathon.assignment.transactional.domain.Transaction;
+import org.c4marathon.assignment.transactional.domain.TransactionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -12,41 +12,41 @@ import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
 
-public interface TransactionalRepository extends JpaRepository<TransferTransactional, Long> {
+public interface TransactionalRepository extends JpaRepository<Transaction, Long> {
 
 	//index(TransactionalStatus)
 	@Query("""
 		SELECT t
-		FROM TransferTransactional t
+		FROM Transaction t
 		WHERE t.status = :status AND t.id > :lastId
 		ORDER BY t.id
 		LIMIT :size
 		""")
-	List<TransferTransactional> findTransactionalByStatusWithLastId(
-		@Param("status") TransactionalStatus status,
+	List<Transaction> findTransactionalByStatusWithLastId(
+		@Param("status") TransactionStatus status,
 		@Param("lastId") Long lastId,
 		@Param("size") int size
 	);
 
 	@Query("""
 		SELECT t
-		FROM TransferTransactional t
+		FROM Transaction t
 		WHERE t.status = :status
 		ORDER BY t.id
 		LIMIT :size
 
 		""")
-	List<TransferTransactional> findTransactionalByStatus(
-		@Param("status") TransactionalStatus status,
+	List<Transaction> findTransactionalByStatus(
+		@Param("status") TransactionStatus status,
 		@Param("size") int size
 	);
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 		SELECT t
-		FROM TransferTransactional t
+		FROM Transaction t
 		WHERE t.id = :id
 		""")
-	Optional<TransferTransactional> findTransactionalByTransactionalIdWithLock(@Param("id") Long id);
+	Optional<Transaction> findTransactionalByTransactionalIdWithLock(@Param("id") Long id);
 
 }

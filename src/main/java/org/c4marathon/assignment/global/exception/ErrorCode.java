@@ -19,9 +19,9 @@ public enum ErrorCode {
     INSUFFICIENT_BALANCE(400, "잔액이 부족합니다."),
 
     // Transactional
-    NOT_FOUND_TRANSACTIONAL(404, "조회된 송금 내역이 없습니다."),
-    UNAUTHORIZED_TRANSACTIONAL(403, "해당 송금 취소 권한이 없습니다."),
-    INVALID_TRANSACTIONAL_STATUS(400, "해당 송금 내역은 취소할 수 없습니다.");
+    NOT_FOUND_TRANSACTION(404, "조회된 송금 내역이 없습니다."),
+    UNAUTHORIZED_TRANSACTION(403, "해당 송금 취소 권한이 없습니다."),
+    INVALID_TRANSACTION_STATUS(400, "해당 송금 내역은 취소할 수 없습니다.");
     private final int status;
     private final String message;
 }

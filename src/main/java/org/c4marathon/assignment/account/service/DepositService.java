@@ -1,17 +1,17 @@
 package org.c4marathon.assignment.account.service;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
 
 import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
+import org.c4marathon.assignment.transactional.domain.Transaction;
 import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
-import org.c4marathon.assignment.transactional.exception.InvalidTransactionalStatusException;
-import org.c4marathon.assignment.transactional.exception.NotFoundTransactionalException;
-import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionalException;
+import org.c4marathon.assignment.transactional.exception.InvalidTransactionStatusException;
+import org.c4marathon.assignment.transactional.exception.NotFoundTransactionException;
+import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,7 @@ public class DepositService {
 	 * @param transactional
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void successDeposit(TransferTransactional transactional) {
+	public void successDeposit(Transaction transactional) {
 		processDeposit(transactional);
 	}
 
@@ -46,7 +46,7 @@ public class DepositService {
 	 * @param transactional
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void failedDeposit(TransferTransactional transactional) {
+	public void failedDeposit(Transaction transactional) {
 		processDeposit(transactional);
 	}
 
@@ -57,9 +57,9 @@ public class DepositService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void deposit(Long receiverAccountId, Long transactionalId) {
-		TransferTransactional transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(
+		Transaction transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(
 				transactionalId)
-			.orElseThrow(NotFoundTransactionalException::new);
+			.orElseThrow(NotFoundTransactionException::new);
 
 		validationTransactional(receiverAccountId, transactional);
 
@@ -70,7 +70,7 @@ public class DepositService {
 		transactional.updateStatus(SUCCESS_DEPOSIT);
 	}
 
-	private void processDeposit(TransferTransactional transactional) {
+	private void processDeposit(Transaction transactional) {
 		Long receiverAccountId = transactional.getReceiverAccountId();
 		long amount = transactional.getAmount();
 
@@ -86,13 +86,13 @@ public class DepositService {
 
 	}
 
-	private static void validationTransactional(Long receiverAccountId, TransferTransactional transactional) {
+	private static void validationTransactional(Long receiverAccountId, Transaction transactional) {
 		if (!transactional.getReceiverAccountId().equals(receiverAccountId)) {
-			throw new UnauthorizedTransactionalException();
+			throw new UnauthorizedTransactionException();
 		}
 
 		if (!transactional.getStatus().equals(PENDING_DEPOSIT)) {
-			throw new InvalidTransactionalStatusException();
+			throw new InvalidTransactionStatusException();
 		}
 	}
 }

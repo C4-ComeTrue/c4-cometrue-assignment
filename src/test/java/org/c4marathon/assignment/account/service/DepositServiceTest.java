@@ -1,8 +1,8 @@
 package org.c4marathon.assignment.account.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
 
 import java.time.LocalDateTime;
 
@@ -10,7 +10,7 @@ import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
+import org.c4marathon.assignment.transactional.domain.Transaction;
 import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +41,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 		Account senderAccount = createAccount(10000L);
 		Account receiverAccount = createAccount(20000L);
 
-		TransferTransactional transactional = createTransactional(senderAccount, receiverAccount, 1000L);
+		Transaction transactional = createTransactional(senderAccount, receiverAccount, 1000L);
 
 		// when
 		depositService.successDeposit(transactional);
@@ -60,7 +60,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 		Account senderAccount = createAccount(10000L);
 		Account receiverAccount = createAccount(20000L);
 
-		TransferTransactional transactional = createTransactional(senderAccount, receiverAccount, 1000L);
+		Transaction transactional = createTransactional(senderAccount, receiverAccount, 1000L);
 
 		// when
 		depositService.failedDeposit(transactional);
@@ -78,8 +78,8 @@ class DepositServiceTest extends IntegrationTestSupport {
 		return account;
 	}
 
-	private TransferTransactional createTransactional(Account senderAccount, Account receiverAccount, long amount) {
-		TransferTransactional transactional = TransferTransactional.create(senderAccount.getId(),
+	private Transaction createTransactional(Account senderAccount, Account receiverAccount, long amount) {
+		Transaction transactional = Transaction.create(senderAccount.getId(),
 			receiverAccount.getId(), amount, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now());
 		transactionalRepository.save(transactional);
 

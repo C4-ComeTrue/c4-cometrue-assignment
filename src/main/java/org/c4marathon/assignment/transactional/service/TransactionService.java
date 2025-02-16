@@ -2,9 +2,9 @@ package org.c4marathon.assignment.transactional.service;
 
 import java.util.List;
 
-import org.c4marathon.assignment.global.event.transactional.TransactionalCreateEvent;
-import org.c4marathon.assignment.transactional.domain.TransferTransactional;
-import org.c4marathon.assignment.transactional.domain.TransactionalStatus;
+import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
+import org.c4marathon.assignment.transactional.domain.Transaction;
+import org.c4marathon.assignment.transactional.domain.TransactionStatus;
 import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,13 +13,13 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class TransactionalService {
+public class TransactionService {
 	private final TransactionalRepository transactionalRepository;
 
 	@Transactional
-	public void createTransactional(TransactionalCreateEvent request) {
+	public void createTransactional(TransactionCreateEvent request) {
 
-		TransferTransactional transactional = TransferTransactional.create(
+		Transaction transactional = Transaction.create(
 			request.senderAccountId(),
 			request.receiverAccountId(),
 			request.amount(),
@@ -31,7 +31,7 @@ public class TransactionalService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<TransferTransactional> findTransactionalByStatusWithLastId(TransactionalStatus status, Long lastId, int size) {
+	public List<Transaction> findTransactionalByStatusWithLastId(TransactionStatus status, Long lastId, int size) {
 		if (lastId == null) {
 			return transactionalRepository.findTransactionalByStatus(status, size);
 		}
