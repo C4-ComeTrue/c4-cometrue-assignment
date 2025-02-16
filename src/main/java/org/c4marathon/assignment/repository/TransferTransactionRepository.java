@@ -32,4 +32,9 @@ public class TransferTransactionRepository {
 		Instant targetTime) {
 		return transferTransactionJpaRepository.findPendingTransactions(status, type, targetTime);
 	}
+
+	public List<TransferTransaction> findExpiredTransferTransactions(TransactionStatus status, TransactionType type,
+		Instant targetTime) {
+		return transferTransactionJpaRepository.findExpiredTransferTransactions(status, type, targetTime);
+	}
 }

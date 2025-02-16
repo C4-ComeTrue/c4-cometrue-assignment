@@ -32,5 +32,13 @@ public interface TransferTransactionJpaRepository extends JpaRepository<Transfer
 			AND t.createDate = :targetTime
 		""")
 	List<TransferTransaction> findPendingTransactions(@Param("status") TransactionStatus status,
-		@Param("type") TransactionType type, @Param("targetTime") Instant cutoffTime);
+		@Param("type") TransactionType type, @Param("targetTime") Instant targetTime);
+
+	@Query(value = """
+			SELECT t FROM TransferTransaction t
+			WHERE t.status = :status
+			AND t.type = :type
+			AND t.createDate < :targetTime
+		""")
+	List<TransferTransaction> findExpiredTransferTransactions(TransactionStatus status, TransactionType type, Instant targetTime);
 }
