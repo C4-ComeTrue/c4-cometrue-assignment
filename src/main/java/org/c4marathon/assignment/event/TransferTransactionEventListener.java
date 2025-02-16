@@ -3,6 +3,7 @@ package org.c4marathon.assignment.event;
 import static org.c4marathon.assignment.config.AsyncConfig.*;
 
 import org.c4marathon.assignment.dto.MessageDto;
+import org.c4marathon.assignment.dto.ImmediateTransferTransactionEvent;
 import org.c4marathon.assignment.dto.TransferTransactionEvent;
 import org.c4marathon.assignment.entity.TransferTransaction;
 import org.c4marathon.assignment.service.MessageService;
@@ -30,6 +31,7 @@ public class TransferTransactionEventListener {
 				.senderMainAccount(transferTransactionEvent.getSenderMainAccount())
 				.receiverMainAccount(transferTransactionEvent.getReceiverMainAccount())
 				.amount(transferTransactionEvent.getAmount())
+				.type(transferTransactionEvent.getType())
 				.build());
 
 		transferTransactionEvent.updateTransferTransactionId(transferTransaction.getId());
@@ -37,13 +39,14 @@ public class TransferTransactionEventListener {
 
 	@Async(ASYNC_LISTENER_TASK_EXECUTOR_NAME)
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handleAfterCommitTransferTransactionEvent(TransferTransactionEvent transferTransactionEvent) {
+	public void handleAfterCommitTransferTransactionEvent(ImmediateTransferTransactionEvent immediateTransferEvent) {
 		log.debug("{} handle transfer transaction event after commit", Thread.currentThread().getName());
+
 		messageService.sendTransaction(MessageDto.builder()
-			.transferTransactionId(transferTransactionEvent.getTransferTransactionId())
-			.senderMainAccount(transferTransactionEvent.getSenderMainAccount())
-			.receiverMainAccount(transferTransactionEvent.getReceiverMainAccount())
-			.amount(transferTransactionEvent.getAmount())
+			.transferTransactionId(immediateTransferEvent.getTransferTransactionId())
+			.senderMainAccount(immediateTransferEvent.getSenderMainAccount())
+			.receiverMainAccount(immediateTransferEvent.getReceiverMainAccount())
+			.amount(immediateTransferEvent.getAmount())
 			.build());
 	}
 }

@@ -3,6 +3,8 @@ package org.c4marathon.assignment.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import org.c4marathon.assignment.dto.DelayedTransferTransactionEvent;
+import org.c4marathon.assignment.dto.ImmediateTransferTransactionEvent;
 import org.c4marathon.assignment.dto.TransferTransactionEvent;
 import org.c4marathon.assignment.dto.request.PostMainAccountReq;
 import org.c4marathon.assignment.dto.request.PostSavingsAccountReq;
@@ -13,6 +15,7 @@ import org.c4marathon.assignment.dto.response.TransferRes;
 import org.c4marathon.assignment.dto.response.WithdrawInfoRes;
 import org.c4marathon.assignment.entity.Account;
 import org.c4marathon.assignment.entity.SavingsAccount;
+import org.c4marathon.assignment.entity.TransactionType;
 import org.c4marathon.assignment.entity.User;
 import org.c4marathon.assignment.event.TransferTransactionEventPublisher;
 import org.c4marathon.assignment.exception.CustomException;
@@ -107,14 +110,29 @@ public class AccountService {
 
 		senderAccount.withdraw(transferReq.amount());
 
-		transferTransactionEventPublisher.publishTransferTransactionEvent(TransferTransactionEvent.builder()
-			.userName(sender.getUsername())
-			.senderMainAccount(senderAccount.getId())
-			.receiverMainAccount(transferReq.receiverMainAccount())
-			.amount(transferReq.amount())
-			.build());
+		publishTransferTransactionEvent(transferReq, sender, senderAccount);
 
 		return new TransferRes(senderAccount.getBalance());
+	}
+
+	private void publishTransferTransactionEvent(TransferReq transferReq, User sender, Account senderAccount) {
+		TransferTransactionEvent event;
+		if(transferReq.type() == TransactionType.IMMEDIATE) {
+			event = ImmediateTransferTransactionEvent.builder()
+				.userName(sender.getUsername())
+				.senderMainAccount(senderAccount.getId())
+				.receiverMainAccount(transferReq.receiverMainAccount())
+				.amount(transferReq.amount())
+				.build();
+		} else {
+			event = DelayedTransferTransactionEvent.builder()
+				.userName(sender.getUsername())
+				.senderMainAccount(senderAccount.getId())
+				.receiverMainAccount(transferReq.receiverMainAccount())
+				.amount(transferReq.amount())
+				.build();
+		}
+		transferTransactionEventPublisher.publishTransferTransactionEvent(event);
 	}
 
 	private void validateTransfer(TransferReq transferReq, User sender) {
