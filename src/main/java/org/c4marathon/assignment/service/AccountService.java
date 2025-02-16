@@ -99,7 +99,7 @@ public class AccountService {
 		User sender = getUserById(transferReq.senderId());
 
 		validateTransfer(transferReq, sender);
-
+		
 		Account senderAccount = getAccountByIdWithWriteLock(sender.getId());
 
 		if (senderAccount.isBalanceInsufficient(transferReq.amount())) {
@@ -138,10 +138,6 @@ public class AccountService {
 	private void validateTransfer(TransferReq transferReq, User sender) {
 		if (sender.getMainAccountId() == transferReq.receiverMainAccount()) {
 			throw new CustomException(ErrorCode.INVALID_TRANSFER_REQUEST);
-		}
-
-		if (!accountRepository.existsById(transferReq.receiverMainAccount())) {
-			throw new CustomException(ErrorCode.INVALID_RECEIVER_MAIN_ACCOUNT);
 		}
 	}
 
