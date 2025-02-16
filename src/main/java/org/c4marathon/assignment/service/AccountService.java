@@ -99,7 +99,7 @@ public class AccountService {
 	public TransferRes transfer(TransferReq transferReq) {
 		User sender = getUserById(transferReq.senderId());
 
-		if (sender.getMainAccount() == transferReq.receiverMainAccount()) {
+		if (sender.getMainAccountId() == transferReq.receiverMainAccount()) {
 			throw new CustomException(ErrorCode.INVALID_TRANSFER_REQUEST);
 		}
 
