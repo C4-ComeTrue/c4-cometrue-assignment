@@ -1,10 +1,12 @@
 package org.c4marathon.assignment.account.service;
 
 import static org.c4marathon.assignment.global.util.Const.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.PENDING_DEPOSIT;
 import static org.c4marathon.assignment.transactional.domain.TransactionalStatus.*;
+import static org.c4marathon.assignment.transactional.domain.TransactionalType.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Optional;
 
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.SavingAccount;
@@ -14,11 +16,14 @@ import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.global.event.transactional.TransactionalCreateEvent;
-import org.c4marathon.assignment.global.event.withdraw.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
-import org.c4marathon.assignment.transactional.domain.TransactionalStatus;
+import org.c4marathon.assignment.transactional.domain.TransferTransactional;
+import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
+import org.c4marathon.assignment.transactional.exception.InvalidTransactionalStatusException;
+import org.c4marathon.assignment.transactional.exception.NotFoundTransactionalException;
+import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionalException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -31,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class AccountService {
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
+	private final TransactionalRepository transactionalRepository;
 	private final SavingAccountRepository savingAccountRepository;
 
 	private final ApplicationEventPublisher eventPublisher;
@@ -105,16 +111,49 @@ public class AccountService {
 
 		// String transactionId = UUID.randomUUID().toString();
 
-		eventPublisher.publishEvent(
-			new TransactionalCreateEvent(
-				senderAccountId,
-				request.receiverAccountId(),
-				request.money(),
-				request.type(),
-				WITHDRAW,
-				LocalDateTime.now()
-			)
-		);
+		if (request.type().equals(IMMEDIATE_TRANSFER)) {
+			eventPublisher.publishEvent(
+				new TransactionalCreateEvent(
+					senderAccountId,
+					request.receiverAccountId(),
+					request.money(),
+					request.type(),
+					WITHDRAW,
+					LocalDateTime.now()
+				)
+			);
+		} else if (request.type().equals(PENDING_TRANSFER)) {
+			eventPublisher.publishEvent(
+				new TransactionalCreateEvent(
+					senderAccountId,
+					request.receiverAccountId(),
+					request.money(),
+					request.type(),
+					PENDING_DEPOSIT,
+					LocalDateTime.now()
+				)
+			);
+		}
+	}
+
+	/**
+	 * 송금 취소 기능
+	 * 취소하려는 송금 내역을 가져와 검증 후 송금을 취소함
+	 * @param senderAccountId
+	 * @param transactionalId
+	 */
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public void cancelWithdraw(Long senderAccountId, Long transactionalId) {
+		TransferTransactional transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(transactionalId)
+			.orElseThrow(NotFoundTransactionalException::new);
+
+		validationTransactional(senderAccountId, transactional);
+
+		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+			.orElseThrow(NotFoundAccountException::new);
+
+		senderAccount.deposit(transactional.getAmount());
+		transactional.updateStatus(CANCEL);
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
@@ -141,6 +180,17 @@ public class AccountService {
 		}
 
 		senderAccount.deposit(chargeMoney);
+	}
+
+
+	private static void validationTransactional(Long senderAccountId, TransferTransactional transactional) {
+		if (!transactional.getSenderAccountId().equals(senderAccountId)) {
+			throw new UnauthorizedTransactionalException();
+		}
+
+		if (!transactional.getStatus().equals(PENDING_DEPOSIT)) {
+			throw new InvalidTransactionalStatusException();
+		}
 	}
 
 }

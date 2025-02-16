@@ -9,6 +9,9 @@ import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.transactional.domain.TransferTransactional;
 import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
+import org.c4marathon.assignment.transactional.exception.InvalidTransactionalStatusException;
+import org.c4marathon.assignment.transactional.exception.NotFoundTransactionalException;
+import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionalException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +50,26 @@ public class DepositService {
 		processDeposit(transactional);
 	}
 
+	/**
+	 * 금액을 받는 사용자가 직접 확인 후 금액을 받는 비즈니스 로직
+	 * @param receiverAccountId
+	 * @param transactionalId
+	 */
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public void deposit(Long receiverAccountId, Long transactionalId) {
+		TransferTransactional transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(
+				transactionalId)
+			.orElseThrow(NotFoundTransactionalException::new);
+
+		validationTransactional(receiverAccountId, transactional);
+
+		Account receiverAccount = accountRepository.findByIdWithLock(receiverAccountId)
+			.orElseThrow(NotFoundAccountException::new);
+
+		receiverAccount.deposit(transactional.getAmount());
+		transactional.updateStatus(SUCCESS_DEPOSIT);
+	}
+
 	private void processDeposit(TransferTransactional transactional) {
 		Long receiverAccountId = transactional.getReceiverAccountId();
 		long amount = transactional.getAmount();
@@ -61,5 +84,15 @@ public class DepositService {
 		transactional.updateStatus(SUCCESS_DEPOSIT);
 		transactionalRepository.save(transactional);
 
+	}
+
+	private static void validationTransactional(Long receiverAccountId, TransferTransactional transactional) {
+		if (!transactional.getReceiverAccountId().equals(receiverAccountId)) {
+			throw new UnauthorizedTransactionalException();
+		}
+
+		if (!transactional.getStatus().equals(PENDING_DEPOSIT)) {
+			throw new InvalidTransactionalStatusException();
+		}
 	}
 }
