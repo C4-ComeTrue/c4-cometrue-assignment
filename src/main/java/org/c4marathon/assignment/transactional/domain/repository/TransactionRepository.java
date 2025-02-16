@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.transactional.domain.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +15,8 @@ import jakarta.persistence.LockModeType;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-	//index(TransactionalStatus)
+	//index(TransactionalStatus, id)
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 		SELECT t
 		FROM Transaction t
@@ -28,13 +30,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		@Param("size") int size
 	);
 
+	//index(TransactionalStatus, id)
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 		SELECT t
 		FROM Transaction t
 		WHERE t.status = :status
 		ORDER BY t.id
 		LIMIT :size
-
 		""")
 	List<Transaction> findTransactionByStatus(
 		@Param("status") TransactionStatus status,
@@ -48,5 +51,4 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		WHERE t.id = :id
 		""")
 	Optional<Transaction> findTransactionalByTransactionIdWithLock(@Param("id") Long id);
-
 }

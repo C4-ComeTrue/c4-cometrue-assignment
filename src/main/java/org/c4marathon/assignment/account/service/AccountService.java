@@ -136,7 +136,7 @@ public class AccountService {
 	}
 
 	/**
-	 * 송금 취소 기능
+	 * 송금 취소 기능(사용자가 직접 취소 요청)
 	 * 취소하려는 송금 내역을 가져와 검증 후 송금을 취소함
 	 * @param senderAccountId
 	 * @param transactionalId
@@ -149,6 +149,18 @@ public class AccountService {
 		validationTransactional(senderAccountId, transaction);
 
 		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+			.orElseThrow(NotFoundAccountException::new);
+
+		senderAccount.deposit(transaction.getAmount());
+		transaction.updateStatus(CANCEL);
+	}
+
+	/**
+	 * 72시간이 지난 송금 내역을 취소하는 비즈니스 로직
+	 * @param transaction
+	 */
+	public void cancelWithdrawByExpirationTime(Transaction transaction) {
+		Account senderAccount = accountRepository.findByIdWithLock(transaction.getSenderAccountId())
 			.orElseThrow(NotFoundAccountException::new);
 
 		senderAccount.deposit(transaction.getAmount());
