@@ -99,7 +99,9 @@ public class AccountService {
 		User sender = getUserById(transferReq.senderId());
 
 		validateTransfer(transferReq, sender);
-		
+
+		Account receiverAccount = getAccountById(transferReq.receiverMainAccount());
+
 		Account senderAccount = getAccountByIdWithWriteLock(sender.getId());
 
 		if (senderAccount.isBalanceInsufficient(transferReq.amount())) {
@@ -110,12 +112,12 @@ public class AccountService {
 
 		senderAccount.withdraw(transferReq.amount());
 
-		publishTransferTransactionEvent(transferReq, sender, senderAccount);
+		publishTransferTransactionEvent(transferReq, sender, senderAccount, receiverAccount.getUserId());
 
 		return new TransferRes(senderAccount.getBalance());
 	}
 
-	private void publishTransferTransactionEvent(TransferReq transferReq, User sender, Account senderAccount) {
+	private void publishTransferTransactionEvent(TransferReq transferReq, User sender, Account senderAccount, Long receiverId) {
 		TransferTransactionEvent event;
 		if(transferReq.type() == TransactionType.IMMEDIATE) {
 			event = ImmediateTransferTransactionEvent.builder()
@@ -123,6 +125,7 @@ public class AccountService {
 				.senderMainAccount(senderAccount.getId())
 				.receiverMainAccount(transferReq.receiverMainAccount())
 				.amount(transferReq.amount())
+				.receiverId(receiverId)
 				.build();
 		} else {
 			event = DelayedTransferTransactionEvent.builder()
@@ -130,6 +133,7 @@ public class AccountService {
 				.senderMainAccount(senderAccount.getId())
 				.receiverMainAccount(transferReq.receiverMainAccount())
 				.amount(transferReq.amount())
+				.receiverId(receiverId)
 				.build();
 		}
 		transferTransactionEventPublisher.publishTransferTransactionEvent(event);
@@ -165,6 +169,12 @@ public class AccountService {
 
 	private Account getAccountByIdWithWriteLock(long mainAccount) {
 		Account account = accountRepository.findByIdWithWriteLock(mainAccount)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
+		return account;
+	}
+
+	private Account getAccountById(long receiverMainAccount) {
+		Account account = accountRepository.findById(receiverMainAccount)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
 		return account;
 	}

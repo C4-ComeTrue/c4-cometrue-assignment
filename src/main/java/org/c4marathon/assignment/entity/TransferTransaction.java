@@ -56,11 +56,13 @@ public class TransferTransaction extends BaseEntity {
 	private TransactionType type;
 
 	@Builder
-	public TransferTransaction(String sender, Long senderMainAccount, Long receiverMainAccount, Long amount, TransactionType type) {
+	public TransferTransaction(String sender, Long senderMainAccount, Long receiverMainAccount, Long amount,
+		Long receiverId, TransactionType type) {
 		this.sender = sender;
 		this.senderMainAccount = senderMainAccount;
 		this.receiverMainAccount = receiverMainAccount;
 		this.amount = amount;
+		this.receiverId = receiverId;
 		this.status = TransactionStatus.PENDING;
 		this.type = type;
 	}

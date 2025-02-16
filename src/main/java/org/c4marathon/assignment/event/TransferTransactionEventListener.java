@@ -32,6 +32,7 @@ public class TransferTransactionEventListener {
 				.receiverMainAccount(transferTransactionEvent.getReceiverMainAccount())
 				.amount(transferTransactionEvent.getAmount())
 				.type(transferTransactionEvent.getType())
+				.receiverId(transferTransactionEvent.getReceiverId())
 				.build());
 
 		transferTransactionEvent.updateTransferTransactionId(transferTransaction.getId());
