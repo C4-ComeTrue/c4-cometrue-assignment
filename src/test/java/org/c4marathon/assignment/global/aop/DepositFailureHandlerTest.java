@@ -6,7 +6,7 @@ import static org.mockito.BDDMockito.*;
 import org.aspectj.lang.JoinPoint;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
+import org.c4marathon.assignment.transactional.domain.repository.TransactionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +23,7 @@ class DepositFailureHandlerTest {
 	private AccountService accountService;
 
 	@Mock
-	private TransactionalRepository transactionalRepository;
+	private TransactionRepository transactionRepository;
 
 	@InjectMocks
 	private DepositFailureHandler depositFailureHandler;
@@ -42,7 +42,7 @@ class DepositFailureHandlerTest {
 
 		// then
 		verify(transactional).updateStatus(FAILED_DEPOSIT);
-		verify(transactionalRepository, times(1)).save(transactional);
+		verify(transactionRepository, times(1)).save(transactional);
 	}
 
 	@DisplayName("failedDeposit()에서 예외 발생 시 상태를 CANCEL로 변경하고 송금 취소한다.")
@@ -62,7 +62,7 @@ class DepositFailureHandlerTest {
 
 		// then
 		verify(transactional).updateStatus(CANCEL);
-		verify(transactionalRepository, times(1)).save(transactional);
+		verify(transactionRepository, times(1)).save(transactional);
 		verify(accountService, times(1)).rollbackWithdraw(100L, 5000L);
 	}
 

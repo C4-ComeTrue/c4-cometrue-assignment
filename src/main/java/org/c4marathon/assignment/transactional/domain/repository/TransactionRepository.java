@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
 
-public interface TransactionalRepository extends JpaRepository<Transaction, Long> {
+public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
 	//index(TransactionalStatus)
 	@Query("""

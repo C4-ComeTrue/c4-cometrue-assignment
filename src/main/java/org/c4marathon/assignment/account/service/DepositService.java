@@ -8,7 +8,7 @@ import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
+import org.c4marathon.assignment.transactional.domain.repository.TransactionRepository;
 import org.c4marathon.assignment.transactional.exception.InvalidTransactionStatusException;
 import org.c4marathon.assignment.transactional.exception.NotFoundTransactionException;
 import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionException;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class DepositService {
 	private final AccountRepository accountRepository;
-	private final TransactionalRepository transactionalRepository;
+	private final TransactionRepository transactionRepository;
 
 	/**
 	 * 송금 내역 데이터를 조회해서 출금 로직 실행
@@ -57,7 +57,7 @@ public class DepositService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void deposit(Long receiverAccountId, Long transactionalId) {
-		Transaction transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(
+		Transaction transactional = transactionRepository.findTransactionalByTransactionalIdWithLock(
 				transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
@@ -82,7 +82,7 @@ public class DepositService {
 
 		transactional.setReceiverTime(LocalDateTime.now());
 		transactional.updateStatus(SUCCESS_DEPOSIT);
-		transactionalRepository.save(transactional);
+		transactionRepository.save(transactional);
 
 	}
 

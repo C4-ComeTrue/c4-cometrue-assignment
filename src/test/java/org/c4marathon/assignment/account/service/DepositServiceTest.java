@@ -11,7 +11,7 @@ import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
+import org.c4marathon.assignment.transactional.domain.repository.TransactionRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 	private AccountRepository accountRepository;
 
 	@Autowired
-	private TransactionalRepository transactionalRepository;
+	private TransactionRepository transactionRepository;
 
 	@Autowired
 	private DepositService depositService;
@@ -31,7 +31,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 	@AfterEach
 	void tearDown() {
 		accountRepository.deleteAllInBatch();
-		transactionalRepository.deleteAllInBatch();
+		transactionRepository.deleteAllInBatch();
 	}
 
 	@DisplayName("입금이 성공한다.")
@@ -81,7 +81,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 	private Transaction createTransactional(Account senderAccount, Account receiverAccount, long amount) {
 		Transaction transactional = Transaction.create(senderAccount.getId(),
 			receiverAccount.getId(), amount, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now());
-		transactionalRepository.save(transactional);
+		transactionRepository.save(transactional);
 
 		return transactional;
 	}

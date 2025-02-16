@@ -16,10 +16,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TransactionalRepositoryTest extends IntegrationTestSupport {
+class TransactionRepositoryTest extends IntegrationTestSupport {
 
 	@Autowired
-	private TransactionalRepository transactionalRepository;
+	private TransactionRepository transactionRepository;
 
 	@BeforeEach
 	void setUp() {
@@ -30,12 +30,12 @@ class TransactionalRepositoryTest extends IntegrationTestSupport {
 			Transaction.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
 			Transaction.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
 		);
-		transactionalRepository.saveAll(transactionals);
+		transactionRepository.saveAll(transactionals);
 	}
 
 	@AfterEach
 	void tearDown() {
-		transactionalRepository.deleteAllInBatch();
+		transactionRepository.deleteAllInBatch();
 	}
 
 	@DisplayName("특정 상태의 트랜잭션을 ID 기반 커서 페이징으로 조회한다.")
@@ -47,7 +47,7 @@ class TransactionalRepositoryTest extends IntegrationTestSupport {
 		int pageSize = 2;
 
 		// when
-		List<Transaction> result = transactionalRepository.findTransactionalByStatusWithLastId(status,
+		List<Transaction> result = transactionRepository.findTransactionalByStatusWithLastId(status,
 			lastId, pageSize);
 
 		// then
@@ -70,7 +70,7 @@ class TransactionalRepositoryTest extends IntegrationTestSupport {
 		int pageSize = 3;
 
 		// when
-		List<Transaction> result = transactionalRepository.findTransactionalByStatus(status,
+		List<Transaction> result = transactionRepository.findTransactionalByStatus(status,
 			pageSize);
 		// then
 		assertThat(result).hasSize(3);

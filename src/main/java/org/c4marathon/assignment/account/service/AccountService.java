@@ -19,7 +19,7 @@ import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
 import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.domain.repository.TransactionalRepository;
+import org.c4marathon.assignment.transactional.domain.repository.TransactionRepository;
 import org.c4marathon.assignment.transactional.exception.InvalidTransactionStatusException;
 import org.c4marathon.assignment.transactional.exception.NotFoundTransactionException;
 import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionException;
@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class AccountService {
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
-	private final TransactionalRepository transactionalRepository;
+	private final TransactionRepository transactionRepository;
 	private final SavingAccountRepository savingAccountRepository;
 
 	private final ApplicationEventPublisher eventPublisher;
@@ -143,7 +143,7 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void cancelWithdraw(Long senderAccountId, Long transactionalId) {
-		Transaction transactional = transactionalRepository.findTransactionalByTransactionalIdWithLock(transactionalId)
+		Transaction transactional = transactionRepository.findTransactionalByTransactionalIdWithLock(transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
 		validationTransactional(senderAccountId, transactional);
