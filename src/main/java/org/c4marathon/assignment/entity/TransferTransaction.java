@@ -48,12 +48,16 @@ public class TransferTransaction extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private TransactionStatus status;
 
+	@Enumerated(EnumType.STRING)
+	private TransactionType type;
+
 	@Builder
-	public TransferTransaction(String sender, Long senderMainAccount, Long receiverMainAccount, Long amount) {
+	public TransferTransaction(String sender, Long senderMainAccount, Long receiverMainAccount, Long amount, TransactionType type) {
 		this.sender = sender;
 		this.senderMainAccount = senderMainAccount;
 		this.receiverMainAccount = receiverMainAccount;
 		this.amount = amount;
 		this.status = TransactionStatus.PENDING;
+		this.type = type;
 	}
 }
