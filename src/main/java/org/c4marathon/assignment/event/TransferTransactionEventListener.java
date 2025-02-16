@@ -45,8 +45,7 @@ public class TransferTransactionEventListener {
 
 		messageService.sendTransaction(MessageDto.builder()
 			.transferTransactionId(immediateTransferEvent.getTransferTransactionId())
-			.senderMainAccount(immediateTransferEvent.getSenderMainAccount())
-			.receiverMainAccount(immediateTransferEvent.getReceiverMainAccount())
+			.account(immediateTransferEvent.getReceiverMainAccount())
 			.amount(immediateTransferEvent.getAmount())
 			.build());
 	}

@@ -49,8 +49,7 @@ public class TransactionService {
 		transferTransactions.forEach((transferTransaction -> {
 			messageService.sendTransaction(MessageDto.builder()
 				.transferTransactionId(transferTransaction.getId())
-				.senderMainAccount(transferTransaction.getSenderMainAccount())
-				.receiverMainAccount(transferTransaction.getReceiverMainAccount())
+				.account(transferTransaction.getReceiverMainAccount())
 				.amount(transferTransaction.getAmount())
 				.build());
 		}));

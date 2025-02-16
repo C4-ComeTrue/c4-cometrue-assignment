@@ -12,16 +12,14 @@ import lombok.ToString;
 public class MessageDto {
 	long transferTransactionId;
 
-	long senderMainAccount;
+	long account;
 
-	long receiverMainAccount;
 	long amount;
 
 	@Builder
-	public MessageDto(long transferTransactionId, long senderMainAccount, long receiverMainAccount, long amount) {
+	public MessageDto(long transferTransactionId, long account, long amount) {
 		this.transferTransactionId = transferTransactionId;
-		this.senderMainAccount = senderMainAccount;
-		this.receiverMainAccount = receiverMainAccount;
+		this.account = account;
 		this.amount = amount;
 	}
 }
