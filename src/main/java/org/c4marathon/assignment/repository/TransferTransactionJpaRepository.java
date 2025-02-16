@@ -3,6 +3,7 @@ package org.c4marathon.assignment.repository;
 import java.util.List;
 
 import org.c4marathon.assignment.entity.TransactionStatus;
+import org.c4marathon.assignment.entity.TransactionType;
 import org.c4marathon.assignment.entity.TransferTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,5 +22,5 @@ public interface TransferTransactionJpaRepository extends JpaRepository<Transfer
 	int updateStatus(@Param("id") long transferTransactionId, @Param("findStatus") TransactionStatus findStatus,
 		@Param("status") TransactionStatus status);
 
-	List<TransferTransaction> findAllByStatus(TransactionStatus status);
+	List<TransferTransaction> findAllByStatusAndType(TransactionStatus status, TransactionType type);
 }

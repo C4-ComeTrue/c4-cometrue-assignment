@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.c4marathon.assignment.dto.MessageDto;
 import org.c4marathon.assignment.entity.TransactionStatus;
+import org.c4marathon.assignment.entity.TransactionType;
 import org.c4marathon.assignment.entity.TransferTransaction;
 import org.c4marathon.assignment.repository.TransferTransactionRepository;
 import org.springframework.scheduling.annotation.Async;
@@ -36,8 +37,8 @@ public class TransactionService {
 	public void findAndPostMessage() {
 		log.debug("{} post message start", Thread.currentThread().getName());
 
-		List<TransferTransaction> transferTransactions = transferTransactionRepository.getTransferTransactionsByStatus(
-			TransactionStatus.PENDING);
+		List<TransferTransaction> transferTransactions = transferTransactionRepository.getTransferTransactionsByStatusAndType(
+			TransactionStatus.PENDING, TransactionType.IMMEDIATE);
 
 		if (transferTransactions.isEmpty()) {
 			return;

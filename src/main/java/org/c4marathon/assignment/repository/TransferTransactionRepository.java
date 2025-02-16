@@ -3,6 +3,7 @@ package org.c4marathon.assignment.repository;
 import java.util.List;
 
 import org.c4marathon.assignment.entity.TransactionStatus;
+import org.c4marathon.assignment.entity.TransactionType;
 import org.c4marathon.assignment.entity.TransferTransaction;
 import org.springframework.stereotype.Repository;
 
@@ -21,8 +22,8 @@ public class TransferTransactionRepository {
 		return transferTransactionJpaRepository.updateStatus(transferTransactionId, findStatus, status);
 	}
 
-	public List<TransferTransaction> getTransferTransactionsByStatus(TransactionStatus status) {
-		return transferTransactionJpaRepository.findAllByStatus(status);
+	public List<TransferTransaction> getTransferTransactionsByStatusAndType(TransactionStatus status, TransactionType type) {
+		return transferTransactionJpaRepository.findAllByStatusAndType(status, type);
 	}
 
 }
