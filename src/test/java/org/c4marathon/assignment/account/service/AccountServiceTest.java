@@ -14,7 +14,6 @@ import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
-import org.c4marathon.assignment.global.event.withdraw.WithdrawCompletedEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
