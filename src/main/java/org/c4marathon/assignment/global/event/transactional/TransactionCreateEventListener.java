@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.global.event.transactional;
 
-import org.c4marathon.assignment.transactional.service.TransactionService;
+import org.c4marathon.assignment.transaction.service.TransactionService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;

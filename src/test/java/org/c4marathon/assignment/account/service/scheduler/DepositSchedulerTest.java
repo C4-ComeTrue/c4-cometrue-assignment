@@ -1,8 +1,8 @@
 package org.c4marathon.assignment.account.service.scheduler;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
@@ -17,8 +17,8 @@ import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.account.service.DepositService;
 import org.c4marathon.assignment.global.core.MiniPayThreadPoolExecutor;
-import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.service.TransactionService;
+import org.c4marathon.assignment.transaction.domain.Transaction;
+import org.c4marathon.assignment.transaction.service.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

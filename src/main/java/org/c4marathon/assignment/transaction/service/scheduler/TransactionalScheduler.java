@@ -1,6 +1,6 @@
-package org.c4marathon.assignment.transactional.service.scheduler;
+package org.c4marathon.assignment.transaction.service.scheduler;
 
-import org.c4marathon.assignment.transactional.service.TransactionService;
+import org.c4marathon.assignment.transaction.service.TransactionService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

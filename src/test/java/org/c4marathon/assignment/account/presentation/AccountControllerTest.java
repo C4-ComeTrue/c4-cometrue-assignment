@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.account.presentation;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 

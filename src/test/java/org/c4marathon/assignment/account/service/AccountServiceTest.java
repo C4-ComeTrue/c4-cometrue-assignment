@@ -2,7 +2,7 @@ package org.c4marathon.assignment.account.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.util.Const.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 import static org.mockito.BDDMockito.*;
 
 import org.c4marathon.assignment.IntegrationTestSupport;

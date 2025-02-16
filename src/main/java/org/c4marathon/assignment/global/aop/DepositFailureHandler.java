@@ -1,13 +1,13 @@
 package org.c4marathon.assignment.global.aop;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.c4marathon.assignment.account.service.AccountService;
-import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.domain.repository.TransactionRepository;
+import org.c4marathon.assignment.transaction.domain.Transaction;
+import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;

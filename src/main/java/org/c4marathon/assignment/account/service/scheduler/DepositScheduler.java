@@ -1,14 +1,13 @@
 package org.c4marathon.assignment.account.service.scheduler;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
 
 import java.util.List;
 
 import org.c4marathon.assignment.account.service.DepositService;
 import org.c4marathon.assignment.global.core.MiniPayThreadPoolExecutor;
-import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.service.TransactionQueryService;
-import org.c4marathon.assignment.transactional.service.TransactionService;
+import org.c4marathon.assignment.transaction.domain.Transaction;
+import org.c4marathon.assignment.transaction.service.TransactionQueryService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

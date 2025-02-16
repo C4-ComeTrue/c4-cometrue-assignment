@@ -1,17 +1,17 @@
 package org.c4marathon.assignment.account.service;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
 
 import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
-import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.domain.repository.TransactionRepository;
-import org.c4marathon.assignment.transactional.exception.InvalidTransactionStatusException;
-import org.c4marathon.assignment.transactional.exception.NotFoundTransactionException;
-import org.c4marathon.assignment.transactional.exception.UnauthorizedTransactionException;
+import org.c4marathon.assignment.transaction.domain.Transaction;
+import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
+import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
+import org.c4marathon.assignment.transaction.exception.NotFoundTransactionException;
+import org.c4marathon.assignment.transaction.exception.UnauthorizedTransactionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;

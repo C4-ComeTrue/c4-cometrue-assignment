@@ -1,12 +1,12 @@
 package org.c4marathon.assignment.global.aop;
 
-import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
 import static org.mockito.BDDMockito.*;
 
 import org.aspectj.lang.JoinPoint;
 import org.c4marathon.assignment.account.service.AccountService;
-import org.c4marathon.assignment.transactional.domain.Transaction;
-import org.c4marathon.assignment.transactional.domain.repository.TransactionRepository;
+import org.c4marathon.assignment.transaction.domain.Transaction;
+import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

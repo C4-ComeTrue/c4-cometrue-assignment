@@ -1,15 +1,15 @@
-package org.c4marathon.assignment.transactional.domain.repository;
+package org.c4marathon.assignment.transaction.domain.repository;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionStatus.*;
-import static org.c4marathon.assignment.transactional.domain.TransactionType.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
-import org.c4marathon.assignment.transactional.domain.TransactionStatus;
-import org.c4marathon.assignment.transactional.domain.Transaction;
+import org.c4marathon.assignment.transaction.domain.TransactionStatus;
+import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
