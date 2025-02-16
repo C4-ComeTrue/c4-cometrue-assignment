@@ -136,20 +136,20 @@ public class AccountService {
 		accountRepository.initDailyChargedAmount(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
 	}
 
-	public void charge(long amount, Account account) {
+	private void charge(long amount, Account account) {
 		if (account.isDailyLimitExceeded(amount)) {
 			throw new CustomException(ErrorCode.EXCEEDED_DEPOSIT_LIMIT);
 		}
 		account.deposit(amount);
 	}
 
-	public User getUserById(long userId) {
+	private User getUserById(long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_USER_ID));
 		return user;
 	}
 
-	public Account getAccountByIdWithWriteLock(long mainAccount) {
+	private Account getAccountByIdWithWriteLock(long mainAccount) {
 		Account account = accountRepository.findByIdWithWriteLock(mainAccount)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_MAIN_ACCOUNT));
 		return account;

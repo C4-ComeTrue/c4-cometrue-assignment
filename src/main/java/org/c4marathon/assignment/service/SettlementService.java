@@ -54,21 +54,21 @@ public class SettlementService {
 		return new SettlementInfoRes(settlementDetails.stream().map(SettlementDetailInfoRes::new).toList());
 	}
 
-	public List<Long> makeTargetUsers(PostSettlementReq settlementReq) {
+	private List<Long> makeTargetUsers(PostSettlementReq settlementReq) {
 		List<Long> targetUsers = new ArrayList<>(settlementReq.userIds());
 		targetUsers.add(settlementReq.requester());
 		Collections.shuffle(targetUsers);
 		return targetUsers;
 	}
 
-	public void validateUsers(List<Long> targetUsers) {
+	private void validateUsers(List<Long> targetUsers) {
 		int userCnt = userRepository.countByIds(targetUsers);
 		if (userCnt != targetUsers.size()) {
 			throw new CustomException(ErrorCode.INVALID_USER_ID);
 		}
 	}
 
-	public List<Long> generateAmounts(PostSettlementReq settlementReq, int userCount) {
+	private List<Long> generateAmounts(PostSettlementReq settlementReq, int userCount) {
 		return (settlementReq.type() == SettlementType.EQUAL)
 			? generateEqualAmount(userCount, settlementReq.totalAmount())
 			: generateRandomAmount(userCount, settlementReq.totalAmount());
@@ -89,7 +89,7 @@ public class SettlementService {
 	/**
 	 * 1/N 정산 금액 계산
 	 */
-	public List<Long> generateEqualAmount(int count, long totalAmount) {
+	private List<Long> generateEqualAmount(int count, long totalAmount) {
 		long equalAmount = totalAmount / count;
 		long remainder = totalAmount % count;
 
@@ -102,7 +102,7 @@ public class SettlementService {
 	/**
 	 * 랜덤 정산 금액 계산
 	 */
-	public List<Long> generateRandomAmount(int count, long totalAmount) {
+	private List<Long> generateRandomAmount(int count, long totalAmount) {
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 		List<Long> amounts = new ArrayList<>();
 		long sum = 0;
