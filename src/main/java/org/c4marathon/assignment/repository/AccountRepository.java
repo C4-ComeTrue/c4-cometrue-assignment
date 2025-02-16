@@ -32,4 +32,8 @@ public class AccountRepository {
 	public void initDailyChargedAmount(Instant now) {
 		accountJpaRepository.initDailyChargedAmount(now);
 	}
+
+	public Optional<Account> findById(long receiverMainAccount) {
+		return accountJpaRepository.findById(receiverMainAccount);
+	}
 }
