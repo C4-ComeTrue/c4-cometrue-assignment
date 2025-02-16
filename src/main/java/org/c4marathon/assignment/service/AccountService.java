@@ -1,8 +1,5 @@
 package org.c4marathon.assignment.service;
 
-import static org.c4marathon.assignment.config.AsyncConfig.*;
-
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
@@ -23,7 +20,6 @@ import org.c4marathon.assignment.exception.ErrorCode;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.SavingsAccountRepository;
 import org.c4marathon.assignment.repository.UserRepository;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,13 +95,7 @@ public class AccountService {
 	public TransferRes transfer(TransferReq transferReq) {
 		User sender = getUserById(transferReq.senderId());
 
-		if (sender.getMainAccountId() == transferReq.receiverMainAccount()) {
-			throw new CustomException(ErrorCode.INVALID_TRANSFER_REQUEST);
-		}
-
-		if (!accountRepository.existsById(transferReq.receiverMainAccount())) {
-			throw new CustomException(ErrorCode.INVALID_RECEIVER_MAIN_ACCOUNT);
-		}
+		validateTransfer(transferReq, sender);
 
 		Account senderAccount = getAccountByIdWithWriteLock(sender.getId());
 
@@ -125,6 +115,16 @@ public class AccountService {
 			.build());
 
 		return new TransferRes(senderAccount.getBalance());
+	}
+
+	private void validateTransfer(TransferReq transferReq, User sender) {
+		if (sender.getMainAccountId() == transferReq.receiverMainAccount()) {
+			throw new CustomException(ErrorCode.INVALID_TRANSFER_REQUEST);
+		}
+
+		if (!accountRepository.existsById(transferReq.receiverMainAccount())) {
+			throw new CustomException(ErrorCode.INVALID_RECEIVER_MAIN_ACCOUNT);
+		}
 	}
 
 	/**
