@@ -41,6 +41,10 @@ public class TransferTransaction extends BaseEntity {
 	private Long receiverMainAccount;
 
 	@NotNull
+	@Column(name = "receiver_id", nullable = false)
+	private Long receiverId;
+
+	@NotNull
 	@ColumnDefault("0")
 	@Column(name = "amount", nullable = false)
 	private Long amount;
