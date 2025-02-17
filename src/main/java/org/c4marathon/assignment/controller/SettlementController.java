@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.c4marathon.assignment.common.dto.SuccessNonDataResponse;
 import org.c4marathon.assignment.common.exception.enums.SuccessCode;
+import org.c4marathon.assignment.dto.request.ReceiveSettlementRequestDto;
 import org.c4marathon.assignment.dto.request.RemittanceRequestDto;
 import org.c4marathon.assignment.dto.request.SettlementRequestDto;
 import org.c4marathon.assignment.service.SettlementService;
@@ -29,8 +30,14 @@ public class SettlementController {
 
 	@PostMapping("/remittance")
 	public SuccessNonDataResponse remittanceSettlement(@RequestBody @Valid RemittanceRequestDto requestDto) {
-		settleService.remittanceMoney(requestDto);
-		return SuccessNonDataResponse.success(SuccessCode.REMITTANCE_SETTLEMENT_SUCCESS);
+		settleService.requestRemittanceMoney(requestDto);
+		return SuccessNonDataResponse.success(SuccessCode.REQUEST_REMITTANCE_SETTLEMENT_SUCCESS);
+	}
+
+	@PostMapping("/receive")
+	public SuccessNonDataResponse receiveSettlement(@RequestBody @Valid ReceiveSettlementRequestDto requestDto) {
+		settleService.receiveMoney(requestDto);
+		return SuccessNonDataResponse.success(SuccessCode.RECIEVE_REMITTANCE_SETTLEMENT_SUCCESS);
 	}
 
 }
