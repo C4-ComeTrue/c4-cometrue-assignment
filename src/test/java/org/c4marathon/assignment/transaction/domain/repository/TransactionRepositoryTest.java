@@ -8,35 +8,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
-import org.c4marathon.assignment.transaction.domain.TransactionStatus;
 import org.c4marathon.assignment.transaction.domain.Transaction;
-import org.junit.jupiter.api.AfterEach;
+import org.c4marathon.assignment.transaction.domain.TransactionStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class TransactionRepositoryTest extends IntegrationTestSupport {
 
 	@Autowired
 	private TransactionRepository transactionRepository;
-
-	@BeforeEach
-	void setUp() {
-		List<Transaction> transactionals = List.of(
-			Transaction.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			Transaction.create(2L, 3L, 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
-			Transaction.create(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			Transaction.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
-			Transaction.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
-		);
-		transactionRepository.saveAll(transactionals);
-	}
-
-	@AfterEach
-	void tearDown() {
-		transactionRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("특정 상태의 트랜잭션을 ID 기반 커서 페이징으로 조회한다.")
 	@Test
@@ -45,6 +29,15 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 		TransactionStatus status = WITHDRAW;
 		Long lastId = 1L;
 		int pageSize = 2;
+
+		List<Transaction> transactions = List.of(
+			Transaction.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create(2L, 3L, 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
+			Transaction.create(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
+			Transaction.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
+		);
+		transactionRepository.saveAll(transactions);
 
 		// when
 		List<Transaction> result = transactionRepository.findTransactionByStatusWithLastId(status,
@@ -69,6 +62,14 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 		TransactionStatus status = WITHDRAW;
 		int pageSize = 3;
 
+		List<Transaction> transactions = List.of(
+			Transaction.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create(2L, 3L, 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
+			Transaction.create(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
+			Transaction.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
+		);
+		transactionRepository.saveAll(transactions);
 		// when
 		List<Transaction> result = transactionRepository.findTransactionByStatus(status,
 			pageSize);
@@ -87,5 +88,6 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 			.extracting("senderAccountId", "receiverAccountId", "amount", "type", "status")
 			.containsExactly(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW);
 	}
+
 
 }

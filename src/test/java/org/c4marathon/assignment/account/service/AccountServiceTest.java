@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest extends IntegrationTestSupport {
@@ -160,6 +161,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     }
 
+    @Transactional
     @DisplayName("송금 시 메인 계좌에서 출금하고 TransferTransactional 생성 이벤트를 발행한다.")
     @Test
     void withdraw() throws Exception {
@@ -179,7 +181,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     }
 
-
+    @Transactional
     @DisplayName("송금 시 메인 계좌에 잔액이 부족하면 충전을 하고 출금한다.")
     @Test
     void withdrawWithInsufficientBalance() {
@@ -199,6 +201,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     }
 
+    @Transactional
     @DisplayName("송금 시 잔액이 부족해 충전할 때 일일 한도를 초과하면 예외가 발생한다.")
     @Test
     void withdrawWithDailyChargeLimit() {
