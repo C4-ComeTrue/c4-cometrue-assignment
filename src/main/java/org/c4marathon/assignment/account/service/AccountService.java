@@ -1,8 +1,8 @@
 package org.c4marathon.assignment.account.service;
 
 import static org.c4marathon.assignment.global.util.Const.*;
-import static org.c4marathon.assignment.transaction.domain.TransactionStatus.PENDING_DEPOSIT;
 import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.PENDING_DEPOSIT;
 import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 
 import java.time.LocalDateTime;
@@ -93,6 +93,7 @@ public class AccountService {
 
 	/**
 	 * 송금 시 송금 내역을 저장하는 이벤트 발행 후 커밋
+	 *
 	 * @param senderAccountId
 	 * @param request
 	 */
@@ -107,8 +108,6 @@ public class AccountService {
 
 		senderAccount.withdraw(request.money());
 		accountRepository.save(senderAccount);
-
-		// String transactionId = UUID.randomUUID().toString();
 
 		if (request.type().equals(IMMEDIATE_TRANSFER)) {
 			eventPublisher.publishEvent(
@@ -138,6 +137,7 @@ public class AccountService {
 	/**
 	 * 송금 취소 기능(사용자가 직접 취소 요청)
 	 * 취소하려는 송금 내역을 가져와 검증 후 송금을 취소함
+	 *
 	 * @param senderAccountId
 	 * @param transactionalId
 	 */
@@ -157,6 +157,7 @@ public class AccountService {
 
 	/**
 	 * 72시간이 지난 송금 내역을 취소하는 비즈니스 로직
+	 *
 	 * @param transaction
 	 */
 	public void cancelWithdrawByExpirationTime(Transaction transaction) {
@@ -169,6 +170,7 @@ public class AccountService {
 
 	/**
 	 * 입금 재시도가 실패하면 송금 롤백을 하는 로직
+	 *
 	 * @param senderAccountId
 	 * @param money
 	 */
@@ -183,6 +185,7 @@ public class AccountService {
 
 	/**
 	 * 송금할 때 메인 계좌에 잔액이 부족할 때 10,000원 단위로 충전하는 로직
+	 *
 	 * @param money
 	 * @param senderAccount
 	 */
@@ -197,7 +200,6 @@ public class AccountService {
 
 		senderAccount.deposit(chargeMoney);
 	}
-
 
 	private static void validationTransactional(Long senderAccountId, Transaction transaction) {
 		if (!transaction.getSenderAccountId().equals(senderAccountId)) {

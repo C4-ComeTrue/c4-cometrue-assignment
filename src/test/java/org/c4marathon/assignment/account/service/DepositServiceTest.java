@@ -79,7 +79,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 	@Transactional
 	@DisplayName("송금을 받은 사용자가 직접 확인 후 금액을 수령한다.")
 	@Test
-	void depositByReceiver() throws Exception {
+	void depositByReceiver() {
 	    // given
 		Account receiverAccount = createAccount(10000L);
 		Transaction transaction = Transaction.create(1L, receiverAccount.getId(), 2000L, PENDING_TRANSFER,
@@ -104,7 +104,6 @@ class DepositServiceTest extends IntegrationTestSupport {
 	void depositByReceiverWithInvalidTransactionStatus() throws Exception {
 	    // given
 		Account receiverAccount = createAccount(10000L);
-		Account otherReceiverAccount = createAccount(10000L);
 		Transaction transaction = Transaction.create(1L, receiverAccount.getId(), 2000L, PENDING_TRANSFER,
 			SUCCESS_DEPOSIT, LocalDateTime.now().minusHours(1));
 		transactionRepository.save(transaction);
@@ -116,7 +115,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 
 	@DisplayName("송금 내역 상태가 PENDING_DEPOSIT이 아닌 송금 내역을 수령 시 예외가 발생한다.")
 	@Test
-	void depositByReceiverWithUnauthorizedTransaction() throws Exception {
+	void depositByReceiverWithUnauthorizedTransaction() {
 		// given
 		Account receiverAccount = createAccount(10000L);
 		Account otherReceiverAccount = createAccount(10000L);

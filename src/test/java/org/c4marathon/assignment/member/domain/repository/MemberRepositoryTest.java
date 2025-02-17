@@ -23,7 +23,7 @@ class MemberRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("중복된 이메일을 가진 유저가 있으면 true을 반환한다.")
     @Test
-    void validateDuplicateEmail() throws Exception {
+    void validateDuplicateEmail() {
         // given
         Member member = Member.create("test@naver.com", "테스트", "test");
         memberRepository.save(member);
@@ -37,7 +37,7 @@ class MemberRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("중복된 이메일을 가진 유저가 있으면 false을 반환한다.")
     @Test
-    void validateDuplicateEmail_2() throws Exception {
+    void validateDuplicateEmail_2() {
         // given
         Member member = Member.create("test@naver.com", "테스트", "test");
         memberRepository.save(member);
@@ -51,7 +51,7 @@ class MemberRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("이메일로 멤버를 찾는다.")
     @Test
-    void findMemberByEmail() throws Exception {
+    void findMemberByEmail() {
         // given
         Member member = Member.create("test@naver.com", "테스트", "test");
         memberRepository.save(member);
@@ -67,7 +67,7 @@ class MemberRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("AccountId로 멤버를 찾는다.")
     @Test
-    void findMemberByAccountId() throws Exception {
+    void findMemberByAccountId() {
         // given
         Member member = Member.create("test@naver.com", "테스트", "test");
         member.setMainAccountId(1L);

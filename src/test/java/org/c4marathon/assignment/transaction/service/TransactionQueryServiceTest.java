@@ -33,9 +33,8 @@ class TransactionQueryServiceTest extends IntegrationTestSupport {
 	@Transactional
 	@DisplayName("lastId가 없을 경우 지정된 pageSize 만큼 조회된다.")
 	@Test
-	void findTransactionByStatusWithoutLastId() throws Exception {
+	void findTransactionByStatusWithoutLastId() {
 	    // given
-		TransactionStatus status = WITHDRAW;
 		int pageSize = 2;
 		List<Transaction> transactions = List.of(
 			Transaction.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),

@@ -41,6 +41,7 @@ public class TransactionService {
 		);
 		transactionRepository.save(transaction);
 	}
+
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void processCancelExpiredTransactions() {
 

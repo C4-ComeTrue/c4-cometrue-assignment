@@ -11,7 +11,6 @@ import java.util.List;
 import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
-import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.mail.NotificationService;
 import org.c4marathon.assignment.transaction.domain.Transaction;
@@ -75,7 +74,7 @@ class TransactionServiceTest extends IntegrationTestSupport {
 	@Transactional
 	@DisplayName("송금하고 72시간이 지난 송금 내역(Transaction)이 취소된다.")
 	@Test
-	void processCancelExpiredTransaction() throws Exception {
+	void processCancelExpiredTransaction() {
 
 	    // given
 		Account senderAccount = createAccount(1000L);
@@ -100,7 +99,7 @@ class TransactionServiceTest extends IntegrationTestSupport {
 
 	@DisplayName("송금 마감까지 24시간 남은 송금 내역에 대해서 receiver에게 알림을 전송한다.")
 	@Test
-	void processRemindNotification() throws Exception {
+	void processRemindNotification() {
 	    // given
 		Account senderAccount = createAccount(1000L);
 		Account receiverAccount = createAccount(1000L);

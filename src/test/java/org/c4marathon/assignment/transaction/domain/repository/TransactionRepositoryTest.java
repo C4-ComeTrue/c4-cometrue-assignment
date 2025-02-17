@@ -43,7 +43,7 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 	@Transactional
 	@DisplayName("lastId가 없으면 지정된 pageSize만큼 조회한다.")
 	@Test
-	void findTransactionByStatus() throws Exception {
+	void findTransactionByStatus() {
 	    // given
 		TransactionStatus status = WITHDRAW;
 		int pageSize = 3;
@@ -71,7 +71,7 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 	@Transactional
 	@DisplayName("특정 상태의 트랜잭션을 ID 기반 커서 페이징으로 조회한다.")
 	@Test
-	void findTransactionByStatusWithLastId() throws Exception {
+	void findTransactionByStatusWithLastId() {
 		// given
 		TransactionStatus status = WITHDRAW;
 		int pageSize = 2;
@@ -105,7 +105,7 @@ class TransactionRepositoryTest extends IntegrationTestSupport {
 	@Transactional
 	@DisplayName("transactionId를 통해 Transaction을 조회한다.")
 	@Test
-	void findTransactionByTransactionId() throws Exception {
+	void findTransactionByTransactionId() {
 
 	    // when
 		List<Transaction> allTransactions = transactionRepository.findAll();
