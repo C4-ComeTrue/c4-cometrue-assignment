@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
+import org.c4marathon.assignment.mail.NotificationService;
 import org.c4marathon.assignment.transaction.domain.Transaction;
-import org.c4marathon.assignment.transaction.domain.TransactionStatus;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -21,11 +21,12 @@ import lombok.RequiredArgsConstructor;
 public class TransactionService {
 	private final TransactionRepository transactionRepository;
 	private final TransactionQueryService transactionQueryService;
+	private final NotificationService notificationService;
 	private final AccountService accountService;
 
 	public static final int PAGE_SIZE = 100;
 	public static final int EXPIRATION_HOURS = 72;
-	public static final int REMIND_HOURS = 24;
+	public static final int REMIND_HOURS = 48;
 
 	@Transactional
 	public void createTransaction(TransactionCreateEvent request) {
@@ -60,13 +61,16 @@ public class TransactionService {
 
 			expiredTransactions.forEach(accountService::cancelWithdrawByExpirationTime);
 
-			lastId = expiredTransactions.get(transactions.size() - 1).getId();
+			lastId = transactions.get(transactions.size() - 1).getId();
 		}
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void processRemindNotifications() {
-		LocalDateTime remindTime = LocalDateTime.now().plusHours(REMIND_HOURS);
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime remindTime = now.minusHours(REMIND_HOURS);
+		LocalDateTime expirationTime = now.minusHours(EXPIRATION_HOURS);
+
 		Long lastId = null;
 
 		while (true) {
@@ -77,20 +81,15 @@ public class TransactionService {
 			}
 
 			List<Transaction> remindTransactions = transactions.stream()
-				.filter(t -> t.getSendTime().isAfter(remindTime))
+				.filter(t -> {
+					LocalDateTime sendTime = t.getSendTime();
+					return sendTime.isBefore(remindTime) && sendTime.isAfter(expirationTime);
+				})
 				.toList();
 
+			remindTransactions.forEach(notificationService::sendRemindNotification);
 
-			lastId = remindTransactions.get(transactions.size() - 1).getId();
-
+			lastId = transactions.get(transactions.size() - 1).getId();
 		}
-	}
-
-	@Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
-	public List<Transaction> findTransactionByStatusWithLastId(TransactionStatus status, Long lastId, int size) {
-		if (lastId == null) {
-			return transactionRepository.findTransactionByStatus(status, size);
-		}
-		return transactionRepository.findTransactionByStatusWithLastId(status, lastId, size);
 	}
 }

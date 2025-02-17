@@ -49,7 +49,6 @@ class MemberRepositoryTest extends IntegrationTestSupport {
         assertThat(result).isFalse();
     }
 
-
     @DisplayName("이메일로 멤버를 찾는다.")
     @Test
     void findMemberByEmail() throws Exception {
@@ -64,5 +63,22 @@ class MemberRepositoryTest extends IntegrationTestSupport {
         assertThat(findMember.get())
                 .extracting("email", "name", "password")
                 .contains("test@naver.com", "테스트", "test");
+    }
+
+    @DisplayName("AccountId로 멤버를 찾는다.")
+    @Test
+    void findMemberByAccountId() throws Exception {
+        // given
+        Member member = Member.create("test@naver.com", "테스트", "test");
+        member.setMainAccountId(1L);
+        memberRepository.save(member);
+
+        // when
+        Optional<Member> findMember = memberRepository.findByAccountId(1L);
+
+        // then
+        assertThat(findMember.get())
+            .extracting("email", "name", "password", "accountId")
+            .contains("test@naver.com", "테스트", "test", 1L);
     }
 }
