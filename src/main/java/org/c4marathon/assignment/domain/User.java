@@ -2,6 +2,8 @@ package org.c4marathon.assignment.domain;
 
 import java.time.LocalDateTime;
 
+import org.c4marathon.assignment.domain.type.SendingType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,7 +1,7 @@
 package org.c4marathon.assignment.controller;
 
 import org.c4marathon.assignment.application.AccountService;
-import org.c4marathon.assignment.domain.AccountType;
+import org.c4marathon.assignment.domain.type.AccountType;
 import org.c4marathon.assignment.domain.dto.request.TransferRequest;
 import org.c4marathon.assignment.domain.dto.request.WithdrawRequest;
 import org.c4marathon.assignment.domain.dto.response.CreatedAccountInfo;

@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
-import org.c4marathon.assignment.domain.AccountType;
+import org.c4marathon.assignment.domain.type.AccountType;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.domain.UserRepository;
 import org.junit.jupiter.api.AfterEach;
