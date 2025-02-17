@@ -1,10 +1,9 @@
 package org.c4marathon.assignment.service;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.c4marathon.assignment.common.exception.NotFoundException;
@@ -34,6 +33,7 @@ public class SettlementService {
 	 * [Step3] 정산
 	 * @param requestDto - requestAccountId, totalAmount, type
 	 * */
+	@Transactional
 	public void divideMoney(SettlementRequestDto requestDto) {
 
 		if (requestDto.type() == SettlementType.EQUAL) {
@@ -47,8 +47,7 @@ public class SettlementService {
 	 * [Step3] 1/n정산
 	 * 딱 나누어 떨어지지 않을 경우 정해진 순서 없이 아무나에게 1씩 추가 정산 요청
 	 * */
-	@Transactional
-	protected void divideEqual(SettlementRequestDto requestDto) {
+	private void divideEqual(SettlementRequestDto requestDto) {
 		List<Long> settlementMemberIds = requestDto.settlementMemberIds();
 		int totalPeople = settlementMemberIds.size();
 		int totalAmount = requestDto.totalAmount();
@@ -81,12 +80,11 @@ public class SettlementService {
 	 * [Step3] Random 정산 (0원 가능)
 	 * 카카오페이의 돈 뿌리기 처럼 돈을 못받는? 정산하지 않아도 되는 사람이 생길 수도 있다.
 	 * */
-	@Transactional
-	protected void divideRandom(SettlementRequestDto requestDto) {
+	private void divideRandom(SettlementRequestDto requestDto) {
 		List<Long> settlementMemberIds = requestDto.settlementMemberIds();
 		int totalPeople = settlementMemberIds.size();
 		int totalAmount = requestDto.totalAmount();
-		Random random = new Random();
+		SecureRandom random = new SecureRandom();
 
 		//Settlement
 		Settlement settlement = new Settlement(requestDto.requestAccountId(), totalAmount, totalAmount, totalPeople, SettlementType.RANDOM, SettlementStatus.PENDING, null);

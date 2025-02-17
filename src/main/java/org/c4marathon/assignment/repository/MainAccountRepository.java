@@ -15,8 +15,13 @@ public interface MainAccountRepository extends JpaRepository<MainAccount, Long> 
 	@Query("SELECT m FROM MainAccount m WHERE m.id = :accountId")
 	Optional<MainAccount> findByIdWithXLock(@Param("accountId") Long accountId);
 
-	@Modifying
+	/**
+	 * 추후 batchUpdateChargeLimit를 Spring JDBC (JdbcTemplate.batchUpdate) + 영속성 컨텍스트 초기화해보는 방법으로 성능테스트 해보기
+	 * */
+	@Modifying(clearAutomatically = true)
 	@Query("UPDATE MainAccount m SET m.limit = :chargeLimit WHERE m.id IN :accountIds")
 	void batchUpdateChargeLimit(@Param("accountIds") List<Long> accountIds, @Param("chargeLimit") Long chargeLimit);
+
+
 
 }

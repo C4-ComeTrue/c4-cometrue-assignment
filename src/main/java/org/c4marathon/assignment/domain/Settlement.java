@@ -76,4 +76,6 @@ public class Settlement extends BaseEntity{
 		this.status = status;
 	}
 
+
+
 }

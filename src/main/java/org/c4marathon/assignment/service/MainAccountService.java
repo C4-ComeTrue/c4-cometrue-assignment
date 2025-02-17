@@ -24,12 +24,12 @@ import lombok.RequiredArgsConstructor;
 public class MainAccountService {
 	private final MainAccountRepository mainAccountRepository;
 	private final RedisTemplate<String,Long> redisTemplate;
-	static final long chargeLimit = 3000000L;
+	static final long CHARGE_LIMIT = 3000000L;
 	static int counter = 1;
 
 	@Transactional
 	public void createMainAccount(User user){
-		MainAccount mainAccount = new MainAccount(user, BankSystemUtil.createAccountNumber(counter), 0, chargeLimit,
+		MainAccount mainAccount = new MainAccount(user, BankSystemUtil.createAccountNumber(counter), 0, CHARGE_LIMIT,
 			LocalDateTime.now());
 		mainAccountRepository.save(mainAccount);
 	}
@@ -142,7 +142,7 @@ public class MainAccountService {
 		/* Redis에 해당 계좌id가 없다면 일일한도 3,000,000으로 세팅 */
 		Long currentLimit = redisTemplate.opsForValue().get("dailyLimit:"+mainAccountId);
 		if(currentLimit == null) {
-			currentLimit = chargeLimit;
+			currentLimit = CHARGE_LIMIT;
 			redisTemplate.opsForValue().set("dailyLimit:" + mainAccountId,currentLimit);
 		}
 
