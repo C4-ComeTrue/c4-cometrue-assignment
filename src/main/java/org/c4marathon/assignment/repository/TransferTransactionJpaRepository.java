@@ -2,6 +2,7 @@ package org.c4marathon.assignment.repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.c4marathon.assignment.entity.TransactionStatus;
 import org.c4marathon.assignment.entity.TransactionType;
@@ -41,4 +42,6 @@ public interface TransferTransactionJpaRepository extends JpaRepository<Transfer
 			AND t.createDate < :targetTime
 		""")
 	List<TransferTransaction> findExpiredTransferTransactions(TransactionStatus status, TransactionType type, Instant targetTime);
+
+	Optional<TransferTransaction> findByIdAndStatus(Long transferTransactionId, TransactionStatus status);
 }

@@ -7,13 +7,19 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.c4marathon.assignment.dto.MessageDto;
+import org.c4marathon.assignment.dto.request.TransferAcceptReq;
+import org.c4marathon.assignment.dto.response.TransferRes;
 import org.c4marathon.assignment.entity.TransactionStatus;
 import org.c4marathon.assignment.entity.TransactionType;
 import org.c4marathon.assignment.entity.TransferTransaction;
+import org.c4marathon.assignment.exception.CustomException;
+import org.c4marathon.assignment.exception.ErrorCode;
+import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.TransferTransactionRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TransactionService {
 	private final TransferTransactionRepository transferTransactionRepository;
+	private final AccountRepository accountRepository;
 	private final MessageService messageService;
 
 	public TransferTransaction saveTransferTransaction(TransferTransaction transferTransaction) {
@@ -101,5 +108,36 @@ public class TransactionService {
 				.type(transferTransaction.getType())
 				.build());
 		}));
+	}
+
+	@Transactional
+	public void acceptTransfer(Long transferTransactionId, TransferAcceptReq transferAcceptReq) {
+		TransferTransaction transferTransaction = transferTransactionRepository.findByIdAndStatus(transferTransactionId,
+			TransactionStatus.PENDING).orElseThrow(() -> new CustomException(ErrorCode.TRANSFER_TRANSACTION_NOT_FOUND));
+
+		if (transferTransaction.getReceiverId() != transferAcceptReq.requester()) {
+			throw new CustomException(ErrorCode.INVALID_TRANSFER_REQUEST);
+		}
+
+		updateTransferTransactionStatus(transferTransactionId, TransactionStatus.SUCCESS);
+
+		updateBalance(transferTransaction.getReceiverMainAccount(), transferTransaction.getAmount());
+	}
+
+	private void updateTransferTransactionStatus(Long transferTransactionId, TransactionStatus status) {
+		int transferTransactionResult = transferTransactionRepository.updateStatus(transferTransactionId,
+			TransactionStatus.PENDING, status);
+
+		if (transferTransactionResult == 0) {
+			throw new CustomException(ErrorCode.TRANSFER_TRANSACTION_NOT_FOUND);
+		}
+	}
+
+	private void updateBalance(Long accountId, Long amount) {
+		int accountResult = accountRepository.updateBalance(accountId, amount);
+
+		if (accountResult == 0) {
+			throw new CustomException(ErrorCode.ACCOUNT_NOT_FOUND);
+		}
 	}
 }

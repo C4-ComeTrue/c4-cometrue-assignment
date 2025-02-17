@@ -2,6 +2,7 @@ package org.c4marathon.assignment.repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.c4marathon.assignment.entity.TransactionStatus;
 import org.c4marathon.assignment.entity.TransactionType;
@@ -36,5 +37,9 @@ public class TransferTransactionRepository {
 	public List<TransferTransaction> findExpiredTransferTransactions(TransactionStatus status, TransactionType type,
 		Instant targetTime) {
 		return transferTransactionJpaRepository.findExpiredTransferTransactions(status, type, targetTime);
+	}
+
+	public Optional<TransferTransaction> findByIdAndStatus(Long transferTransactionId, TransactionStatus status) {
+		return transferTransactionJpaRepository.findByIdAndStatus(transferTransactionId, status);
 	}
 }
