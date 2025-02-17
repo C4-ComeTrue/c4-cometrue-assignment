@@ -101,7 +101,7 @@ class DepositServiceTest extends IntegrationTestSupport {
 
 	@DisplayName("송금 내역 상태가 PENDING_DEPOSIT이 아닌 송금 내역을 수령 시 예외가 발생한다.")
 	@Test
-	void depositByReceiverWithInvalidTransactionStatus() throws Exception {
+	void depositByReceiverWithInvalidTransactionStatus() {
 	    // given
 		Account receiverAccount = createAccount(10000L);
 		Transaction transaction = Transaction.create(1L, receiverAccount.getId(), 2000L, PENDING_TRANSFER,

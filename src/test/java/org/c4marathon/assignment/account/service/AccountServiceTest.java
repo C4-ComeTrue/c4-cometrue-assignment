@@ -21,7 +21,6 @@ import org.c4marathon.assignment.global.event.transactional.TransactionCreateEve
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.transaction.domain.Transaction;
-import org.c4marathon.assignment.transaction.domain.TransactionStatus;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
 import org.c4marathon.assignment.transaction.exception.NotFoundTransactionException;
