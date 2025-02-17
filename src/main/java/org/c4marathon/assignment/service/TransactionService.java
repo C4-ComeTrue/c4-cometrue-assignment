@@ -51,6 +51,7 @@ public class TransactionService {
 				.transferTransactionId(transferTransaction.getId())
 				.account(transferTransaction.getReceiverMainAccount())
 				.amount(transferTransaction.getAmount())
+				.type(transferTransaction.getType())
 				.build());
 		}));
 	}
@@ -73,6 +74,32 @@ public class TransactionService {
 
 		transferTransactions.forEach((transferTransaction -> {
 			log.debug("{} 알림 발송", Thread.currentThread().getName());
+		}));
+	}
+
+	/**
+	 * 72시간 지난 송금 취소 스케줄러
+	 * 1. 72시간 지난 송금 송금 내역 조회
+	 * 2. 송금 취소
+	 */
+	@Async(ASYNC_SCHEDULER_TASK_EXECUTOR_NAME)
+	@Scheduled(cron = "0 * * * * *")
+	public void cancelTransfer() {
+		Instant targetTime = Instant.now().minus(72, ChronoUnit.HOURS);
+		List<TransferTransaction> transferTransactions = transferTransactionRepository.findExpiredTransferTransactions(
+			TransactionStatus.PENDING, TransactionType.PENDING, targetTime);
+
+		if (transferTransactions.isEmpty()) {
+			return;
+		}
+
+		transferTransactions.forEach((transferTransaction -> {
+			messageService.sendTransaction(MessageDto.builder()
+				.transferTransactionId(transferTransaction.getId())
+				.account(transferTransaction.getSenderMainAccount())
+				.amount(transferTransaction.getAmount())
+				.type(transferTransaction.getType())
+				.build());
 		}));
 	}
 }
