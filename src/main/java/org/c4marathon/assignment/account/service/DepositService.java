@@ -57,8 +57,7 @@ public class DepositService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void depositByReceiver(Long receiverAccountId, Long transactionalId) {
-		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(
-				transactionalId)
+		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
 		validationTransaction(receiverAccountId, transaction);
