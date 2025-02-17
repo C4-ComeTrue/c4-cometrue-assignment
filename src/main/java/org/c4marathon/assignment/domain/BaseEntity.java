@@ -2,6 +2,9 @@ package org.c4marathon.assignment.domain;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
@@ -13,9 +16,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class BaseEntity {
 
+	@CreatedDate
 	@Column(name = "created_at", nullable = false, columnDefinition = "datetime")
 	private LocalDateTime createdAt;
 
+	@LastModifiedDate
 	@Column(name = "updated_at", nullable = false, columnDefinition = "datetime")
 	private LocalDateTime updatedAt;
 
