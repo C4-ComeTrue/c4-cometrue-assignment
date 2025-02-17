@@ -27,6 +27,6 @@ public class TransactionController {
 	@PostMapping("/transfer")
 	public ResponseEntity<TransferResult> transfer(@RequestBody TransferRequest request) {
 		return ResponseEntity.ok(
-			transactionService.transfer(request.senderAccountNumber(), request.receiverAccountNumber(), request.money()));
+			transactionService.wireTransfer(request.senderAccountNumber(), request.receiverAccountNumber(), request.money()));
 	}
 }

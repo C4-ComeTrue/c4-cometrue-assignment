@@ -16,12 +16,12 @@ import lombok.RequiredArgsConstructor;
 public class TransactionService {
 	private static final long CEILING_POINT = 10_000L;
 
-	private final AccountTransactionService accountTxService;
+	private final TransactionProcessor transactionProcessor;
 	private final AccountRepository accountRepository;
 
 	// 단순 출금
 	public WithdrawResult withdraw(String accountNumber, long money) {
-		accountTxService.updateBalance(accountNumber, -money);
+		transactionProcessor.updateBalance(accountNumber, -money);
 
 		return new WithdrawResult(money);
 	}
@@ -33,13 +33,13 @@ public class TransactionService {
 	 * @param money
 	 * @return
 	 */
-	public TransferResult transfer(String senderAccountNumber, String receiverAccountNumber, long money) {
+	public TransferResult wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
 		validateSender(senderAccountNumber, receiverAccountNumber);
 		long diff = computeBalanceDiff(senderAccountNumber, money);
 		if (diff < 0) {
-			accountTxService.updateBalance(senderAccountNumber, getCeil(-diff, CEILING_POINT));
+			transactionProcessor.updateBalance(senderAccountNumber, getCeil(-diff, CEILING_POINT));
 		}
-		accountTxService.wireTransfer(senderAccountNumber, receiverAccountNumber, money);
+		transactionProcessor.wireTransfer(senderAccountNumber, receiverAccountNumber, money);
 
 		return new TransferResult(senderAccountNumber, receiverAccountNumber, money);
 	}

@@ -67,7 +67,7 @@ class AccountServiceTest {
 		IntStream.range(1, TEST_USERS).forEach(idx ->
 			threadPool.execute(() -> {
 				try {
-					transactionService.transfer(
+					transactionService.wireTransfer(
 						testAccounts.get(idx).getAccountNumber(),
 						testAccounts.get(0).getAccountNumber(),
 						sendMoney);
@@ -115,7 +115,7 @@ class AccountServiceTest {
 		IntStream.range(1, TEST_USERS).forEach(idx ->
 			threadPool.execute(() -> {
 				try {
-					transactionService.transfer(
+					transactionService.wireTransfer(
 						testAccounts.get(idx).getAccountNumber(),
 						testAccounts.get(0).getAccountNumber(),
 						sendMoney);
