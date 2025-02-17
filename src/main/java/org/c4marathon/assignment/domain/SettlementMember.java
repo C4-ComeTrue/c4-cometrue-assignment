@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.domain;
 
-import org.c4marathon.assignment.domain.enums.SettlementStatus;
+import org.c4marathon.assignment.domain.enums.TransactionStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,10 +12,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "settlement_member")
 @Getter
 @NoArgsConstructor
 public class SettlementMember {
@@ -31,26 +33,17 @@ public class SettlementMember {
 	@Column(name = "amount", nullable = false)
 	private long amount;
 
-	@Column(name = "status", nullable = false)
-	@Enumerated(EnumType.STRING)
-	private SettlementStatus status;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "settlement_id", nullable = false)
 	private Settlement settlement;
 
-	public SettlementMember(long accountId, long amount, SettlementStatus status, Settlement settlement) {
+	public SettlementMember(long accountId, long amount, Settlement settlement) {
 		this.accountId = accountId;
 		this.amount = amount;
-		this.status = status;
 		this.settlement = settlement;
 	}
 
 	public void updateAmount(long money) {
 		this.amount += money;
-	}
-
-	public void updateStatus(SettlementStatus status) {
-		this.status = status;
 	}
 }

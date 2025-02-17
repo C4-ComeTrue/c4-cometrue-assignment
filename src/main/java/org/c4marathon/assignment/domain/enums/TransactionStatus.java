@@ -1,7 +1,8 @@
 package org.c4marathon.assignment.domain.enums;
 
-public enum SettlementStatus {
+public enum TransactionStatus {
 	REQUESTED,
 	PENDING,
-	SUCCESS
+	SUCCESS,
+	CANCELED
 }
