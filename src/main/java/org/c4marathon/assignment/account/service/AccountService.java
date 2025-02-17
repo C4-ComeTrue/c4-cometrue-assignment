@@ -167,6 +167,11 @@ public class AccountService {
 		transaction.updateStatus(CANCEL);
 	}
 
+	/**
+	 * 입금 재시도가 실패하면 송금 롤백을 하는 로직
+	 * @param senderAccountId
+	 * @param money
+	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void rollbackWithdraw(Long senderAccountId, long money) {
 		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
