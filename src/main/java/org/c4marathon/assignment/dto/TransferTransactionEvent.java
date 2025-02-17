@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.dto;
 
 import org.c4marathon.assignment.entity.TransactionType;
-import org.c4marathon.assignment.entity.TransferTransaction;
 
 import lombok.Getter;
 

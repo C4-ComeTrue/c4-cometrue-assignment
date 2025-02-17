@@ -1,7 +1,6 @@
 package org.c4marathon.assignment.controller;
 
 import org.c4marathon.assignment.dto.request.TransferAcceptReq;
-import org.c4marathon.assignment.dto.response.TransferRes;
 import org.c4marathon.assignment.service.TransactionService;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

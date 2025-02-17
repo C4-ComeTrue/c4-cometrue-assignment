@@ -21,10 +21,6 @@ public class AccountRepository {
 		return accountJpaRepository.findByIdWithWriteLock(id);
 	}
 
-	public boolean existsById(long receiverMainAccount) {
-		return accountJpaRepository.existsById(receiverMainAccount);
-	}
-
 	public int updateBalance(Long receiverMainAccount, Long amount) {
 		return accountJpaRepository.updateBalance(receiverMainAccount,amount);
 	}

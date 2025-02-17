@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.c4marathon.assignment.dto.MessageDto;
 import org.c4marathon.assignment.dto.request.TransferAcceptReq;
-import org.c4marathon.assignment.dto.response.TransferRes;
 import org.c4marathon.assignment.entity.TransactionStatus;
 import org.c4marathon.assignment.entity.TransactionType;
 import org.c4marathon.assignment.entity.TransferTransaction;
