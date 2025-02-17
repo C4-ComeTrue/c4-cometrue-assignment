@@ -13,6 +13,7 @@ spring:
     properties:
       hibernate:
         format_sql: false
+        default_batch_fetch_size: 100
         use_sql_comments: false
         dialect: org.hibernate.dialect.MySQLDialect
   data:
@@ -21,3 +22,16 @@ spring:
       port: 6379
       password: ${REDIS_PASSWORD}
       timeout: 2000
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_ADDRESS}
+    password: ${GMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true
