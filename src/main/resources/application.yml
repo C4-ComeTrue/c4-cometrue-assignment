@@ -16,6 +16,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+        default_batch_fetch_size: 100
 
   data:
     redis:
@@ -37,6 +38,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_batch_fetch_size: 100
     defer-datasource-initialization: true # (2.5~) Hibernate ??? ?? data.sql ??
 
   data:
@@ -62,6 +64,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_batch_fetch_size: 100
         dialect: org.hibernate.dialect.H2Dialect
   data:
     redis:
