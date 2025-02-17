@@ -81,6 +81,15 @@ spring:
         format_sql: true
         default_batch_fetch_size: 100
         dialect: org.hibernate.dialect.H2Dialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@test.com
+    password: testPassword
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
   data:
     redis:
       port: 6379
