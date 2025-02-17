@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/v1/accounts")
+@RequestMapping("/v1/account")
 @RequiredArgsConstructor
 public class AccountController {
 	private final AccountService accountService;
