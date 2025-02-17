@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,6 +35,10 @@ public class User extends BaseEntity {
 
 	@Column(name = "acc_charge", nullable = false)
 	private long accCharge;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "sending_type")
+	private SendingType sendingType;
 
 	@Builder
 	private User(LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt,
