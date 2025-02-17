@@ -2,8 +2,12 @@ package org.c4marathon.assignment.domain;
 
 import java.time.LocalDateTime;
 
+import org.c4marathon.assignment.domain.type.TransactionState;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +37,8 @@ public class Transaction {
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "state", nullable = false, length = 20)
-	private String state;
+	private TransactionState state;
 
 }
