@@ -2,8 +2,12 @@ package org.c4marathon.assignment.account.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.util.Const.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
+import static org.c4marathon.assignment.transaction.domain.TransactionStatus.PENDING_DEPOSIT;
 import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 import static org.mockito.BDDMockito.*;
+
+import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
@@ -16,6 +20,13 @@ import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
+import org.c4marathon.assignment.transaction.domain.Transaction;
+import org.c4marathon.assignment.transaction.domain.TransactionStatus;
+import org.c4marathon.assignment.transaction.domain.TransactionType;
+import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
+import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
+import org.c4marathon.assignment.transaction.exception.NotFoundTransactionException;
+import org.c4marathon.assignment.transaction.exception.UnauthorizedTransactionException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +53,9 @@ class AccountServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @MockBean
     private ApplicationEventPublisher eventPublisher;
@@ -213,6 +228,115 @@ class AccountServiceTest extends IntegrationTestSupport {
         Long senderAccountId = senderAccount.getId();
         assertThatThrownBy(() -> accountService.withdraw(senderAccountId, request))
             .isInstanceOf(DailyChargeLimitExceededException.class);
+    }
+
+
+    @Transactional
+    @DisplayName("수령 받지 않은 송금일 경우 송금한 사용자가 송금 취소를 할 수 있다.")
+    @Test
+    void cancelWithdraw() throws Exception {
+        // given
+        Account senderAccount = createAccount(5000L);
+        Account receiverAccount = createAccount(1000L);
+        LocalDateTime sendTime = LocalDateTime.now();
+
+        Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+            PENDING_TRANSFER, PENDING_DEPOSIT, sendTime);
+        transactionRepository.save(transaction);
+        // when
+        accountService.cancelWithdraw(senderAccount.getId(), transaction.getId());
+
+        // then
+        Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
+            .orElseThrow(NotFoundAccountException::new);
+        Account updatedReceiverAccount = accountRepository.findById(receiverAccount.getId())
+            .orElseThrow(NotFoundAccountException::new);
+        Transaction updatedTransaction = transactionRepository.findById(transaction.getId())
+            .orElseThrow(NotFoundTransactionException::new);
+
+        assertThat(updatedSenderAccount.getMoney()).isEqualTo(6000L);
+        assertThat(updatedReceiverAccount.getMoney()).isEqualTo(1000L);
+        assertThat(updatedTransaction.getStatus()).isEqualTo(CANCEL);
+    }
+
+    @DisplayName("이미 수령 받은 송금을 취소하려고 하면 예외가 발생한다.")
+    @Test
+    void cancelWithdrawForSuccessDeposit() throws Exception {
+        // given
+        Account senderAccount = createAccount(5000L);
+        Account receiverAccount = createAccount(1000L);
+        LocalDateTime sendTime = LocalDateTime.now();
+
+        Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+            PENDING_TRANSFER, SUCCESS_DEPOSIT, sendTime);
+        transactionRepository.save(transaction);
+
+        // when // then
+        assertThatThrownBy(() -> accountService.cancelWithdraw(senderAccount.getId(), transaction.getId()))
+            .isInstanceOf(InvalidTransactionStatusException.class);
+    }
+
+    @DisplayName("송금을 한 사용자가 아닌 사용자가 취소하려고 하면 예외가 발생한다.")
+    @Test
+    void cancelWithdrawByUnauthorizedMember() throws Exception {
+        // given
+        Account senderAccount = createAccount(5000L);
+        Account receiverAccount = createAccount(1000L);
+        Account otherAccount = createAccount(5000L);
+        LocalDateTime sendTime = LocalDateTime.now();
+
+        Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+            PENDING_TRANSFER, PENDING_DEPOSIT, sendTime);
+        transactionRepository.save(transaction);
+
+        // when // then
+        assertThatThrownBy(() -> accountService.cancelWithdraw(otherAccount.getId(), transaction.getId()))
+            .isInstanceOf(UnauthorizedTransactionException.class);
+    }
+
+    @Transactional
+    @DisplayName("72시간이 지난 수령 대기(PENDING_DEPOSIT) 중인 송금 내역은 취소시킨다.")
+    @Test
+    void cancelWithdrawByExpirationTime() throws Exception {
+        // given
+        Account senderAccount = createAccount(5000L);
+        Account receiverAccount = createAccount(1000L);
+        LocalDateTime sendTime = LocalDateTime.now().minusHours(73);
+
+        Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+            PENDING_TRANSFER, PENDING_DEPOSIT, sendTime);
+        transactionRepository.save(transaction);
+
+        // when
+        accountService.cancelWithdrawByExpirationTime(transaction);
+
+        // then
+        Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
+            .orElseThrow(NotFoundAccountException::new);
+        Account updatedReceiverAccount = accountRepository.findById(receiverAccount.getId())
+            .orElseThrow(NotFoundAccountException::new);
+        Transaction updatedTransaction = transactionRepository.findById(transaction.getId())
+            .orElseThrow(NotFoundTransactionException::new);
+
+        assertThat(updatedSenderAccount.getMoney()).isEqualTo(6000L);
+        assertThat(updatedReceiverAccount.getMoney()).isEqualTo(1000L);
+        assertThat(updatedTransaction.getStatus()).isEqualTo(CANCEL);
+    }
+
+    @DisplayName("입금 재시도가 실패하면 송금 롤백이 성공한다.")
+    @Test
+    void rollbackWithdraw() throws Exception {
+        // given
+        Account senderAccount = createAccount(10000L);
+        long rollbackMoney = 20000L;
+
+        // when
+        accountService.rollbackWithdraw(senderAccount.getId(), rollbackMoney);
+
+        // then
+        Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
+            .orElseThrow(NotFoundAccountException::new);
+        assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
     }
 
     private Account createAccount(long money) {
