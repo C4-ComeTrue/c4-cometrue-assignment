@@ -18,6 +18,7 @@ import java.util.stream.IntStream;
 import org.c4marathon.assignment.account.service.DepositService;
 import org.c4marathon.assignment.global.core.MiniPayThreadPoolExecutor;
 import org.c4marathon.assignment.transaction.domain.Transaction;
+import org.c4marathon.assignment.transaction.service.TransactionQueryService;
 import org.c4marathon.assignment.transaction.service.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +38,7 @@ class DepositSchedulerTest {
 	private DepositService depositService;
 
 	@Mock
-	private TransactionService transactionService;
+	private TransactionQueryService transactionQueryService;
 
 	@InjectMocks
 	private DepositScheduler depositScheduler;
@@ -60,7 +61,7 @@ class DepositSchedulerTest {
 		AtomicInteger concurrentExecutions = new AtomicInteger(0);
 		AtomicInteger maxConcurrentExecutions = new AtomicInteger(0);
 
-		List<Transaction> transactionals = new ArrayList<>();
+		List<Transaction> transactions = new ArrayList<>();
 		for (int i = 0; i < numberOfDeposits; i++) {
 			Transaction transactional = Transaction.create(
 				i + 1L,
@@ -70,12 +71,12 @@ class DepositSchedulerTest {
 				WITHDRAW,
 				LocalDateTime.now()
 			);
-			transactionals.add(transactional);
+			transactions.add(transactional);
 		}
 
-		given(transactionService.findTransactionByStatusWithLastId(
+		given(transactionQueryService.findTransactionByStatusWithLastId(
 			eq(WITHDRAW), isNull(), eq(PAGE_SIZE)))
-			.willReturn(transactionals)
+			.willReturn(transactions)
 			.willReturn(Collections.emptyList());
 
 
@@ -104,7 +105,7 @@ class DepositSchedulerTest {
 		assertThat(executionTime).isLessThan(400L);
 
 		verify(depositService, times(numberOfDeposits)).successDeposit(any(Transaction.class));
-		verify(transactionService, times(2))
+		verify(transactionQueryService, times(2))
 			.findTransactionByStatusWithLastId(any(), any(), eq(PAGE_SIZE));
 	}
 
@@ -120,7 +121,7 @@ class DepositSchedulerTest {
 
 		AtomicLong actualTotalAmount = new AtomicLong(0);
 
-		List<Transaction> transactionals = IntStream.range(0, numberOfDeposits)
+		List<Transaction> transactions = IntStream.range(0, numberOfDeposits)
 			.mapToObj(i -> Transaction.create(
 				i + 1L,
 				i + 2L,
@@ -131,9 +132,9 @@ class DepositSchedulerTest {
 			))
 			.toList();
 
-		given(transactionService.findTransactionByStatusWithLastId(
+		given(transactionQueryService.findTransactionByStatusWithLastId(
 			eq(WITHDRAW), isNull(), eq(PAGE_SIZE)))
-			.willReturn(transactionals)
+			.willReturn(transactions)
 			.willReturn(Collections.emptyList());
 
 		doAnswer(invocation -> {
@@ -160,7 +161,7 @@ class DepositSchedulerTest {
 	void retryDeposit() {
 		// given
 		int numberOfDeposits = 10;
-		List<Transaction> transactionals = IntStream.range(0, numberOfDeposits)
+		List<Transaction> transactions = IntStream.range(0, numberOfDeposits)
 			.mapToObj(i -> Transaction.create(
 				i + 1L,
 				i + 2L,
@@ -172,16 +173,16 @@ class DepositSchedulerTest {
 			.toList();
 
 
-		given(transactionService.findTransactionByStatusWithLastId(
+		given(transactionQueryService.findTransactionByStatusWithLastId(
 			eq(FAILED_DEPOSIT), isNull(), eq(PAGE_SIZE)))
-			.willReturn(transactionals)
+			.willReturn(transactions)
 			.willReturn(Collections.emptyList());
 
 		// when
 		depositScheduler.retryDeposit();
 
 		// then
-		verify(transactionService, times(2))
+		verify(transactionQueryService, times(2))
 			.findTransactionByStatusWithLastId(eq(FAILED_DEPOSIT), any(), eq(PAGE_SIZE));
 
 		verify(depositService, times(numberOfDeposits)).failedDeposit(any(Transaction.class));
