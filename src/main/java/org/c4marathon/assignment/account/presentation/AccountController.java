@@ -61,7 +61,7 @@ public class AccountController {
         @Login SessionMemberInfo loginMember,
         @RequestParam @NotNull @Positive Long transactionalId
     ) {
-        depositService.deposit(loginMember.accountId(), transactionalId);
+        depositService.depositByReceiver(loginMember.accountId(), transactionalId);
         return ResponseEntity.ok().build();
     }
 
