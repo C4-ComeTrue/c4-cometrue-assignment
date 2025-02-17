@@ -51,10 +51,10 @@ public class UserService {
 		long money = request.money();
 		SettlementType settlementType = request.settlementType();
 
-		List<Long> settled = settlementType.settle(userIds.size(), money);
 		List<User> users = userRepository.findAllById(userIds);
+		List<Long> settled = settlementType.settle(users.size(), money);
 
-		return IntStream.range(0, userIds.size())
+		return IntStream.range(0, users.size())
 			.mapToObj(idx ->
 				new SettlementResult(users.get(idx).getId(), users.get(idx).getEmail(), settled.get(idx)))
 			.toList();
