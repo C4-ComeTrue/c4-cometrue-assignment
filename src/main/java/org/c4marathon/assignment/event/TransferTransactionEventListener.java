@@ -47,6 +47,7 @@ public class TransferTransactionEventListener {
 			.transferTransactionId(immediateTransferEvent.getTransferTransactionId())
 			.account(immediateTransferEvent.getReceiverMainAccount())
 			.amount(immediateTransferEvent.getAmount())
+			.type(immediateTransferEvent.getType())
 			.build());
 	}
 }
