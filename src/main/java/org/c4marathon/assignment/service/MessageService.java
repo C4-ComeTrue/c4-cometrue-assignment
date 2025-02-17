@@ -42,32 +42,28 @@ public class MessageService {
 		log.info("Received message: {}", messageDto.toString());
 
 		TransactionStatus newStatus = determineTransactionStatus(messageDto.getType());
-		int transferTransactionResult = processTransactionStatus(messageDto.getTransferTransactionId(), newStatus);
-
-		int accountResult = updateBalance(messageDto.getAccount(), messageDto.getAmount());
-
-		validateUpdateResults(transferTransactionResult, accountResult);
-	}
-
-	private int updateBalance(Long accountId, Long amount) {
-		return accountRepository.updateBalance(accountId, amount);
+		processTransactionStatus(messageDto.getTransferTransactionId(), newStatus);
+		updateBalance(messageDto.getAccount(), messageDto.getAmount());
 	}
 
 	private TransactionStatus determineTransactionStatus(TransactionType type) {
 		return (type == TransactionType.PENDING) ? TransactionStatus.CANCEL : TransactionStatus.SUCCESS;
 	}
 
-	private int processTransactionStatus(Long transactionId, TransactionStatus newStatus) {
-		return transferTransactionRepository.updateStatus(transactionId, TransactionStatus.PENDING, newStatus);
-	}
-
-	private void validateUpdateResults(int transferTransactionResult, int accountResult) {
-		if (transferTransactionResult == 0) {
-			throw new CustomException(ErrorCode.TRANSFER_TRANSACTION_NOT_FOUND);
-		}
+	private void updateBalance(Long accountId, Long amount) {
+		int accountResult = accountRepository.updateBalance(accountId, amount);
 
 		if (accountResult == 0) {
 			throw new CustomException(ErrorCode.ACCOUNT_NOT_FOUND);
+		}
+	}
+
+	private void processTransactionStatus(Long transactionId, TransactionStatus newStatus) {
+		int transferTransactionResult = transferTransactionRepository.updateStatus(transactionId,
+			TransactionStatus.PENDING, newStatus);
+
+		if (transferTransactionResult == 0) {
+			throw new CustomException(ErrorCode.TRANSFER_TRANSACTION_NOT_FOUND);
 		}
 	}
 }
