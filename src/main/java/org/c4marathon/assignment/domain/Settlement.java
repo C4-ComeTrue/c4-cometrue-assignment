@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.c4marathon.assignment.domain.enums.SettlementStatus;
@@ -50,7 +51,7 @@ public class Settlement extends BaseEntity{
 	private SettlementStatus status;
 
 	@OneToMany(mappedBy = "settlement", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	private List<SettlementMember> settlementMembers;
+	private List<SettlementMember> settlementMembers = new ArrayList<>();
 
 	public Settlement(Long requestAccountId, long totalAmount,long remainAmount, int people, SettlementType type, SettlementStatus status,
 		List<SettlementMember> settlementMembers) {
