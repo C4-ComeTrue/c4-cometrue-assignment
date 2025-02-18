@@ -14,7 +14,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -55,13 +54,17 @@ public class Transaction extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private TransactionType type;
 
+	@Column(name = "pending_mail_sent", nullable = false)
+	private boolean mailSent = false;
+
 	@Column(name = "pending_date")
 	private LocalDateTime pendingDate;
 
-	public Transaction(long senderAccountId, long receiverAccountId, long amount, TransactionStatus status,
+	public Transaction(long senderAccountId, long receiverAccountId,SettlementMember settlementMember, long amount, TransactionStatus status,
 		TransactionType type) {
 		this.senderAccountId = senderAccountId;
 		this.receiverAccountId = receiverAccountId;
+		this.settlementMember = settlementMember;
 		this.amount = amount;
 		this.status = status;
 		this.type = type;
@@ -78,6 +81,10 @@ public class Transaction extends BaseEntity {
 
 	public void cancelTransaction() {
 		this.status = TransactionStatus.CANCELED;
+	}
+
+	public void pendingMailSent(){
+		this.mailSent = true;
 	}
 
 }
