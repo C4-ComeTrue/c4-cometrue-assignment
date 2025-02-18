@@ -197,7 +197,7 @@ public class SettlementService {
 	 * */
 	@Scheduled(fixedRate = 300000)
 	public void sendRemindersForPendingTransactions() {
-		LocalDateTime endDate = LocalDateTime.now().minusHours(24);
+		LocalDateTime endDate = LocalDateTime.now().minusHours(48);
 
 		QueryExecuteTemplate.<Transaction>selectAndExecuteWithCursorAndPageLimit(
 			-1,
