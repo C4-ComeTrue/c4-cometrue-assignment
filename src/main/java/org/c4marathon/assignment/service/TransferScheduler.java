@@ -22,7 +22,7 @@ public class TransferScheduler {
 	 * (1) 너무 짧은 주기로 실행할 경우 CPU 부하가 높아지도 레디스에도 부하가 많아진다.
 	 * 		=> 더 빨리 실시간 이체를 해야할 경우에는 메시지큐를 사용
 	 * **/
-	@Scheduled(fixedRate = 3000)
+	@Scheduled(fixedRate = 3000) //3초
 	public void completeTransfer() {
 		int batchSize = 1000;
 		String cursor = "0";
