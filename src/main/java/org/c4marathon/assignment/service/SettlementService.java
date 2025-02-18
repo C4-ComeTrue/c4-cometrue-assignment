@@ -173,7 +173,7 @@ public class SettlementService {
 	}
 
 	/**
-	 * [Step4] 만료된 송금 처리 (환불 + 상태 변경)
+	 * [Step4] (72시간 초과 시 자동 취소) >  (환불 + 상태 변경)
 	 */
 	@Transactional
 	public void processExpiredTransactions(List<Transaction> transactions) {
