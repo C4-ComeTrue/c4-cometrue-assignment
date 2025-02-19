@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.account.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,9 @@ public class Account extends BaseEntity {
     @Column(name = "account_id")
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String accountNumber;
+
     @Column(nullable = false)
     private long money;
 
@@ -29,16 +33,18 @@ public class Account extends BaseEntity {
     private long chargeLimit;
 
     @Builder
-    private Account(long money, long chargeLimit) {
+    private Account(String accountNumber, long money, long chargeLimit) {
+        this.accountNumber = accountNumber;
         this.money = money;
         this.chargeLimit = chargeLimit;
     }
 
-    public static Account create(long money) {
+    public static Account create(String accountNumber, long money) {
         return Account.builder()
-                .chargeLimit(CHARGE_LIMIT)
-                .money(money)
-                .build();
+            .accountNumber(accountNumber)
+            .chargeLimit(CHARGE_LIMIT)
+            .money(money)
+            .build();
     }
 
     public void withdraw(long money) {

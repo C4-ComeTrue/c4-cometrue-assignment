@@ -15,6 +15,7 @@ import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
@@ -40,14 +41,18 @@ public class AccountService {
 
 	private final ApplicationEventPublisher eventPublisher;
 
+	public static final String ACCOUNT_PREFIX = "3333";
+
 	@Transactional
 	public void createAccount(Long memberId) {
-		Account account = Account.create(DEFAULT_BALANCE);
+		String accountNumber = AccountNumberUtil.generateAccountNumber(ACCOUNT_PREFIX);
+
+		Account account = Account.create(accountNumber, DEFAULT_BALANCE);
 		accountRepository.save(account);
 
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(NotFoundMemberException::new);
-		member.setMainAccountId(account.getId());
+		member.setMainAccountNumber(account.getAccountNumber());
 
 		memberRepository.save(member);
 	}
@@ -55,13 +60,13 @@ public class AccountService {
 	/**
 	 * 메인 계좌에 돈을 충전하다.
 	 * 한 번에 메인 계좌에다가 충전을 여러 번 할 수도 있다. 어떻게 관리해야하나?
-	 * @param accountId
+	 * @param accountNumber
 	 * @param money
 	 */
 	//기본값 -> Repeatable Read
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void chargeMoney(Long accountId, long money) {
-		Account account = accountRepository.findByIdWithLock(accountId)
+	public void chargeMoney(String accountNumber, long money) {
+		Account account = accountRepository.findByAccountNumberWithLock(accountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		if (!account.isChargeWithinDailyLimit(money)) {
@@ -72,9 +77,15 @@ public class AccountService {
 		accountRepository.save(account);
 	}
 
+	/**
+	 * 변경
+	 * @param accountNumber
+	 * @param savingAccountId
+	 * @param money
+	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void sendToSavingAccount(Long accountId, Long savingAccountId, long money) {
-		Account account = accountRepository.findByIdWithLock(accountId)
+	public void sendToSavingAccount(String accountNumber, Long savingAccountId, long money) {
+		Account account = accountRepository.findByAccountNumberWithLock(accountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		if (!account.isSend(money)) {
@@ -94,12 +105,12 @@ public class AccountService {
 	/**
 	 * 송금 시 송금 내역을 저장하는 이벤트 발행 후 커밋
 	 *
-	 * @param senderAccountId
+	 * @param senderAccountNumber
 	 * @param request
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void withdraw(Long senderAccountId, WithdrawRequest request) {
-		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+	public void withdraw(String senderAccountNumber, WithdrawRequest request) {
+		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		if (!senderAccount.isSend(request.money())) {
@@ -112,8 +123,8 @@ public class AccountService {
 		if (request.type().equals(IMMEDIATE_TRANSFER)) {
 			eventPublisher.publishEvent(
 				new TransactionCreateEvent(
-					senderAccountId,
-					request.receiverAccountId(),
+					senderAccountNumber,
+					request.receiverAccountNumber(),
 					request.money(),
 					request.type(),
 					WITHDRAW,
@@ -123,8 +134,8 @@ public class AccountService {
 		} else if (request.type().equals(PENDING_TRANSFER)) {
 			eventPublisher.publishEvent(
 				new TransactionCreateEvent(
-					senderAccountId,
-					request.receiverAccountId(),
+					senderAccountNumber,
+					request.receiverAccountNumber(),
 					request.money(),
 					request.type(),
 					PENDING_DEPOSIT,
@@ -138,17 +149,17 @@ public class AccountService {
 	 * 송금 취소 기능(사용자가 직접 취소 요청)
 	 * 취소하려는 송금 내역을 가져와 검증 후 송금을 취소함
 	 *
-	 * @param senderAccountId
+	 * @param senderAccountNumber
 	 * @param transactionalId
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void cancelWithdraw(Long senderAccountId, Long transactionalId) {
+	public void cancelWithdraw(String senderAccountNumber, Long transactionalId) {
 		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
-		validationTransactional(senderAccountId, transaction);
+		validationTransactional(senderAccountNumber, transaction);
 
-		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		senderAccount.deposit(transaction.getAmount());
@@ -161,7 +172,7 @@ public class AccountService {
 	 * @param transaction
 	 */
 	public void cancelWithdrawByExpirationTime(Transaction transaction) {
-		Account senderAccount = accountRepository.findByIdWithLock(transaction.getSenderAccountId())
+		Account senderAccount = accountRepository.findByAccountNumberWithLock(transaction.getSenderAccountNumber())
 			.orElseThrow(NotFoundAccountException::new);
 
 		senderAccount.deposit(transaction.getAmount());
@@ -171,12 +182,12 @@ public class AccountService {
 	/**
 	 * 입금 재시도가 실패하면 송금 롤백을 하는 로직
 	 *
-	 * @param senderAccountId
+	 * @param senderAccountNumber
 	 * @param money
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void rollbackWithdraw(Long senderAccountId, long money) {
-		Account senderAccount = accountRepository.findByIdWithLock(senderAccountId)
+	public void rollbackWithdraw(String senderAccountNumber, long money) {
+		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		senderAccount.deposit(money);
@@ -197,12 +208,11 @@ public class AccountService {
 		if (!senderAccount.isChargeWithinDailyLimit(chargeMoney)) {
 			throw new DailyChargeLimitExceededException();
 		}
-
 		senderAccount.deposit(chargeMoney);
 	}
 
-	private static void validationTransactional(Long senderAccountId, Transaction transaction) {
-		if (!transaction.getSenderAccountId().equals(senderAccountId)) {
+	private static void validationTransactional(String senderAccountNumber, Transaction transaction) {
+		if (!transaction.getSenderAccountNumber().equals(senderAccountNumber)) {
 			throw new UnauthorizedTransactionException();
 		}
 
