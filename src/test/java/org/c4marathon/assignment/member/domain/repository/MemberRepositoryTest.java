@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.member.domain.repository;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.member.domain.Member;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,16 +70,21 @@ class MemberRepositoryTest extends IntegrationTestSupport {
     @Test
     void findMemberByAccountId() {
         // given
+        String accountNumber = generateAccountNumber();
         Member member = Member.create("test@naver.com", "테스트", "test");
-        member.setMainAccountId(1L);
+        member.setMainAccountNumber(accountNumber);
         memberRepository.save(member);
 
         // when
-        Optional<Member> findMember = memberRepository.findByAccountId(1L);
+        Optional<Member> findMember = memberRepository.findByAccountNumber(accountNumber);
 
         // then
         assertThat(findMember.get())
-            .extracting("email", "name", "password", "accountId")
-            .contains("test@naver.com", "테스트", "test", 1L);
+            .extracting("email", "name", "password", "accountNumber")
+            .contains("test@naver.com", "테스트", "test", accountNumber);
+    }
+
+    private String generateAccountNumber() {
+        return AccountNumberUtil.generateAccountNumber("3333");
     }
 }

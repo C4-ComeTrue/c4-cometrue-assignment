@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.account.service.DepositService;
 import org.c4marathon.assignment.global.core.MiniPayThreadPoolExecutor;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.service.TransactionQueryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,8 +64,8 @@ class DepositSchedulerTest {
 		List<Transaction> transactions = new ArrayList<>();
 		for (int i = 0; i < numberOfDeposits; i++) {
 			Transaction transactional = Transaction.create(
-				i + 1L,
-				i + 2L,
+				generateAccountNumber(),
+				generateAccountNumber(),
 				1000L,
 				IMMEDIATE_TRANSFER,
 				WITHDRAW,
@@ -119,11 +120,10 @@ class DepositSchedulerTest {
 			.sum();
 
 		AtomicLong actualTotalAmount = new AtomicLong(0);
-
 		List<Transaction> transactions = IntStream.range(0, numberOfDeposits)
 			.mapToObj(i -> Transaction.create(
-				i + 1L,
-				i + 2L,
+				generateAccountNumber(),
+				generateAccountNumber(),
 				100L * i,
 				IMMEDIATE_TRANSFER,
 				WITHDRAW,
@@ -162,8 +162,8 @@ class DepositSchedulerTest {
 		int numberOfDeposits = 10;
 		List<Transaction> transactions = IntStream.range(0, numberOfDeposits)
 			.mapToObj(i -> Transaction.create(
-				i + 1L,
-				i + 2L,
+				generateAccountNumber(),
+				generateAccountNumber(),
 				100L * i,
 				IMMEDIATE_TRANSFER,
 				FAILED_DEPOSIT,
@@ -186,5 +186,9 @@ class DepositSchedulerTest {
 
 		verify(depositService, times(numberOfDeposits)).failedDeposit(any(Transaction.class));
 
+	}
+
+	private String generateAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("3333");
 	}
 }

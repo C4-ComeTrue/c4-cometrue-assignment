@@ -10,6 +10,7 @@ import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
@@ -42,8 +43,10 @@ class DepositServiceTest extends IntegrationTestSupport {
 	@Test
 	void successDeposit() {
 		// given
-		Account senderAccount = createAccount(10000L);
-		Account receiverAccount = createAccount(20000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 10000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 20000L);
 
 		Transaction transactional = createTransactional(senderAccount, receiverAccount, 1000L);
 
@@ -61,8 +64,10 @@ class DepositServiceTest extends IntegrationTestSupport {
 	@Test
 	void failedDeposit() {
 		// given
-		Account senderAccount = createAccount(10000L);
-		Account receiverAccount = createAccount(20000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber,10000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 20000L);
 
 		Transaction transactional = createTransactional(senderAccount, receiverAccount, 1000L);
 
@@ -81,13 +86,15 @@ class DepositServiceTest extends IntegrationTestSupport {
 	@Test
 	void depositByReceiver() {
 	    // given
-		Account receiverAccount = createAccount(10000L);
-		Transaction transaction = Transaction.create(1L, receiverAccount.getId(), 2000L, PENDING_TRANSFER,
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account receiverAccount = createAccount(receiverAccountNumber, 10000L);
+		Transaction transaction = Transaction.create(senderAccountNumber, receiverAccount.getAccountNumber(), 2000L, PENDING_TRANSFER,
 			PENDING_DEPOSIT, LocalDateTime.now().minusHours(1));
 		transactionRepository.save(transaction);
 
 	    // when
-		depositService.depositByReceiver(receiverAccount.getId(), transaction.getId());
+		depositService.depositByReceiver(receiverAccount.getAccountNumber(), transaction.getId());
 
 	    // then
 		Account updatedReceiverAccount = accountRepository.findById(receiverAccount.getId())
@@ -103,13 +110,15 @@ class DepositServiceTest extends IntegrationTestSupport {
 	@Test
 	void depositByReceiverWithInvalidTransactionStatus() {
 	    // given
-		Account receiverAccount = createAccount(10000L);
-		Transaction transaction = Transaction.create(1L, receiverAccount.getId(), 2000L, PENDING_TRANSFER,
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account receiverAccount = createAccount(receiverAccountNumber, 10000L);
+		Transaction transaction = Transaction.create(senderAccountNumber, receiverAccount.getAccountNumber(), 2000L, PENDING_TRANSFER,
 			SUCCESS_DEPOSIT, LocalDateTime.now().minusHours(1));
 		transactionRepository.save(transaction);
 
 	    // when // then
-		assertThatThrownBy(() -> depositService.depositByReceiver(receiverAccount.getId(), transaction.getId()))
+		assertThatThrownBy(() -> depositService.depositByReceiver(receiverAccount.getAccountNumber(), transaction.getId()))
 			.isInstanceOf(InvalidTransactionStatusException.class);
 	}
 
@@ -117,28 +126,35 @@ class DepositServiceTest extends IntegrationTestSupport {
 	@Test
 	void depositByReceiverWithUnauthorizedTransaction() {
 		// given
-		Account receiverAccount = createAccount(10000L);
-		Account otherReceiverAccount = createAccount(10000L);
-		Transaction transaction = Transaction.create(1L, receiverAccount.getId(), 2000L, PENDING_TRANSFER,
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		String otherAccountNumber = generateAccountNumber();
+		Account receiverAccount = createAccount(receiverAccountNumber, 10000L);
+		Account otherReceiverAccount = createAccount(otherAccountNumber, 10000L);
+		Transaction transaction = Transaction.create(senderAccountNumber, receiverAccount.getAccountNumber(), 2000L, PENDING_TRANSFER,
 			PENDING_DEPOSIT, LocalDateTime.now().minusHours(1));
 		transactionRepository.save(transaction);
 
 		// when // then
-		assertThatThrownBy(() -> depositService.depositByReceiver(otherReceiverAccount.getId(), transaction.getId()))
+		assertThatThrownBy(() -> depositService.depositByReceiver(otherReceiverAccount.getAccountNumber(), transaction.getId()))
 			.isInstanceOf(UnauthorizedTransactionException.class);
 	}
 
-	private Account createAccount(long money) {
-		Account account = Account.create(money);
+	private Account createAccount(String accountNumber, long money) {
+		Account account = Account.create(accountNumber, money);
 		accountRepository.save(account);
 		return account;
 	}
 
 	private Transaction createTransactional(Account senderAccount, Account receiverAccount, long amount) {
-		Transaction transactional = Transaction.create(senderAccount.getId(),
-			receiverAccount.getId(), amount, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now());
+		Transaction transactional = Transaction.create(senderAccount.getAccountNumber(),
+			receiverAccount.getAccountNumber(), amount, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now());
 		transactionRepository.save(transactional);
 
 		return transactional;
+	}
+
+	private String generateAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("3333");
 	}
 }

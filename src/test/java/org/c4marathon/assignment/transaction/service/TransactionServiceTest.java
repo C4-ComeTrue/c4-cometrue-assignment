@@ -12,6 +12,7 @@ import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.mail.NotificationService;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
@@ -36,7 +37,6 @@ class TransactionServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private AccountRepository accountRepository;
 
-
 	@MockBean
 	private NotificationService notificationService;
 
@@ -52,8 +52,8 @@ class TransactionServiceTest extends IntegrationTestSupport {
 	void createTransaction() {
 		// given
 		TransactionCreateEvent request = new TransactionCreateEvent(
-			1L,
-			2L,
+			"33331",
+			"33332",
 			1000L,
 			IMMEDIATE_TRANSFER,
 			WITHDRAW,
@@ -67,8 +67,8 @@ class TransactionServiceTest extends IntegrationTestSupport {
 		Transaction transaction = transactionRepository.findAll().get(0);
 
 		assertThat(transaction)
-			.extracting("senderAccountId", "receiverAccountId", "amount", "type", "status")
-			.containsExactly(request.senderAccountId(), request.receiverAccountId(), request.amount(), request.type(), request.status());
+			.extracting("senderAccountNumber", "receiverAccountNumber", "amount", "type", "status")
+			.containsExactly(request.senderAccountNumber(), request.receiverAccountNumber(), request.amount(), request.type(), request.status());
 	}
 
 	@Transactional
@@ -77,14 +77,16 @@ class TransactionServiceTest extends IntegrationTestSupport {
 	void processCancelExpiredTransaction() {
 
 	    // given
-		Account senderAccount = createAccount(1000L);
-		Account receiverAccount = createAccount(1000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 1000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 1000L);
 		LocalDateTime now = LocalDateTime.now();
 
 		List<Transaction> transactions = List.of(
-			Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(73)), // 만료 대상
-			Transaction.create(senderAccount.getId(), receiverAccount.getId(), 2000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(50)), // 알림 대상
-			Transaction.create(senderAccount.getId(), receiverAccount.getId(), 3000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(30))  // 알림 대상 아님
+			Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 1000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(73)), // 만료 대상
+			Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 2000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(50)), // 알림 대상
+			Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 3000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(30))  // 알림 대상 아님
 		);
 		transactionRepository.saveAll(transactions);
 
@@ -101,14 +103,16 @@ class TransactionServiceTest extends IntegrationTestSupport {
 	@Test
 	void processRemindNotification() {
 	    // given
-		Account senderAccount = createAccount(1000L);
-		Account receiverAccount = createAccount(1000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 1000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 1000L);
 		LocalDateTime now = LocalDateTime.now();
 
 		List<Transaction> transactions = List.of(
-			Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(73)), // 만료 대상
-			Transaction.create(senderAccount.getId(), receiverAccount.getId(), 2000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(50)), // 알림 대상
-			Transaction.create(senderAccount.getId(), receiverAccount.getId(), 3000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(30))  // 알림 대상 아님
+			Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 1000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(73)), // 만료 대상
+			Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 2000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(50)), // 알림 대상
+			Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 3000L, PENDING_TRANSFER, PENDING_DEPOSIT, now.minusHours(30))  // 알림 대상 아님
 		);
 		transactionRepository.saveAll(transactions);
 
@@ -120,10 +124,14 @@ class TransactionServiceTest extends IntegrationTestSupport {
 
 	}
 
-	private Account createAccount(long money) {
-		Account senderAccount = Account.create(money);
+	private Account createAccount(String accountNumber, long money) {
+		Account senderAccount = Account.create(accountNumber, money);
 		accountRepository.save(senderAccount);
 		return senderAccount;
+	}
+
+	private String generateAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("3333");
 	}
 
 

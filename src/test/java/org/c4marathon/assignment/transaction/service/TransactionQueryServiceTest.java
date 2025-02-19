@@ -37,11 +37,11 @@ class TransactionQueryServiceTest extends IntegrationTestSupport {
 	    // given
 		int pageSize = 2;
 		List<Transaction> transactions = List.of(
-			Transaction.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			Transaction.create(2L, 3L, 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
-			Transaction.create(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			Transaction.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
-			Transaction.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
+			Transaction.create("33331", "33332", 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create("33332", "33333", 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
+			Transaction.create("33333", "33335", 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create("33335", "33335", 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
+			Transaction.create("33335", "33336", 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
 		);
 		transactionRepository.saveAll(transactions);
 
@@ -52,11 +52,11 @@ class TransactionQueryServiceTest extends IntegrationTestSupport {
 		// then
 		assertThat(result).hasSize(2);
 		assertThat(result.get(0))
-			.extracting("senderAccountId", "receiverAccountId", "amount", "type", "status")
-			.containsExactly(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW);
+			.extracting("senderAccountNumber", "receiverAccountNumber", "amount", "type", "status")
+			.containsExactly("33331", "33332", 1000L, IMMEDIATE_TRANSFER, WITHDRAW);
 		assertThat(result.get(1))
-			.extracting("senderAccountId", "receiverAccountId", "amount", "type", "status")
-			.containsExactly(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW);
+			.extracting("senderAccountNumber", "receiverAccountNumber", "amount", "type", "status")
+			.containsExactly("33333", "33335", 4000L, IMMEDIATE_TRANSFER, WITHDRAW);
 	}
 
 	@Transactional
@@ -68,11 +68,11 @@ class TransactionQueryServiceTest extends IntegrationTestSupport {
 		int pageSize = 2;
 
 		List<Transaction> transactions = List.of(
-			Transaction.create(1L, 2L, 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			Transaction.create(2L, 3L, 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
-			Transaction.create(3L, 5L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
-			Transaction.create(4L, 5L, 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
-			Transaction.create(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
+			Transaction.create("33331", "33332", 1000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create("33332", "33333", 2000L, IMMEDIATE_TRANSFER, SUCCESS_DEPOSIT, LocalDateTime.now()),
+			Transaction.create("33333", "33335", 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now()),
+			Transaction.create("33335", "33335", 4000L, IMMEDIATE_TRANSFER, FAILED_DEPOSIT, LocalDateTime.now()),
+			Transaction.create("33335", "33336", 4000L, IMMEDIATE_TRANSFER, WITHDRAW, LocalDateTime.now())
 		);
 		transactionRepository.saveAll(transactions);
 
@@ -85,8 +85,8 @@ class TransactionQueryServiceTest extends IntegrationTestSupport {
 		// then
 		assertThat(result).hasSize(1);
 		assertThat(result.get(0))
-			.extracting("senderAccountId", "receiverAccountId", "amount", "type", "status")
-			.containsExactly(5L, 6L, 4000L, IMMEDIATE_TRANSFER, WITHDRAW);
+			.extracting("senderAccountNumber", "receiverAccountNumber", "amount", "type", "status")
+			.containsExactly("33335", "33336", 4000L, IMMEDIATE_TRANSFER, WITHDRAW);
 	}
 
 }

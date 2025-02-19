@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.*;
 
 import org.aspectj.lang.JoinPoint;
 import org.c4marathon.assignment.account.service.AccountService;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -49,8 +50,9 @@ class DepositFailureHandlerTest {
 	@Test
 	void handleFailedDepositFailure_ShouldUpdateStatusToCancelAndRollbackWithdraw() {
 		// given
+		String senderAccountNumber = generateAccountNumber();
 		Transaction transactional = mock(Transaction.class);
-		given(transactional.getSenderAccountId()).willReturn(100L);
+		given(transactional.getSenderAccountNumber()).willReturn(senderAccountNumber);
 		given(transactional.getAmount()).willReturn(5000L);
 
 		JoinPoint joinPoint = mock(JoinPoint.class);
@@ -63,7 +65,11 @@ class DepositFailureHandlerTest {
 		// then
 		verify(transactional).updateStatus(CANCEL);
 		verify(transactionRepository, times(1)).save(transactional);
-		verify(accountService, times(1)).rollbackWithdraw(100L, 5000L);
+		verify(accountService, times(1)).rollbackWithdraw(senderAccountNumber, 5000L);
 	}
+	private String generateAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("3333");
+	}
+
 
 }

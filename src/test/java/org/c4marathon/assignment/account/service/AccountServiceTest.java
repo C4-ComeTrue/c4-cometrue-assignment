@@ -18,6 +18,7 @@ import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.transaction.domain.Transaction;
@@ -70,6 +71,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 
 	}
 
+	@Transactional
 	@DisplayName("메인 계좌를 생성한다.")
 	@Test
 	void createAccount() {
@@ -81,9 +83,9 @@ class AccountServiceTest extends IntegrationTestSupport {
 
 		// then
 		Member updatedMember = memberRepository.findById(member.getId()).orElseThrow();
-		assertThat(updatedMember.getAccountId()).isNotNull();
+		assertThat(updatedMember.getAccountNumber()).isNotNull();
 
-		Account account = accountRepository.findById(updatedMember.getAccountId()).orElseThrow();
+		Account account = accountRepository.findByAccountNumberWithLock(updatedMember.getAccountNumber()).orElseThrow();
 		assertThat(account).isNotNull();
 	}
 
@@ -91,12 +93,13 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void chargeMoney() {
 		// given
-		Account account = createAccount(DEFAULT_BALANCE);
+		String accountNumber = generateAccountNumber();
+		Account account = createAccount(accountNumber, DEFAULT_BALANCE);
 
 		long chargeAmount = 50_000L;
 
 		// when
-		accountService.chargeMoney(account.getId(), chargeAmount);
+		accountService.chargeMoney(account.getAccountNumber(), chargeAmount);
 
 		// then
 		Account updatedAccount = accountRepository.findById(account.getId()).orElseThrow();
@@ -108,12 +111,13 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void chargeMoneyWithDailyLimitExceeded() {
 		// given
-		Account account = createAccount(DEFAULT_BALANCE);
+		String accountNumber = generateAccountNumber();
+		Account account = createAccount(accountNumber, DEFAULT_BALANCE);
 
 		long chargeAmount = 3_500_000L;
 
 		// when // then
-		assertThatThrownBy(() -> accountService.chargeMoney(account.getId(), chargeAmount))
+		assertThatThrownBy(() -> accountService.chargeMoney(account.getAccountNumber(), chargeAmount))
 			.isInstanceOf(DailyChargeLimitExceededException.class);
 	}
 
@@ -123,8 +127,10 @@ class AccountServiceTest extends IntegrationTestSupport {
 		// given
 		Member member = createMember();
 
-		Account account = Account.create(10000L);
-		member.setMainAccountId(account.getId());
+		String accountNumber = generateAccountNumber();
+		Account account = createAccount(accountNumber, 10_000L);
+
+		member.setMainAccountNumber(account.getAccountNumber());
 		accountRepository.save(account);
 
 		SavingAccount savingAccount = SavingAccount.create(1000L, member);
@@ -133,7 +139,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 		long sendMoney = 5_000L;
 
 		// when
-		accountService.sendToSavingAccount(account.getId(), savingAccount.getId(), sendMoney);
+		accountService.sendToSavingAccount(account.getAccountNumber(), savingAccount.getId(), sendMoney);
 
 		// then
 		Account updatedAccount = accountRepository.findById(account.getId()).orElseThrow();
@@ -149,8 +155,9 @@ class AccountServiceTest extends IntegrationTestSupport {
 		// given
 		Member member = createMember();
 
-		Account account = Account.create(12000L);
-		member.setMainAccountId(account.getId());
+		String accountNumber = generateAccountNumber();
+		Account account = Account.create(accountNumber, 12000L);
+		member.setMainAccountNumber(account.getAccountNumber());
 		accountRepository.save(account);
 
 		SavingAccount savingAccount = SavingAccount.create(1000L, member);
@@ -159,7 +166,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 		long sendMoney = 20_000L;
 
 		// when
-		accountService.sendToSavingAccount(account.getId(), savingAccount.getId(), sendMoney);
+		accountService.sendToSavingAccount(account.getAccountNumber(), savingAccount.getId(), sendMoney);
 
 		// then
 		Account updatedAccount = accountRepository.findById(account.getId())
@@ -177,11 +184,13 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void withdraw() {
 		// given
-		Account senderAccount = createAccount(50000L);
-		WithdrawRequest request = new WithdrawRequest(2L, 20000L, IMMEDIATE_TRANSFER);
+		String accountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(accountNumber, 50000L);
+		WithdrawRequest request = new WithdrawRequest(receiverAccountNumber, 20000L, IMMEDIATE_TRANSFER);
 
 		// when
-		accountService.withdraw(senderAccount.getId(), request);
+		accountService.withdraw(senderAccount.getAccountNumber(), request);
 
 		// then
 		Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
@@ -197,11 +206,13 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void withdrawWithInsufficientBalance() {
 		// given
-		Account senderAccount = createAccount(50000L);
-		WithdrawRequest request = new WithdrawRequest(2L, 200000L, IMMEDIATE_TRANSFER);
+		String accountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(accountNumber, 50000L);
+		WithdrawRequest request = new WithdrawRequest(receiverAccountNumber, 200000L, IMMEDIATE_TRANSFER);
 
 		// when
-		accountService.withdraw(senderAccount.getId(), request);
+		accountService.withdraw(senderAccount.getAccountNumber(), request);
 
 		// then
 		Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
@@ -217,12 +228,14 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void withdrawWithDailyChargeLimit() {
 		// given
-		Account senderAccount = createAccount(5000L);
-		WithdrawRequest request = new WithdrawRequest(2L, 3_500_000L, IMMEDIATE_TRANSFER);
+		String accountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(accountNumber, 5000L);
+		WithdrawRequest request = new WithdrawRequest(receiverAccountNumber, 3_500_000L, IMMEDIATE_TRANSFER);
 
 		// when // then
-		Long senderAccountId = senderAccount.getId();
-		assertThatThrownBy(() -> accountService.withdraw(senderAccountId, request))
+		String senderAccountAccountNumber = senderAccount.getAccountNumber();
+		assertThatThrownBy(() -> accountService.withdraw(senderAccountAccountNumber, request))
 			.isInstanceOf(DailyChargeLimitExceededException.class);
 	}
 
@@ -231,15 +244,17 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void cancelWithdraw() {
 		// given
-		Account senderAccount = createAccount(5000L);
-		Account receiverAccount = createAccount(1000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 5000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 1000L);
 		LocalDateTime sendTime = LocalDateTime.now();
 
-		Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+		Transaction transaction = Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 1000L,
 			PENDING_TRANSFER, PENDING_DEPOSIT, sendTime);
 		transactionRepository.save(transaction);
 		// when
-		accountService.cancelWithdraw(senderAccount.getId(), transaction.getId());
+		accountService.cancelWithdraw(senderAccount.getAccountNumber(), transaction.getId());
 
 		// then
 		Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
@@ -258,16 +273,18 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void cancelWithdrawForSuccessDeposit() {
 		// given
-		Account senderAccount = createAccount(5000L);
-		Account receiverAccount = createAccount(1000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 5000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 1000L);
 		LocalDateTime sendTime = LocalDateTime.now();
 
-		Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+		Transaction transaction = Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 1000L,
 			PENDING_TRANSFER, SUCCESS_DEPOSIT, sendTime);
 		transactionRepository.save(transaction);
 
 		// when // then
-		assertThatThrownBy(() -> accountService.cancelWithdraw(senderAccount.getId(), transaction.getId()))
+		assertThatThrownBy(() -> accountService.cancelWithdraw(senderAccount.getAccountNumber(), transaction.getId()))
 			.isInstanceOf(InvalidTransactionStatusException.class);
 	}
 
@@ -275,17 +292,20 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void cancelWithdrawByUnauthorizedMember() {
 		// given
-		Account senderAccount = createAccount(5000L);
-		Account receiverAccount = createAccount(1000L);
-		Account otherAccount = createAccount(5000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		String otherAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 5000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 1000L);
+		Account otherAccount = createAccount(otherAccountNumber, 5000L);
 		LocalDateTime sendTime = LocalDateTime.now();
 
-		Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+		Transaction transaction = Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 1000L,
 			PENDING_TRANSFER, PENDING_DEPOSIT, sendTime);
 		transactionRepository.save(transaction);
 
 		// when // then
-		assertThatThrownBy(() -> accountService.cancelWithdraw(otherAccount.getId(), transaction.getId()))
+		assertThatThrownBy(() -> accountService.cancelWithdraw(otherAccount.getAccountNumber(), transaction.getId()))
 			.isInstanceOf(UnauthorizedTransactionException.class);
 	}
 
@@ -294,11 +314,13 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void cancelWithdrawByExpirationTime() throws Exception {
 		// given
-		Account senderAccount = createAccount(5000L);
-		Account receiverAccount = createAccount(1000L);
+		String senderAccountNumber = generateAccountNumber();
+		String receiverAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 5000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 1000L);
 		LocalDateTime sendTime = LocalDateTime.now().minusHours(73);
 
-		Transaction transaction = Transaction.create(senderAccount.getId(), receiverAccount.getId(), 1000L,
+		Transaction transaction = Transaction.create(senderAccount.getAccountNumber(), receiverAccount.getAccountNumber(), 1000L,
 			PENDING_TRANSFER, PENDING_DEPOSIT, sendTime);
 		transactionRepository.save(transaction);
 
@@ -322,11 +344,12 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void rollbackWithdraw() {
 		// given
-		Account senderAccount = createAccount(10000L);
+		String senderAccountNumber = generateAccountNumber();
+		Account senderAccount = createAccount(senderAccountNumber, 10000L);
 		long rollbackMoney = 20000L;
 
 		// when
-		accountService.rollbackWithdraw(senderAccount.getId(), rollbackMoney);
+		accountService.rollbackWithdraw(senderAccount.getAccountNumber(), rollbackMoney);
 
 		// then
 		Account updatedSenderAccount = accountRepository.findById(senderAccount.getId())
@@ -334,8 +357,8 @@ class AccountServiceTest extends IntegrationTestSupport {
 		assertThat(updatedSenderAccount.getMoney()).isEqualTo(30000L);
 	}
 
-	private Account createAccount(long money) {
-		Account senderAccount = Account.create(money);
+	private Account createAccount(String accountNumber, long money) {
+		Account senderAccount = Account.create(accountNumber, money);
 		accountRepository.save(senderAccount);
 		return senderAccount;
 	}
@@ -346,4 +369,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 		return member;
 	}
 
+	private String generateAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("3333");
+	}
 }

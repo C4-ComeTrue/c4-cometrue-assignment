@@ -16,7 +16,7 @@ class SavingAccountControllerTest extends ControllerTestSupport {
     @BeforeEach
     void initSession() {
         session = new MockHttpSession();
-        SessionMemberInfo memberInfo = new SessionMemberInfo(1L, "test@test.com", 1L);
+        SessionMemberInfo memberInfo = new SessionMemberInfo(1L, "test@test.com", "3333");
         session.setAttribute(SessionConst.LOGIN_MEMBER, memberInfo);
     }
 
