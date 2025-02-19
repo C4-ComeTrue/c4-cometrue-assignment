@@ -6,8 +6,8 @@ import org.c4marathon.assignment.transaction.domain.TransactionStatus;
 import org.c4marathon.assignment.transaction.domain.TransactionType;
 
 public record TransactionCreateEvent(
-	Long senderAccountId,
-	Long receiverAccountId,
+	String senderAccountNumber,
+	String receiverAccountNumber,
 	long amount,
 	TransactionType type,
 	TransactionStatus status,

@@ -4,21 +4,18 @@ import static org.c4marathon.assignment.global.util.SettlementUtil.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.c4marathon.assignment.global.util.SettlementUtil;
-import org.c4marathon.assignment.settlement.dto.ReceivedSettlementResponse;
-import org.c4marathon.assignment.settlement.dto.SettlementDetailInfo;
-import org.c4marathon.assignment.settlement.dto.SettlementRequest;
-import org.c4marathon.assignment.settlement.dto.SettlementResponse;
 import org.c4marathon.assignment.settlement.domain.Settlement;
 import org.c4marathon.assignment.settlement.domain.SettlementDetail;
 import org.c4marathon.assignment.settlement.domain.SettlementType;
 import org.c4marathon.assignment.settlement.domain.repository.SettlementDetailRepository;
 import org.c4marathon.assignment.settlement.domain.repository.SettlementRepository;
+import org.c4marathon.assignment.settlement.dto.ReceivedSettlementResponse;
+import org.c4marathon.assignment.settlement.dto.SettlementDetailInfo;
+import org.c4marathon.assignment.settlement.dto.SettlementRequest;
+import org.c4marathon.assignment.settlement.dto.SettlementResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,21 +29,21 @@ public class SettlementService {
 
 	/**
 	 * 정산 요청하기
-	 * @param requestAccountId
+	 * @param requestAccountNumber
 	 * @param request
 	 */
 	@Transactional
-	public void createSettlement(Long requestAccountId, SettlementRequest request) {
+	public void createSettlement(String requestAccountNumber, SettlementRequest request) {
 
-		Settlement settlement = Settlement.create(requestAccountId, request.totalAmount(), request.type());
+		Settlement settlement = Settlement.create(requestAccountNumber, request.totalAmount(), request.type());
 
 		List<Integer> amounts = calculateSettlementAmounts(request.totalAmount(), request.totalNumber(), request.type());
 
 		settlement.setAmount(amounts.get(0));
 		settlementRepository.save(settlement);
 
-		List<SettlementDetail> settlementDetails = IntStream.range(0, request.accountIds().size())
-			.mapToObj(i -> SettlementDetail.create(settlement, request.accountIds().get(i), amounts.get(i + 1)))
+		List<SettlementDetail> settlementDetails = IntStream.range(0, request.accountNumbers().size())
+			.mapToObj(i -> SettlementDetail.create(settlement, request.accountNumbers().get(i), amounts.get(i + 1)))
 			.toList();
 
 		settlementDetailRepository.saveAll(settlementDetails);
@@ -54,22 +51,22 @@ public class SettlementService {
 
 	/**
 	 * 정산 요청한 리스트 조회(받을 돈을 조회)
-	 * @param requestAccountId
+	 * @param requestAccountNumber
 	 * @return
 	 */
 	@Transactional(readOnly = true)
-	public List<SettlementResponse> getRequestedSettlements(Long requestAccountId) {
-		List<Settlement> settlements = settlementRepository.findByRequestAccountId(requestAccountId);
+	public List<SettlementResponse> getRequestedSettlements(String requestAccountNumber) {
+		List<Settlement> settlements = settlementRepository.findByRequestAccountNumber(requestAccountNumber);
 
 		return settlements.stream()
 			.map(settlement -> new SettlementResponse(
 				settlement.getId(),
-				settlement.getRequestAccountId(),
+				settlement.getRequestAccountNumber(),
 				settlement.getTotalAmount(),
 				settlement.getSettlementDetails().stream()
 					.map(detail -> new SettlementDetailInfo(
 						detail.getId(),
-						detail.getAccountId(),
+						detail.getAccountNumber(),
 						detail.getAmount()
 					)).toList()
 			))
@@ -78,19 +75,19 @@ public class SettlementService {
 
 	/**
 	 * 요청받은 정산 리스트 조회(보내야 할 돈 조회)
-	 * @param accountId
+	 * @param accountNumber
 	 * @return
 	 */
 	@Transactional(readOnly = true)
-	public List<ReceivedSettlementResponse> getReceivedSettlements(Long accountId) {
-		List<SettlementDetail> settlementDetails = settlementDetailRepository.findByAccountId(accountId);
+	public List<ReceivedSettlementResponse> getReceivedSettlements(String accountNumber) {
+		List<SettlementDetail> settlementDetails = settlementDetailRepository.findByAccountNumber(accountNumber);
 
 		return settlementDetails.stream()
 			.map(detail -> new ReceivedSettlementResponse(
 				detail.getSettlement().getId(),
-				detail.getSettlement().getRequestAccountId(),
+				detail.getSettlement().getRequestAccountNumber(),
 				detail.getSettlement().getTotalAmount(),
-				detail.getAccountId(),
+				detail.getAccountNumber(),
 				detail.getAmount()
 			))
 			.toList();

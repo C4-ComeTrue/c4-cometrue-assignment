@@ -39,6 +39,6 @@ public class DepositFailureHandler {
 		transactional.updateStatus(CANCEL);
 		transactionRepository.save(transactional);
 
-		accountService.rollbackWithdraw(transactional.getSenderAccountId(), transactional.getAmount());
+		accountService.rollbackWithdraw(transactional.getSenderAccountNumber(), transactional.getAmount());
 	}
 }

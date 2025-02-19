@@ -24,10 +24,10 @@ public class Transaction {
 	private Long id;
 
 	@Column(nullable = false)
-	private Long senderAccountId;
+	private String senderAccountNumber;
 
 	@Column(nullable = false)
-	private Long receiverAccountId;
+	private String receiverAccountNumber;
 
 	@Column(nullable = false)
 	private long amount;
@@ -46,10 +46,10 @@ public class Transaction {
 	private LocalDateTime receiverTime;
 
 	@Builder
-	private Transaction(Long senderAccountId, Long receiverAccountId, long amount, TransactionType type,
+	private Transaction(String senderAccountNumber, String receiverAccountNumber, long amount, TransactionType type,
 		TransactionStatus status, LocalDateTime sendTime, LocalDateTime receiverTime) {
-		this.senderAccountId = senderAccountId;
-		this.receiverAccountId = receiverAccountId;
+		this.senderAccountNumber = senderAccountNumber;
+		this.receiverAccountNumber= receiverAccountNumber;
 		this.amount = amount;
 		this.type = type;
 		this.status = status;
@@ -57,12 +57,12 @@ public class Transaction {
 		this.receiverTime = receiverTime;
 	}
 
-	public static Transaction create(Long senderAccountId, Long receiverAccountId, long amount,
+	public static Transaction create(String senderAccountNumber, String receiverAccountNumber, long amount,
 		TransactionType type, TransactionStatus status, LocalDateTime sendTime) {
 
 		return Transaction.builder()
-			.senderAccountId(senderAccountId)
-			.receiverAccountId(receiverAccountId)
+			.senderAccountNumber(senderAccountNumber)
+			.receiverAccountNumber(receiverAccountNumber)
 			.amount(amount)
 			.type(type)
 			.status(status)

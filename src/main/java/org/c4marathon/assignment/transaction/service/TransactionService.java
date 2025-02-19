@@ -32,8 +32,8 @@ public class TransactionService {
 	public void createTransaction(TransactionCreateEvent request) {
 
 		Transaction transaction = Transaction.create(
-			request.senderAccountId(),
-			request.receiverAccountId(),
+			request.senderAccountNumber(),
+			request.receiverAccountNumber(),
 			request.amount(),
 			request.type(),
 			request.status(),

@@ -52,17 +52,17 @@ public class DepositService {
 
 	/**
 	 * 금액을 받는 사용자가 직접 확인 후 금액을 받는 비즈니스 로직
-	 * @param receiverAccountId
+	 * @param receiverAccountNumber
 	 * @param transactionalId
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void depositByReceiver(Long receiverAccountId, Long transactionalId) {
+	public void depositByReceiver(String receiverAccountNumber, Long transactionalId) {
 		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
-		validationTransaction(receiverAccountId, transaction);
+		validationTransaction(receiverAccountNumber, transaction);
 
-		Account receiverAccount = accountRepository.findByIdWithLock(receiverAccountId)
+		Account receiverAccount = accountRepository.findByAccountNumberWithLock(receiverAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		receiverAccount.deposit(transaction.getAmount());
@@ -70,10 +70,10 @@ public class DepositService {
 	}
 
 	private void processDeposit(Transaction transactional) {
-		Long receiverAccountId = transactional.getReceiverAccountId();
+		String receiverAccountNumber = transactional.getReceiverAccountNumber();
 		long amount = transactional.getAmount();
 
-		Account receiverAccount = accountRepository.findByIdWithLock(receiverAccountId)
+		Account receiverAccount = accountRepository.findByAccountNumberWithLock(receiverAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		receiverAccount.deposit(amount);
@@ -85,8 +85,8 @@ public class DepositService {
 
 	}
 
-	private static void validationTransaction(Long receiverAccountId, Transaction transaction) {
-		if (!transaction.getReceiverAccountId().equals(receiverAccountId)) {
+	private static void validationTransaction(String receiverAccountNumber, Transaction transaction) {
+		if (!transaction.getReceiverAccountNumber().equals(receiverAccountNumber)) {
 			throw new UnauthorizedTransactionException();
 		}
 

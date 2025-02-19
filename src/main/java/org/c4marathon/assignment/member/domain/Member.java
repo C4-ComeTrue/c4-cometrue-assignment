@@ -26,7 +26,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
-    private Long accountId; //메인 계좌 PK
+    private String accountNumber; //메인 계좌 PK
 
     @Builder
     private Member(String email, String name, String password) {
@@ -43,7 +43,7 @@ public class Member extends BaseEntity {
                 .build();
     }
 
-    public void setMainAccountId(Long accountId) {
-        this.accountId = accountId;
+    public void setMainAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 }

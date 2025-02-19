@@ -30,7 +30,7 @@ public class AccountController {
         @Login SessionMemberInfo loginMember,
         @RequestParam @PositiveOrZero(message = "음수는 송금할 수 없습니다.") long money
     ) {
-        accountService.chargeMoney(loginMember.accountId(), money);
+        accountService.chargeMoney(loginMember.accountNumber(), money);
         return ResponseEntity.ok().build();
     }
 
@@ -40,7 +40,7 @@ public class AccountController {
         @Valid @RequestBody SendToSavingAccountRequest request
     ) {
         accountService.sendToSavingAccount(
-            loginMember.accountId(),
+            loginMember.accountNumber(),
             request.savingAccountId(),
             request.money()
         );
@@ -52,7 +52,7 @@ public class AccountController {
         @Login SessionMemberInfo loginMember,
         @Valid @RequestBody WithdrawRequest request
     ) {
-        accountService.withdraw(loginMember.accountId(), request);
+        accountService.withdraw(loginMember.accountNumber(), request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -61,7 +61,7 @@ public class AccountController {
         @Login SessionMemberInfo loginMember,
         @RequestParam @NotNull @Positive Long transactionalId
     ) {
-        depositService.depositByReceiver(loginMember.accountId(), transactionalId);
+        depositService.depositByReceiver(loginMember.accountNumber(), transactionalId);
         return ResponseEntity.ok().build();
     }
 
@@ -70,7 +70,7 @@ public class AccountController {
         @Login SessionMemberInfo loginMember,
         @RequestParam @NotNull @Positive Long transactionalId
     ) {
-        accountService.cancelWithdraw(loginMember.accountId(), transactionalId);
+        accountService.cancelWithdraw(loginMember.accountNumber(), transactionalId);
         return ResponseEntity.ok().build();
     }
 }

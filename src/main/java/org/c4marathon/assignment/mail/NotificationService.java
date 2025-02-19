@@ -15,8 +15,8 @@ public class NotificationService {
 	private final MemberRepository memberRepository;
 
 	public void sendRemindNotification(Transaction transaction) {
-		Long receiverAccountId = transaction.getReceiverAccountId();
-		Member receiverMember = memberRepository.findByAccountId(receiverAccountId)
+		String receiverAccountNumber = transaction.getReceiverAccountNumber();
+		Member receiverMember = memberRepository.findByAccountNumber(receiverAccountNumber)
 			.orElseThrow(NotFoundMemberException::new);
 
 		String subject = "[알림] 송금 마감";

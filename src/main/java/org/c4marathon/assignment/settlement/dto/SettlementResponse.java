@@ -5,7 +5,7 @@ import java.util.List;
 
 public record SettlementResponse(
 	Long settlementId,
-	Long requestAccountId,
+	String requestAccountNumber,
 	int totalAmount,
 	List<SettlementDetailInfo> members
 ) {

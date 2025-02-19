@@ -12,11 +12,12 @@ import org.springframework.data.repository.query.Param;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
+	//index(accountNumber)
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 		SELECT a
 		FROM Account a
-		WHERE a.id = :id
+		WHERE a.accountNumber = :accountNumber
 		""")
-	Optional<Account> findByIdWithLock(@Param("id") Long id);
+	Optional<Account> findByAccountNumberWithLock(@Param("accountNumber") String accountNumber);
 }

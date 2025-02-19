@@ -25,7 +25,7 @@ public class SettlementDetail extends BaseEntity {
 	@Column(name = "settlement_detail_id")
 	private Long id;
 
-	private Long accountId;
+	private String accountNumber;
 
 	private int amount;
 
@@ -34,15 +34,15 @@ public class SettlementDetail extends BaseEntity {
 	private Settlement settlement;
 
 	@Builder
-	private SettlementDetail(Settlement settlement, Long accountId, int amount) {
+	private SettlementDetail(Settlement settlement, String accountNumber, int amount) {
 		this.settlement = settlement;
-		this.accountId = accountId;
+		this.accountNumber = accountNumber;
 		this.amount = amount;
 	}
 
-	public static SettlementDetail create(Settlement settlement, Long accountId, int amount) {
+	public static SettlementDetail create(Settlement settlement, String accountNumber, int amount) {
 		SettlementDetail settlementDetail = SettlementDetail.builder()
-			.accountId(accountId)
+			.accountNumber(accountNumber)
 			.amount(amount)
 			.build();
 		settlement.addSettlementDetail(settlementDetail);
