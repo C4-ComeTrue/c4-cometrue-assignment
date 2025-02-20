@@ -44,6 +44,10 @@ public class TransactionService {
 		return new TransferResult(senderAccountNumber, receiverAccountNumber, money);
 	}
 
+	public TransferResult receive(long transactionId) {
+		return transactionProcessor.receive(transactionId);
+	}
+
 	/**
 	 * @param senderAccountNumber
 	 * @param receiverAccountNumber

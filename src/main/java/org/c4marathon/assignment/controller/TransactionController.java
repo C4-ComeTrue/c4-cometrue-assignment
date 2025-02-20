@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.controller;
 
 import org.c4marathon.assignment.application.TransactionService;
+import org.c4marathon.assignment.domain.dto.request.TransactionReceiveRequest;
 import org.c4marathon.assignment.domain.dto.request.TransferRequest;
 import org.c4marathon.assignment.domain.dto.request.WithdrawRequest;
 import org.c4marathon.assignment.domain.dto.response.TransferResult;
@@ -25,8 +26,13 @@ public class TransactionController {
 	}
 
 	@PostMapping("/transfer")
-	public ResponseEntity<TransferResult> transfer(@RequestBody TransferRequest request) {
+	public ResponseEntity<TransferResult> wireTransfer(@RequestBody TransferRequest request) {
 		return ResponseEntity.ok(
 			transactionService.wireTransfer(request.senderAccountNumber(), request.receiverAccountNumber(), request.money()));
+	}
+
+	@PostMapping("/receive")
+	public ResponseEntity<TransferResult> receive(@RequestBody TransactionReceiveRequest request) {
+		return ResponseEntity.ok(transactionService.receive(request.transactionId()));
 	}
 }
