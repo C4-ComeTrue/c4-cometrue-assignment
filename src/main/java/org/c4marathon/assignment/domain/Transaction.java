@@ -3,7 +3,6 @@ package org.c4marathon.assignment.domain;
 import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.domain.type.TransactionState;
-import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,14 +16,14 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @Entity
 @Table(name = "transaction")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Transaction {
+	private static final int DEADLINE_HOURS = 72;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
@@ -39,9 +38,11 @@ public class Transaction {
 	@Column(name = "balance", nullable = false)
 	private Long balance;
 
-	@CreatedDate
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
+
+	@Column(name = "deadline", nullable = false)
+	private LocalDateTime deadline;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "state", nullable = false, length = 20)
@@ -50,10 +51,13 @@ public class Transaction {
 	@Builder
 	public Transaction(String senderAccountNumber, String receiverAccountNumber, Long balance, LocalDateTime createdAt,
 		TransactionState state) {
+		LocalDateTime now = LocalDateTime.now();
+
 		this.senderAccountNumber = senderAccountNumber;
 		this.receiverAccountNumber = receiverAccountNumber;
 		this.balance = balance;
-		this.createdAt = createdAt;
+		this.createdAt = (createdAt == null) ? now : createdAt;
+		this.deadline = this.createdAt.plusHours(DEADLINE_HOURS);
 		this.state = state;
 	}
 }
