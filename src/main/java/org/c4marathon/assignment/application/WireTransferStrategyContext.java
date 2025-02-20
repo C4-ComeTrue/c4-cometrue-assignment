@@ -13,8 +13,8 @@ public class WireTransferStrategyContext {
 
 	public WireTransferStrategy getWireTransferStrategy(SendingType type) {
 		return switch (type) {
-			case EAGER -> eagerWireTransferStrategy;
-			case LAZY -> lazyWireTransferStrategy;
+			case EAGER -> eagerWireTransferStrategy; // 즉시 송금.
+			case LAZY -> lazyWireTransferStrategy; // 지연 송금. 수금자가 직접 수금 필요.
 		};
 	}
 }
