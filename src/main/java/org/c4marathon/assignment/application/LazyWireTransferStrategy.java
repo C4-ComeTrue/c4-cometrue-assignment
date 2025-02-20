@@ -16,6 +16,12 @@ public class LazyWireTransferStrategy implements WireTransferStrategy {
 	private final AccountRepository accountRepository;
 	private final TransactionRepository transactionRepository;
 
+	/**
+	 * 거래 내역에 송금 사항을 PENDING으로 저장하고 senderAccountNumber를 통해 계좌 내 정보를 업데이트합니다.
+	 * @param senderAccountNumber
+	 * @param receiverAccountNumber
+	 * @param money
+	 */
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
