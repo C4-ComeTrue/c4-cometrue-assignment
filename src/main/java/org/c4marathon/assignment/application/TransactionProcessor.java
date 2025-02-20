@@ -42,11 +42,26 @@ public class TransactionProcessor {
 	public TransferResult receive(long transactionId) {
 		Transaction transaction = transactionRepository.findById(transactionId)
 			.orElseThrow(() -> new RuntimeException("Transaction Not Found."));
-		transactionRepository.updateState(transactionId, TransactionState.PENDING, TransactionState.FINISHED);
+		updateState(transactionId, TransactionState.PENDING, TransactionState.FINISHED);
 		transactionCommonProcessor.updateBalance(transaction.getReceiverAccountNumber(), transaction.getBalance());
 
 		return new TransferResult(transaction.getSenderAccountNumber(),
 			transaction.getReceiverAccountNumber(),
 			transaction.getBalance());
+	}
+
+	@Transactional
+	public void cancel(long transactionId) {
+		Transaction transaction = transactionRepository.findById(transactionId)
+			.orElseThrow(() -> new RuntimeException("Transaction Not Found."));
+		updateState(transactionId, TransactionState.PENDING, TransactionState.CANCELLED);
+		transactionCommonProcessor.updateBalance(transaction.getSenderAccountNumber(), transaction.getBalance());
+	}
+
+	private void updateState(long transactionId, TransactionState preState, TransactionState updateState) {
+		int updatedRow = transactionRepository.updateState(transactionId, preState, updateState);
+
+		if (updatedRow == 0)
+			throw new RuntimeException("상태를 업데이트 하지 못했습니다.");
 	}
 }

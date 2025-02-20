@@ -48,6 +48,10 @@ public class TransactionService {
 		return transactionProcessor.receive(transactionId);
 	}
 
+	public void cancel(long transactionId) {
+		transactionProcessor.cancel(transactionId);
+	}
+
 	/**
 	 * @param senderAccountNumber
 	 * @param receiverAccountNumber
