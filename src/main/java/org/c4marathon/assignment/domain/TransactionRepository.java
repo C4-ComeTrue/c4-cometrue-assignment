@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 	@Modifying
 	@Query("UPDATE Transaction SET state = :updateState WHERE id = :transactionId AND state = :preState")
-	void updateState(@Param("transactionId") long transactionId,
+	int updateState(@Param("transactionId") long transactionId,
 		@Param("preState") TransactionState preState,
 		@Param("updateState") TransactionState updateState);
 }
