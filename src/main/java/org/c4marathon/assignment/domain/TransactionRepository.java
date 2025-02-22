@@ -18,7 +18,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		@Param("updateState") TransactionState updateState);
 
 	@Query(value = """
-		SELECT id, receiver_account_number, balance, deadline
+		SELECT id, receiver_account_number as receiverAccountNumber, balance, deadline
 		FROM transaction
 		WHERE id > :cursorId AND deadline >= :cursorTime AND deadline <= :endTime
 		LIMIT :limit
