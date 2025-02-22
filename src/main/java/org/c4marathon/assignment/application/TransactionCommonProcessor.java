@@ -24,7 +24,7 @@ public class TransactionCommonProcessor {
 		updateAccount(accountNumber, money);
 	}
 
-	private void updateUser(String accountNumber, long money) {
+	public void updateUser(String accountNumber, long money) {
 		Account account = accountRepository.findByAccountNumber(accountNumber)
 			.orElseThrow(() -> new RuntimeException("Account not found"));
 
@@ -34,7 +34,7 @@ public class TransactionCommonProcessor {
 			throw new RuntimeException("Account not charged");
 	}
 
-	private void updateAccount(String accountNumber, long money) {
+	public void updateAccount(String accountNumber, long money) {
 		int updatedRow = accountRepository.updateBalance(accountNumber, money);
 
 		if (updatedRow == 0)

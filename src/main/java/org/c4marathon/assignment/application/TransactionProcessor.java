@@ -55,7 +55,7 @@ public class TransactionProcessor {
 		Transaction transaction = transactionRepository.findById(transactionId)
 			.orElseThrow(() -> new RuntimeException("Transaction Not Found."));
 		updateState(transactionId, TransactionState.PENDING, TransactionState.CANCELLED);
-		transactionCommonProcessor.updateBalance(transaction.getSenderAccountNumber(), transaction.getBalance());
+		transactionCommonProcessor.updateAccount(transaction.getSenderAccountNumber(), transaction.getBalance());
 	}
 
 	private void updateState(long transactionId, TransactionState preState, TransactionState updateState) {
