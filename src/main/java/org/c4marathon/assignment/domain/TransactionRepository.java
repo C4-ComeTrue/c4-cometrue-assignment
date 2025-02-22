@@ -17,11 +17,35 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		@Param("preState") TransactionState preState,
 		@Param("updateState") TransactionState updateState);
 
+	@Modifying
+	@Query("UPDATE Transaction SET state = :updateState WHERE id IN :transactionIds AND state = :preState")
+	int updateState(@Param("transactionIds") List<Long> transactionIds,
+		@Param("preState") TransactionState preState,
+		@Param("updateState") TransactionState updateState);
+
 	@Query(value = """
 		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
 		FROM transaction
 		WHERE id > :cursorId AND deadline >= :cursorTime AND deadline <= :endTime AND state = :state
 		LIMIT :limit
 	""", nativeQuery = true)
-	List<TransactionInfo> findAllInfoBy(long cursorId, LocalDateTime cursorTime, LocalDateTime endTime, TransactionState state, int limit);
+	List<TransactionInfo> findAllInfoBy(@Param("cursorId") long cursorId, @Param("cursorTime") LocalDateTime cursorTime,
+		@Param("endTime") LocalDateTime endTime, @Param("state") String state, @Param("limit") int limit);
+
+	@Query(value = """
+		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
+		FROM transaction
+		WHERE deadline <= :endTime AND state = :state
+		LIMIT :limit FOR UPDATE
+	""", nativeQuery = true)
+	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(LocalDateTime endTime, String state, int limit);
+
+	@Query(value = """
+		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
+		FROM transaction
+		WHERE id > :cursorId AND deadline <= :endTime AND state = :state
+		LIMIT :limit FOR UPDATE
+	""", nativeQuery = true)
+	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(long cursorId, LocalDateTime endTime,
+		String state, int limit);
 }

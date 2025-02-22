@@ -1,11 +1,15 @@
 package org.c4marathon.assignment.application;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
 import org.c4marathon.assignment.domain.Transaction;
 import org.c4marathon.assignment.domain.TransactionRepository;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.domain.UserRepository;
+import org.c4marathon.assignment.domain.dto.TransactionInfo;
 import org.c4marathon.assignment.domain.dto.response.TransferResult;
 import org.c4marathon.assignment.domain.type.TransactionState;
 import org.springframework.stereotype.Component;
@@ -58,10 +62,22 @@ public class TransactionProcessor {
 		transactionCommonProcessor.updateAccount(transaction.getSenderAccountNumber(), transaction.getBalance());
 	}
 
-	private void updateState(long transactionId, TransactionState preState, TransactionState updateState) {
+	public void updateState(long transactionId, TransactionState preState, TransactionState updateState) {
 		int updatedRow = transactionRepository.updateState(transactionId, preState, updateState);
 
 		if (updatedRow == 0)
 			throw new RuntimeException("상태를 업데이트 하지 못했습니다.");
+	}
+
+	public void updateState(List<Long> transactionIds, TransactionState preState, TransactionState updateState) {
+		transactionRepository.updateState(transactionIds, preState, updateState);
+	}
+
+	public List<TransactionInfo> findAllAutoCancelInfo(Long id, LocalDateTime end, TransactionState state, int limit) {
+		if (id == null) {
+			return transactionRepository.findAllAutoCancelInfoWithXLockBy(end, state.name(), limit);
+		}
+
+		return transactionRepository.findAllAutoCancelInfoWithXLockBy(id, end, state.name(), limit);
 	}
 }
