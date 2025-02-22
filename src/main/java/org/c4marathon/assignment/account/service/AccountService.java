@@ -2,7 +2,6 @@ package org.c4marathon.assignment.account.service;
 
 import static org.c4marathon.assignment.global.util.Const.*;
 import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
-import static org.c4marathon.assignment.transaction.domain.TransactionStatus.PENDING_DEPOSIT;
 import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 
 import java.time.LocalDateTime;
@@ -13,6 +12,7 @@ import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.domain.repository.SavingAccountRepository;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
+import org.c4marathon.assignment.account.exception.InsufficientBalanceException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.global.util.AccountNumberUtil;
@@ -41,7 +41,7 @@ public class AccountService {
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	public static final String ACCOUNT_PREFIX = "3333";
+
 
 	@Transactional
 	public void createAccount(Long memberId) {
@@ -63,7 +63,6 @@ public class AccountService {
 	 * @param accountNumber
 	 * @param money
 	 */
-	//기본값 -> Repeatable Read
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void chargeMoney(String accountNumber, long money) {
 		Account account = accountRepository.findByAccountNumberWithLock(accountNumber)
@@ -78,13 +77,14 @@ public class AccountService {
 	}
 
 	/**
-	 * 변경
+	 * 적금 계좌로 송금하는 로직
+	 * 자유 적금일 때 사용
 	 * @param accountNumber
-	 * @param savingAccountId
+	 * @param savingAccountNumber
 	 * @param money
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void sendToSavingAccount(String accountNumber, Long savingAccountId, long money) {
+	public void sendToSavingAccount(String accountNumber, String savingAccountNumber, long money) {
 		Account account = accountRepository.findByAccountNumberWithLock(accountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
@@ -92,7 +92,7 @@ public class AccountService {
 			autoCharge(money, account);
 		}
 
-		SavingAccount savingAccount = savingAccountRepository.findById(savingAccountId)
+		SavingAccount savingAccount = savingAccountRepository.findBySavingAccountNumberWithLock(savingAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
 
 		account.withdraw(money);
@@ -104,7 +104,6 @@ public class AccountService {
 
 	/**
 	 * 송금 시 송금 내역을 저장하는 이벤트 발행 후 커밋
-	 *
 	 * @param senderAccountNumber
 	 * @param request
 	 */
@@ -112,6 +111,8 @@ public class AccountService {
 	public void withdraw(String senderAccountNumber, WithdrawRequest request) {
 		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
+
+		validateReceiverAccountNumber(request.receiverAccountNumber());
 
 		if (!senderAccount.isSend(request.money())) {
 			autoCharge(request.money(), senderAccount);
@@ -145,6 +146,8 @@ public class AccountService {
 		}
 	}
 
+
+
 	/**
 	 * 송금 취소 기능(사용자가 직접 취소 요청)
 	 * 취소하려는 송금 내역을 가져와 검증 후 송금을 취소함
@@ -157,7 +160,7 @@ public class AccountService {
 		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(transactionalId)
 			.orElseThrow(NotFoundTransactionException::new);
 
-		validationTransactional(senderAccountNumber, transaction);
+		validateTransactional(senderAccountNumber, transaction);
 
 		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
 			.orElseThrow(NotFoundAccountException::new);
@@ -211,7 +214,7 @@ public class AccountService {
 		senderAccount.deposit(chargeMoney);
 	}
 
-	private static void validationTransactional(String senderAccountNumber, Transaction transaction) {
+	private void validateTransactional(String senderAccountNumber, Transaction transaction) {
 		if (!transaction.getSenderAccountNumber().equals(senderAccountNumber)) {
 			throw new UnauthorizedTransactionException();
 		}
@@ -219,6 +222,10 @@ public class AccountService {
 		if (!transaction.getStatus().equals(PENDING_DEPOSIT)) {
 			throw new InvalidTransactionStatusException();
 		}
+	}
+
+	private void validateReceiverAccountNumber(String accountNumber) {
+		accountRepository.findByAccountNumber(accountNumber).orElseThrow(NotFoundAccountException::new);
 	}
 
 }

@@ -8,9 +8,10 @@ public class Const {
     public static final long CHARGE_LIMIT = 3_000_000L;
     public static final long DEFAULT_BALANCE = 0L;
     public static final long CHARGE_AMOUNT = 10_000L;
-    public static final long MAX_RETRIES = 3;
-    public static final String PENDING_DEPOSIT = "pending-deposit";
-    public static final String FAILED_DEPOSIT = "failed-deposit";
-
+    public static final int ACCOUNT_PREFIX_START = 0;
+    public static final int ACCOUNT_PREFIX_END = 4;
+    public static final String ACCOUNT_PREFIX = "3333";
+    public static final String SAVING_ACCOUNT_PREFIX = "2222";
+    public static final int PAGE_SIZE = 100;
 
 }

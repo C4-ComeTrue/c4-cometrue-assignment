@@ -17,6 +17,7 @@ public enum ErrorCode {
     CHARGE_LIMIT_EXCEEDED(400, "일일 충전 한도를 초과했습니다."),
     RETRY_LIMIT_EXCEEDED(500, "충전이 로직이 충돌났습니다." ),
     INSUFFICIENT_BALANCE(400, "잔액이 부족합니다."),
+    NOT_FOUND_SAVING_PRODUCT(404, "조회된 적금 상품이 없습니다."),
 
     // Transactional
     NOT_FOUND_TRANSACTION(404, "조회된 송금 내역이 없습니다."),

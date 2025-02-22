@@ -7,9 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.c4marathon.assignment.global.entity.BaseEntity;
-import org.c4marathon.assignment.member.domain.Member;
-
-import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -21,32 +18,51 @@ public class SavingAccount extends BaseEntity {
     @Column(name = "saving_account_id")
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String savingAccountNumber;
+
     @Column(nullable = false)
     private long balance;
 
-    /* step 5에 추가
     @Column(nullable = false)
-    private long rate;
+    private long depositAmount; //가입 금액
 
-    @Column(nullable = false)
-    private String productType;
-    */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "saving_product_id")
+    private SavingProduct savingProduct;
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    // 정기적금일 때 연동된 나의 메인계좌번호
+    private String fixedAccountNumber;
 
     @Builder
-    private SavingAccount(long balance, Member member) {
+    private SavingAccount(long balance, SavingProduct savingProduct, long depositAmount, String savingAccountNumber,
+        String fixedAccountNumber) {
+
         this.balance = balance;
-        this.member = member;
+        this.savingProduct = savingProduct;
+        this.depositAmount = depositAmount;
+        this.savingAccountNumber = savingAccountNumber;
+        this.fixedAccountNumber = fixedAccountNumber;
     }
 
-    public static SavingAccount create(long balance, Member member) {
-        return SavingAccount.builder()
+    public static SavingAccount create(long balance, SavingProduct savingProduct,long depositAmount,
+        String savingAccountNumber, String fixedAccountNumber) {
+
+        if (savingProduct.getType().equals(SavingProductType.FREE)) {
+            return SavingAccount.builder()
                 .balance(balance)
-                .member(member)
+                .savingProduct(savingProduct)
+                .depositAmount(depositAmount)
+                .savingAccountNumber(savingAccountNumber)
                 .build();
+        }
+        return SavingAccount.builder()
+            .savingAccountNumber(savingAccountNumber)
+            .balance(balance)
+            .savingProduct(savingProduct)
+            .depositAmount(depositAmount)
+            .fixedAccountNumber(fixedAccountNumber)
+            .build();
     }
 
     public void deposit(long money) {

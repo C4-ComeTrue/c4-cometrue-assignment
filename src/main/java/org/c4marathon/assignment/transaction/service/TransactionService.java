@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.transaction.service;
 
+import static org.c4marathon.assignment.global.util.Const.*;
 import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
 
 import java.time.LocalDateTime;
@@ -24,7 +25,6 @@ public class TransactionService {
 	private final NotificationService notificationService;
 	private final AccountService accountService;
 
-	public static final int PAGE_SIZE = 100;
 	public static final int EXPIRATION_HOURS = 72;
 	public static final int REMIND_HOURS = 48;
 

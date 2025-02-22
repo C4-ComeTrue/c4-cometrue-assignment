@@ -1,10 +1,5 @@
 package org.c4marathon.assignment.account.presentation;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.RequiredArgsConstructor;
 import org.c4marathon.assignment.account.dto.SendToSavingAccountRequest;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.service.AccountService;
@@ -13,10 +8,18 @@ import org.c4marathon.assignment.global.annotation.Login;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-@Validated
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -41,7 +44,7 @@ public class AccountController {
     ) {
         accountService.sendToSavingAccount(
             loginMember.accountNumber(),
-            request.savingAccountId(),
+            request.savingAccountNumber(),
             request.money()
         );
         return ResponseEntity.ok().build();

@@ -20,4 +20,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 		WHERE a.accountNumber = :accountNumber
 		""")
 	Optional<Account> findByAccountNumberWithLock(@Param("accountNumber") String accountNumber);
+
+	Optional<Account> findByAccountNumber(String accountNumber);
 }
