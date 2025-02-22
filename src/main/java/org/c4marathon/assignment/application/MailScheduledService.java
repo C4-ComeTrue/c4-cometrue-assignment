@@ -3,7 +3,7 @@ package org.c4marathon.assignment.application;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
@@ -23,6 +23,8 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 
+import static org.c4marathon.assignment.global.CommonUtils.Pair;
+
 @Service
 @RequiredArgsConstructor
 public class MailScheduledService {
@@ -34,13 +36,13 @@ public class MailScheduledService {
 	private final AccountRepository accountRepository;
 	private final UserRepository userRepository;
 
-	private static ReminderCursor cursor =  new ReminderCursor(0L, LocalDateTime.MIN);
+	private static Pair<Long, LocalDateTime> cursor = Pair.of(0L, LocalDateTime.MIN); // {id, lastDeadline}
 
 	@Scheduled(cron = "${transaction.remind-interval}")
 	public void remindPendingTransaction() {
 		LocalDateTime start = LocalDateTime.now();
 		LocalDateTime end = start.plusHours(REMIND_HOURS);
-		cursor = new ReminderCursor(cursor.id, cursor.deadline.isBefore(start) ? start : cursor.deadline);
+		cursor = Pair.of(cursor.getT(), cursor.getR().isBefore(start) ? start : cursor.getR());
 
 		ReminderThreadPoolExecutor threadPoolExecutor = new ReminderThreadPoolExecutor();
 		threadPoolExecutor.init();
@@ -49,17 +51,17 @@ public class MailScheduledService {
 
 	}
 
-	private Function<TransactionInfo, List<TransactionInfo>> getRemindInfos(LocalDateTime end) {
-		return info -> {
-			List<TransactionInfo> allRemindInfoByCursor = transactionRepository.findAllInfoBy(
-				cursor.id, cursor.deadline, end, TransactionState.PENDING, BATCH_SIZE);
+	private Supplier<List<TransactionInfo>> getRemindInfos(LocalDateTime end) {
+		return () -> {
+			List<TransactionInfo> remindInfos = transactionRepository.findAllInfoBy(
+				cursor.getT(), cursor.getR(), end, TransactionState.PENDING.name(), BATCH_SIZE);
 
-			if (!allRemindInfoByCursor.isEmpty()) {
-				TransactionInfo lastInfo = allRemindInfoByCursor.get(allRemindInfoByCursor.size() - 1);
+			if (!remindInfos.isEmpty()) {
+				TransactionInfo lastInfo = remindInfos.get(remindInfos.size() - 1);
 				cursor.update(lastInfo.getId(), lastInfo.getDeadline());
 			}
 
-			return allRemindInfoByCursor;
+			return remindInfos;
 		};
 	}
 
@@ -100,20 +102,5 @@ public class MailScheduledService {
 		mimeMessage.setFrom("rksidksrksi@naver.com");
 
 		return mimeMessage;
-	}
-
-	private static class ReminderCursor {
-		long id;
-		LocalDateTime deadline;
-
-		ReminderCursor(long id, LocalDateTime deadline) {
-			this.id = id;
-			this.deadline = deadline;
-		}
-
-		void update(long id, LocalDateTime deadline) {
-			this.id = id;
-			this.deadline = deadline;
-		}
 	}
 }
