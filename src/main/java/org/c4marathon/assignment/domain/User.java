@@ -44,10 +44,11 @@ public class User extends BaseEntity {
 
 	@Builder
 	private User(LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt,
-		String email, Long chargeLimit, long accCharge, LocalDateTime chargeLimitDate) {
+		String email, Long chargeLimit, long accCharge, SendingType sendingType) {
 		super(createdAt, updatedAt, deletedAt);
 		this.email = email;
-		this.chargeLimit = chargeLimit != null ? chargeLimit : DEFAULT_CHARGE_LIMIT;
+		this.chargeLimit = (chargeLimit != null) ? chargeLimit : DEFAULT_CHARGE_LIMIT;
 		this.accCharge = accCharge;
+		this.sendingType = (sendingType != null) ? sendingType : SendingType.EAGER;
 	}
 }
