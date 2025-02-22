@@ -10,7 +10,8 @@ import org.c4marathon.assignment.domain.AccountRepository;
 import org.c4marathon.assignment.domain.TransactionRepository;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.domain.UserRepository;
-import org.c4marathon.assignment.domain.dto.TransactionRemindInfo;
+import org.c4marathon.assignment.domain.dto.TransactionInfo;
+import org.c4marathon.assignment.domain.type.TransactionState;
 import org.c4marathon.assignment.global.QueryTemplate;
 import org.c4marathon.assignment.global.ReminderThreadPoolExecutor;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -48,13 +49,13 @@ public class MailScheduledService {
 
 	}
 
-	private Function<TransactionRemindInfo, List<TransactionRemindInfo>> getRemindInfos(LocalDateTime end) {
+	private Function<TransactionInfo, List<TransactionInfo>> getRemindInfos(LocalDateTime end) {
 		return info -> {
-			List<TransactionRemindInfo> allRemindInfoByCursor = transactionRepository.findAllRemindInfoByCursor(
-				cursor.id, cursor.deadline, end, BATCH_SIZE);
+			List<TransactionInfo> allRemindInfoByCursor = transactionRepository.findAllInfoBy(
+				cursor.id, cursor.deadline, end, TransactionState.PENDING, BATCH_SIZE);
 
 			if (!allRemindInfoByCursor.isEmpty()) {
-				TransactionRemindInfo lastInfo = allRemindInfoByCursor.get(allRemindInfoByCursor.size() - 1);
+				TransactionInfo lastInfo = allRemindInfoByCursor.get(allRemindInfoByCursor.size() - 1);
 				cursor.update(lastInfo.getId(), lastInfo.getDeadline());
 			}
 
@@ -62,7 +63,7 @@ public class MailScheduledService {
 		};
 	}
 
-	private Consumer<List<TransactionRemindInfo>> sendReminderAll(ReminderThreadPoolExecutor threadPoolExecutor) {
+	private Consumer<List<TransactionInfo>> sendReminderAll(ReminderThreadPoolExecutor threadPoolExecutor) {
 		return transactionRemindInfos ->
 			transactionRemindInfos.forEach(info ->
 				threadPoolExecutor.execute(() -> {
