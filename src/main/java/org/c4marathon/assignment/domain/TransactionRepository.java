@@ -38,7 +38,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		WHERE deadline <= :endTime AND state = :state
 		LIMIT :limit FOR UPDATE
 	""", nativeQuery = true)
-	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(LocalDateTime endTime, String state, int limit);
+	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(@Param("endTime") LocalDateTime endTime, @Param("state") String state, @Param("limit") int limit);
 
 	@Query(value = """
 		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
@@ -46,6 +46,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		WHERE id > :cursorId AND deadline <= :endTime AND state = :state
 		LIMIT :limit FOR UPDATE
 	""", nativeQuery = true)
-	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(long cursorId, LocalDateTime endTime,
-		String state, int limit);
+	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(@Param("cursorId") long cursorId, @Param("endTime") LocalDateTime endTime,
+		@Param("state") String state, @Param("limit") int limit);
 }

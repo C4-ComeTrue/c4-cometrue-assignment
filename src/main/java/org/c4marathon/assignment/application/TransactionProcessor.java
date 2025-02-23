@@ -17,6 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 거래를 처리하는 메인 클래스
+ */
+
 @Component
 @RequiredArgsConstructor
 public class TransactionProcessor {
@@ -26,6 +30,12 @@ public class TransactionProcessor {
 	private final WireTransferStrategyContext wireTransferStrategyContext;
 	private final TransactionCommonProcessor transactionCommonProcessor;
 
+	/**
+	 * 송금. 보내는 사용자의 설정에 따라 송금 전략을 달리하여 송금합니다.
+	 * @param senderAccountNumber
+	 * @param receiverAccountNumber
+	 * @param money
+	 */
 	public void wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
 		Account senderAccount = accountRepository.findByAccountNumber(senderAccountNumber)
 			.orElseThrow(() -> new RuntimeException("Account Not Found."));
@@ -42,6 +52,7 @@ public class TransactionProcessor {
 		transactionCommonProcessor.updateBalance(accountNumber, money);
 	}
 
+	// 수금
 	@Transactional
 	public TransferResult receive(long transactionId) {
 		Transaction transaction = transactionRepository.findById(transactionId)
@@ -54,6 +65,7 @@ public class TransactionProcessor {
 			transaction.getBalance());
 	}
 
+	// 송금 취소
 	@Transactional
 	public void cancel(long transactionId) {
 		Transaction transaction = transactionRepository.findById(transactionId)

@@ -9,6 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 거래에 대한 공통 처리 로직을 관리하는 클래스
+ */
+
 @Component
 @RequiredArgsConstructor
 public class TransactionCommonProcessor {
