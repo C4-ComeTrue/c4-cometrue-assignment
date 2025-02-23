@@ -49,6 +49,7 @@ public class MailScheduledService {
 
 		QueryTemplate.selectAndExecuteWithCursor(getRemindInfos(end), sendReminderAll(threadPoolExecutor), BATCH_SIZE);
 
+		threadPoolExecutor.shutdown();
 	}
 
 	private Supplier<List<TransactionInfo>> getRemindInfos(LocalDateTime end) {
