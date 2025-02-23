@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.domain;
+package org.c4marathon.assignment.domain.type;
 
 import java.util.ArrayList;
 import java.util.List;

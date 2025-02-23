@@ -2,6 +2,7 @@ package org.c4marathon.assignment.domain;
 
 import java.time.LocalDateTime;
 
+import org.c4marathon.assignment.domain.type.AccountType;
 import org.c4marathon.assignment.global.AccountUtils;
 import org.hibernate.annotations.ColumnDefault;
 

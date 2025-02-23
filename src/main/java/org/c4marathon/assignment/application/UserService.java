@@ -5,7 +5,7 @@ import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
-import org.c4marathon.assignment.domain.SettlementType;
+import org.c4marathon.assignment.domain.type.SettlementType;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.domain.UserRepository;
 import org.c4marathon.assignment.domain.dto.request.SettlementRequest;

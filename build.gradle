@@ -25,10 +25,13 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.apache.commons:commons-lang3:3.13.0'
     implementation 'org.apache.commons:commons-collections4:4.4'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
-import org.c4marathon.assignment.domain.AccountType;
+import org.c4marathon.assignment.domain.type.AccountType;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.domain.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -26,7 +26,7 @@ class AccountServiceTest {
 	static final int TEST_USERS = 100;
 
 	@Autowired
-	AccountService accountService;
+	TransactionService transactionService;
 	@Autowired
 	AccountRepository accountRepository;
 	@Autowired
@@ -67,7 +67,7 @@ class AccountServiceTest {
 		IntStream.range(1, TEST_USERS).forEach(idx ->
 			threadPool.execute(() -> {
 				try {
-					accountService.transfer(
+					transactionService.wireTransfer(
 						testAccounts.get(idx).getAccountNumber(),
 						testAccounts.get(0).getAccountNumber(),
 						sendMoney);
@@ -115,7 +115,7 @@ class AccountServiceTest {
 		IntStream.range(1, TEST_USERS).forEach(idx ->
 			threadPool.execute(() -> {
 				try {
-					accountService.transfer(
+					transactionService.wireTransfer(
 						testAccounts.get(idx).getAccountNumber(),
 						testAccounts.get(0).getAccountNumber(),
 						sendMoney);

@@ -9,9 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 거래에 대한 공통 처리 로직을 관리하는 클래스
+ */
+
 @Component
 @RequiredArgsConstructor
-public class AccountTransactionService {
+public class TransactionCommonProcessor {
 	private final AccountRepository accountRepository;
 	private final UserRepository userRepository;
 
@@ -24,20 +28,7 @@ public class AccountTransactionService {
 		updateAccount(accountNumber, money);
 	}
 
-	// 순환 대기 문제 해결을 위해 계좌 번호 사전 순으로 트랜잭션 처리
-	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
-		if (senderAccountNumber.compareTo(receiverAccountNumber) < 0) {
-			updateBalance(senderAccountNumber, -money);
-			updateBalance(receiverAccountNumber, money);
-		}
-		else {
-			updateBalance(receiverAccountNumber, money);
-			updateBalance(senderAccountNumber, -money);
-		}
-	}
-
-	private void updateUser(String accountNumber, long money) {
+	public void updateUser(String accountNumber, long money) {
 		Account account = accountRepository.findByAccountNumber(accountNumber)
 			.orElseThrow(() -> new RuntimeException("Account not found"));
 
@@ -47,7 +38,7 @@ public class AccountTransactionService {
 			throw new RuntimeException("Account not charged");
 	}
 
-	private void updateAccount(String accountNumber, long money) {
+	public void updateAccount(String accountNumber, long money) {
 		int updatedRow = accountRepository.updateBalance(accountNumber, money);
 
 		if (updatedRow == 0)

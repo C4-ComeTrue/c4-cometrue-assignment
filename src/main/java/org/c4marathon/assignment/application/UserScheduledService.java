@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ScheduledService {
+public class UserScheduledService {
 	private final UserService userService;
 
 	/**
