@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.application;
 
+import java.util.List;
+
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
 import org.c4marathon.assignment.domain.User;
@@ -24,5 +26,14 @@ public class UserService {
 		accountRepository.save(account);
 
 		return true;
+	}
+
+	public List<User> findAllByCursor(long cursor, int limit) {
+		return userRepository.findAllByCursor(cursor, limit);
+	}
+
+	@Transactional
+	public void initChargeLimit(List<Long> userIds) {
+		userRepository.initChargeLimit(userIds);
 	}
 }

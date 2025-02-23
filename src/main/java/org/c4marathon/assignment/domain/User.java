@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
-	static final long DEFAULT_WITHDRAW_LIMIT = 3_000_000L;
+	static final long DEFAULT_CHARGE_LIMIT = 3_000_000L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,22 +28,18 @@ public class User extends BaseEntity {
 	@Column(name = "email", unique = true, nullable = false, length = 50)
 	private String email;
 
-	@Column(name = "day_withdraw_limit", nullable = false)
-	private long dayWithdrawLimit;
+	@Column(name = "charge_limit", nullable = false)
+	private long chargeLimit;
 
-	@Column(name = "day_withdraw", nullable = false)
-	private long dayWithdraw;
-
-	@Column(name = "last_withdraw_date")
-	private LocalDateTime lastWithdrawDate;
+	@Column(name = "acc_charge", nullable = false)
+	private long accCharge;
 
 	@Builder
 	private User(LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt,
-		String email, Long dayWithdrawLimit, long dayWithdraw, LocalDateTime lastWithdrawDate) {
+		String email, Long chargeLimit, long accCharge, LocalDateTime chargeLimitDate) {
 		super(createdAt, updatedAt, deletedAt);
 		this.email = email;
-		this.dayWithdrawLimit = dayWithdrawLimit != null ? dayWithdrawLimit : DEFAULT_WITHDRAW_LIMIT;
-		this.dayWithdraw = dayWithdraw;
-		this.lastWithdrawDate = lastWithdrawDate != null ? lastWithdrawDate : LocalDateTime.now();
+		this.chargeLimit = chargeLimit != null ? chargeLimit : DEFAULT_CHARGE_LIMIT;
+		this.accCharge = accCharge;
 	}
 }

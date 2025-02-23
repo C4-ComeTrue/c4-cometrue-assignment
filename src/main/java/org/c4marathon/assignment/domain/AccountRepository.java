@@ -10,10 +10,10 @@ import org.springframework.data.repository.query.Param;
 public interface AccountRepository extends JpaRepository<Account, Long> {
 	@Modifying
 	@Query("UPDATE Account a SET a.balance = a.balance + :money WHERE a.accountNumber = :accountNumber AND a.balance + :money >= 0")
-	int addBalance(@Param("money") long money, @Param("accountNumber") String accountNumber);
+	int updateBalance(@Param("accountNumber") String accountNumber, @Param("money") long money);
 
 	Optional<Account> findByAccountNumber(String accountNumber);
 
 	@Query("SELECT a FROM Account a WHERE a.userId = :userId AND a.isMain = true")
-	Optional<Account> findMainAccount(Long userId);
+	Optional<Account> findMainAccount(@Param("userId") Long userId);
 }
