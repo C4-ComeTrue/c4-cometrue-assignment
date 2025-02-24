@@ -5,6 +5,7 @@ import java.util.List;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.TransactionStatus;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
+import org.c4marathon.assignment.transaction.exception.NotFoundTransactionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TransactionQueryService {
 	private final TransactionRepository transactionRepository;
+
+	public Transaction findTransactionByIdWithLock(Long transactionId) {
+		return transactionRepository.findTransactionalByTransactionIdWithLock(transactionId)
+			.orElseThrow(NotFoundTransactionException::new);
+	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
 	public List<Transaction> findTransactionByStatusWithLastId(TransactionStatus status, Long lastId, int size) {

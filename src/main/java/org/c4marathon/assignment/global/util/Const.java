@@ -13,5 +13,6 @@ public class Const {
     public static final String ACCOUNT_PREFIX = "3333";
     public static final String SAVING_ACCOUNT_PREFIX = "2222";
     public static final int PAGE_SIZE = 100;
+    public static final String INTEREST_ACCOUNT = "44441234567812";
 
 }

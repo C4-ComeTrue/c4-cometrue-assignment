@@ -15,4 +15,9 @@ public class SavingAccountScheduler {
 	public void depositFixedSavingAccount() {
 		savingAccountService.depositFixedSavingAccount();
 	}
+
+	@Scheduled(cron = "0 0 4 * * ?")
+	public void depositInterest() {
+		savingAccountService.depositInterest();
+	}
 }

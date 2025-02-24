@@ -9,11 +9,10 @@ import java.time.LocalDateTime;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.SavingAccount;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
-import org.c4marathon.assignment.account.domain.repository.SavingAccountRepository;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
-import org.c4marathon.assignment.account.exception.InsufficientBalanceException;
-import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.account.service.query.AccountQueryService;
+import org.c4marathon.assignment.account.service.query.SavingAccountQueryService;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.member.domain.Member;
@@ -24,6 +23,7 @@ import org.c4marathon.assignment.transaction.domain.repository.TransactionReposi
 import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
 import org.c4marathon.assignment.transaction.exception.NotFoundTransactionException;
 import org.c4marathon.assignment.transaction.exception.UnauthorizedTransactionException;
+import org.c4marathon.assignment.transaction.service.TransactionQueryService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -37,11 +37,11 @@ public class AccountService {
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
 	private final TransactionRepository transactionRepository;
-	private final SavingAccountRepository savingAccountRepository;
+	private final AccountQueryService accountQueryService;
+	private final SavingAccountQueryService savingAccountQueryService;
+	private final TransactionQueryService transactionQueryService;
 
 	private final ApplicationEventPublisher eventPublisher;
-
-
 
 	@Transactional
 	public void createAccount(Long memberId) {
@@ -65,8 +65,7 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void chargeMoney(String accountNumber, long money) {
-		Account account = accountRepository.findByAccountNumberWithLock(accountNumber)
-			.orElseThrow(NotFoundAccountException::new);
+		Account account = accountQueryService.findAccountWithLock(accountNumber);
 
 		if (!account.isChargeWithinDailyLimit(money)) {
 			throw new DailyChargeLimitExceededException();
@@ -85,21 +84,27 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void sendToSavingAccount(String accountNumber, String savingAccountNumber, long money) {
-		Account account = accountRepository.findByAccountNumberWithLock(accountNumber)
-			.orElseThrow(NotFoundAccountException::new);
+		Account account = accountQueryService.findAccountWithLock(accountNumber);
+		SavingAccount savingAccount = savingAccountQueryService.findSavingAccountWithLock(savingAccountNumber);
 
 		if (!account.isSend(money)) {
 			autoCharge(money, account);
 		}
 
-		SavingAccount savingAccount = savingAccountRepository.findBySavingAccountNumberWithLock(savingAccountNumber)
-			.orElseThrow(NotFoundAccountException::new);
-
 		account.withdraw(money);
-		accountRepository.save(account);
-
 		savingAccount.deposit(money);
-		savingAccountRepository.save(savingAccount);
+
+		Transaction transaction = Transaction.create(
+			account.getAccountNumber(),
+			savingAccountNumber,
+			money,
+			IMMEDIATE_TRANSFER,
+			SUCCESS_DEPOSIT,
+			LocalDateTime.now()
+		);
+
+		transactionRepository.save(transaction);
+
 	}
 
 	/**
@@ -109,8 +114,7 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void withdraw(String senderAccountNumber, WithdrawRequest request) {
-		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
-			.orElseThrow(NotFoundAccountException::new);
+		Account senderAccount = accountQueryService.findAccountWithLock(senderAccountNumber);
 
 		validateReceiverAccountNumber(request.receiverAccountNumber());
 
@@ -146,8 +150,6 @@ public class AccountService {
 		}
 	}
 
-
-
 	/**
 	 * 송금 취소 기능(사용자가 직접 취소 요청)
 	 * 취소하려는 송금 내역을 가져와 검증 후 송금을 취소함
@@ -157,13 +159,12 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void cancelWithdraw(String senderAccountNumber, Long transactionalId) {
-		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(transactionalId)
-			.orElseThrow(NotFoundTransactionException::new);
+
+		Transaction transaction = transactionQueryService.findTransactionByIdWithLock(transactionalId);
 
 		validateTransactional(senderAccountNumber, transaction);
 
-		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
-			.orElseThrow(NotFoundAccountException::new);
+		Account senderAccount = accountQueryService.findAccountWithLock(senderAccountNumber);
 
 		senderAccount.deposit(transaction.getAmount());
 		transaction.updateStatus(CANCEL);
@@ -175,8 +176,7 @@ public class AccountService {
 	 * @param transaction
 	 */
 	public void cancelWithdrawByExpirationTime(Transaction transaction) {
-		Account senderAccount = accountRepository.findByAccountNumberWithLock(transaction.getSenderAccountNumber())
-			.orElseThrow(NotFoundAccountException::new);
+		Account senderAccount = accountQueryService.findAccountWithLock(transaction.getSenderAccountNumber());
 
 		senderAccount.deposit(transaction.getAmount());
 		transaction.updateStatus(CANCEL);
@@ -190,8 +190,7 @@ public class AccountService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void rollbackWithdraw(String senderAccountNumber, long money) {
-		Account senderAccount = accountRepository.findByAccountNumberWithLock(senderAccountNumber)
-			.orElseThrow(NotFoundAccountException::new);
+		Account senderAccount = accountQueryService.findAccountWithLock(senderAccountNumber);
 
 		senderAccount.deposit(money);
 		accountRepository.save(senderAccount);
@@ -225,7 +224,7 @@ public class AccountService {
 	}
 
 	private void validateReceiverAccountNumber(String accountNumber) {
-		accountRepository.findByAccountNumber(accountNumber).orElseThrow(NotFoundAccountException::new);
+		accountQueryService.findAccount(accountNumber);
 	}
 
 }

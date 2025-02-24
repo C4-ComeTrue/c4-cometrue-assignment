@@ -4,6 +4,7 @@ import org.c4marathon.assignment.account.domain.SavingProductType;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 public record SavingAccountCreateRequest(
 	@NotNull
@@ -13,7 +14,7 @@ public record SavingAccountCreateRequest(
 	@Positive
 	Long savingProductId,
 
-	@Positive
+	@PositiveOrZero
 	long depositAmount
 ) {
 }

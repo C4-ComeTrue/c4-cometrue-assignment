@@ -41,13 +41,8 @@ public class DepositScheduler {
 			for (Transaction transactional : transactionals) {
 				threadPoolExecutor.execute(() -> depositService.successDeposit(transactional));
 			}
-
-			try {
-				threadPoolExecutor.waitToEnd();
-			} catch (Exception e) {
-				log.error("스레드 풀 실행 중 예외 발생 : {}", e.getMessage(), e);
-			}
 		}
+		threadPoolExecutor.waitToEnd();
 	}
 
 	/**

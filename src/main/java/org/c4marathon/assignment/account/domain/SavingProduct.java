@@ -30,17 +30,21 @@ public class SavingProduct extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private SavingProductType type;
 
+	@Column(nullable = false)
+	private int termMonths; // 만기 기간 (개월 단위)
+
 	@Builder
-	private SavingProduct(double rate, SavingProductType type) {
+	private SavingProduct(double rate, SavingProductType type, int termMonths) {
 		this.rate = rate;
 		this.type = type;
+		this.termMonths = termMonths;
 	}
 
-	public static SavingProduct create(double rate, SavingProductType type) {
+	public static SavingProduct create(double rate, SavingProductType type, int termMonths) {
 		return SavingProduct.builder()
 			.rate(rate)
 			.type(type)
+			.termMonths(termMonths)
 			.build();
 	}
-
 }

@@ -51,4 +51,26 @@ public interface SavingAccountRepository extends JpaRepository<SavingAccount, Lo
 		@Param("lastId") Long lastId,
 		@Param("size") int size
 	);
+
+	@Query("""
+		SELECT sa
+		FROM SavingAccount sa
+		JOIN FETCH sa.savingProduct sp
+		ORDER BY sa.id
+		LIMIT :size
+		""")
+	List<SavingAccount> findAllSavingAccount(@Param("size") int size);
+
+	@Query("""
+		SELECT sa
+		FROM SavingAccount sa
+		JOIN FETCH sa.savingProduct sp
+		WHERE sa.id > :lastId
+		ORDER BY sa.id
+		LIMIT :size
+		""")
+	List<SavingAccount> findAllSavingAccountByLastId(
+		@Param("lastId") Long lastId,
+		@Param("size") int size
+	);
 }

@@ -7,11 +7,14 @@ import java.time.LocalDateTime;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.account.service.query.AccountQueryService;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
 import org.c4marathon.assignment.transaction.exception.NotFoundTransactionException;
 import org.c4marathon.assignment.transaction.exception.UnauthorizedTransactionException;
+import org.c4marathon.assignment.transaction.service.TransactionQueryService;
+import org.c4marathon.assignment.transaction.service.validation.TransactionValidationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DepositService {
 	private final AccountRepository accountRepository;
 	private final TransactionRepository transactionRepository;
+	private final TransactionQueryService transactionQueryService;
+	private final AccountQueryService accountQueryService;
+
 
 	/**
 	 * 송금 내역 데이터를 조회해서 출금 로직 실행
@@ -57,13 +63,11 @@ public class DepositService {
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void depositByReceiver(String receiverAccountNumber, Long transactionalId) {
-		Transaction transaction = transactionRepository.findTransactionalByTransactionIdWithLock(transactionalId)
-			.orElseThrow(NotFoundTransactionException::new);
+		Transaction transaction = transactionQueryService.findTransactionByIdWithLock(transactionalId);
 
 		validationTransaction(receiverAccountNumber, transaction);
 
-		Account receiverAccount = accountRepository.findByAccountNumberWithLock(receiverAccountNumber)
-			.orElseThrow(NotFoundAccountException::new);
+		Account receiverAccount = accountQueryService.findAccountWithLock(receiverAccountNumber);
 
 		receiverAccount.deposit(transaction.getAmount());
 		transaction.updateStatus(SUCCESS_DEPOSIT);
@@ -73,8 +77,7 @@ public class DepositService {
 		String receiverAccountNumber = transactional.getReceiverAccountNumber();
 		long amount = transactional.getAmount();
 
-		Account receiverAccount = accountRepository.findByAccountNumberWithLock(receiverAccountNumber)
-			.orElseThrow(NotFoundAccountException::new);
+		Account receiverAccount = accountQueryService.findAccountWithLock(receiverAccountNumber);
 
 		receiverAccount.deposit(amount);
 		accountRepository.save(receiverAccount);
