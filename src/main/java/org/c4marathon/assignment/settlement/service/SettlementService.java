@@ -58,19 +58,7 @@ public class SettlementService {
 	public List<SettlementResponse> getRequestedSettlements(String requestAccountNumber) {
 		List<Settlement> settlements = settlementRepository.findByRequestAccountNumber(requestAccountNumber);
 
-		return settlements.stream()
-			.map(settlement -> new SettlementResponse(
-				settlement.getId(),
-				settlement.getRequestAccountNumber(),
-				settlement.getTotalAmount(),
-				settlement.getSettlementDetails().stream()
-					.map(detail -> new SettlementDetailInfo(
-						detail.getId(),
-						detail.getAccountNumber(),
-						detail.getAmount()
-					)).toList()
-			))
-			.toList();
+		return SettlementResponse.fromEntities(settlements);
 	}
 
 	/**
@@ -82,15 +70,7 @@ public class SettlementService {
 	public List<ReceivedSettlementResponse> getReceivedSettlements(String accountNumber) {
 		List<SettlementDetail> settlementDetails = settlementDetailRepository.findByAccountNumber(accountNumber);
 
-		return settlementDetails.stream()
-			.map(detail -> new ReceivedSettlementResponse(
-				detail.getSettlement().getId(),
-				detail.getSettlement().getRequestAccountNumber(),
-				detail.getSettlement().getTotalAmount(),
-				detail.getAccountNumber(),
-				detail.getAmount()
-			))
-			.toList();
+		return ReceivedSettlementResponse.fromEntities(settlementDetails);
 	}
 
 	private List<Integer> calculateSettlementAmounts(int totalAmount, int totalNumber, SettlementType type) {
