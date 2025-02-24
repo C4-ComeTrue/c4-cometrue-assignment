@@ -13,7 +13,6 @@ import org.c4marathon.assignment.settlement.domain.SettlementType;
 import org.c4marathon.assignment.settlement.domain.repository.SettlementDetailRepository;
 import org.c4marathon.assignment.settlement.domain.repository.SettlementRepository;
 import org.c4marathon.assignment.settlement.dto.ReceivedSettlementResponse;
-import org.c4marathon.assignment.settlement.dto.SettlementDetailInfo;
 import org.c4marathon.assignment.settlement.dto.SettlementRequest;
 import org.c4marathon.assignment.settlement.dto.SettlementResponse;
 import org.springframework.stereotype.Service;

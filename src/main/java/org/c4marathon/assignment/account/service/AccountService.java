@@ -21,7 +21,6 @@ import org.c4marathon.assignment.member.exception.NotFoundMemberException;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
-import org.c4marathon.assignment.transaction.exception.NotFoundTransactionException;
 import org.c4marathon.assignment.transaction.exception.UnauthorizedTransactionException;
 import org.c4marathon.assignment.transaction.service.TransactionQueryService;
 import org.springframework.context.ApplicationEventPublisher;
