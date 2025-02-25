@@ -41,7 +41,7 @@ class MemberControllerTest extends ControllerTestSupport {
         MemberLoginRequest loginRequest = new MemberLoginRequest("test@test.com", "testPassword!");
 
         Member member = Member.create("test@test.com","테스트", "testPassword!");
-        given(memberService.login(any())).willReturn(new SessionMemberInfo(member.getId(), member.getEmail(), 1L));
+        given(memberService.login(any())).willReturn(new SessionMemberInfo(member.getId(), member.getEmail(), "3333"));
 
         // when // then
         mockMvc.perform(
@@ -51,6 +51,6 @@ class MemberControllerTest extends ControllerTestSupport {
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(request().sessionAttribute(SessionConst.LOGIN_MEMBER, new SessionMemberInfo(member.getId(), member.getEmail(), 1L)));
+                .andExpect(request().sessionAttribute(SessionConst.LOGIN_MEMBER, new SessionMemberInfo(member.getId(), member.getEmail(), "3333")));
     }
 }

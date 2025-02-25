@@ -29,17 +29,17 @@ public class SettlementController {
 		@Login SessionMemberInfo loginMember,
 		@RequestBody @Valid SettlementRequest request
 	) {
-		settlementService.createSettlement(loginMember.accountId(), request);
+		settlementService.createSettlement(loginMember.accountNumber(), request);
 		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping("/settlements/requested")
 	public ResponseEntity<List<SettlementResponse>> getRequestedSettlements(@Login SessionMemberInfo loginMember) {
-		return ResponseEntity.ok().body(settlementService.getRequestedSettlements(loginMember.accountId()));
+		return ResponseEntity.ok().body(settlementService.getRequestedSettlements(loginMember.accountNumber()));
 	}
 
 	@GetMapping("/settlements/received")
 	public ResponseEntity<List<ReceivedSettlementResponse>> getReceivedSettlements(@Login SessionMemberInfo loginMember) {
-		return ResponseEntity.ok().body(settlementService.getReceivedSettlements(loginMember.accountId()));
+		return ResponseEntity.ok().body(settlementService.getReceivedSettlements(loginMember.accountNumber()));
 	}
 }

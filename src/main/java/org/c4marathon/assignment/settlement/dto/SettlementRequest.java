@@ -18,7 +18,7 @@ public record SettlementRequest(
 	int totalAmount,
 
 	@NotNull(message = "정산 인원을 추가해주세요.")
-	List<Long> accountIds,
+	List<String> accountNumbers,
 
 	@NotNull(message = "정산 타입을 선택해주세요.")
 	SettlementType type

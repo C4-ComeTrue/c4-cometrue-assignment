@@ -8,6 +8,7 @@ import java.util.List;
 import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.settlement.domain.Settlement;
 import org.c4marathon.assignment.settlement.domain.SettlementDetail;
 import org.junit.jupiter.api.DisplayName;
@@ -31,36 +32,42 @@ class SettlementRepositoryTest extends IntegrationTestSupport {
 	@Test
 	void findByRequestAccountId() {
 	    // given
-		Account account1 = createAccount(10000L);
-		Account account2 = createAccount(20000L);
-		Account account3 = createAccount(30000L);
+		String accountNumber1 = generateAccountNumber();
+		String accountNumber2 = generateAccountNumber();
+		String accountNumber3 = generateAccountNumber();
+		Account account1 = createAccount(accountNumber1, 10000L);
+		Account account2 = createAccount(accountNumber2, 20000L);
+		Account account3 = createAccount(accountNumber3, 30000L);
 
-		Settlement settlement = Settlement.create(account1.getId(), 30000, EQUAL);
+		Settlement settlement = Settlement.create(account1.getAccountNumber(), 30000, EQUAL);
 		settlementRepository.save(settlement);
 
-		SettlementDetail settlementDetail1 = SettlementDetail.create(settlement, account2.getId(), 10000);
-		SettlementDetail settlementDetail2 = SettlementDetail.create(settlement, account3.getId(), 10000);
+		SettlementDetail settlementDetail1 = SettlementDetail.create(settlement, account2.getAccountNumber(), 10000);
+		SettlementDetail settlementDetail2 = SettlementDetail.create(settlement, account3.getAccountNumber(), 10000);
 		settlementDetailRepository.saveAll(List.of(settlementDetail1, settlementDetail2));
 
 	    // when
-		List<Settlement> findSettlement = settlementRepository.findByRequestAccountId(account1.getId());
+		List<Settlement> findSettlement = settlementRepository.findByRequestAccountNumber(account1.getAccountNumber());
 
 		// then
 		assertThat(findSettlement.get(0))
-			.extracting("requestAccountId", "totalAmount")
-			.containsExactly(account1.getId(), 30000);
+			.extracting("requestAccountNumber", "totalAmount")
+			.containsExactly(account1.getAccountNumber(), 30000);
 
 		assertThat(findSettlement.get(0).getSettlementDetails())
-			.extracting("accountId", "amount")
+			.extracting("accountNumber", "amount")
 			.containsExactlyInAnyOrder(
-				tuple(account2.getId(), 10000),
-				tuple(account3.getId(), 10000)
+				tuple(account2.getAccountNumber(), 10000),
+				tuple(account3.getAccountNumber(), 10000)
 			);
 	}
-
-	private Account createAccount(long money) {
-		Account account = Account.create(money);
+	private Account createAccount(String accountNumber, long money) {
+		Account account = Account.create(accountNumber, money);
 		accountRepository.save(account);
 		return account;
+	}
+
+	private String generateAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("3333");
 	}
 }

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -43,9 +44,10 @@ class MemberServiceTest extends IntegrationTestSupport {
         memberRepository.deleteAllInBatch();
     }
 
+    @Transactional
     @DisplayName("회원가입 및 계좌 생성 통합 테스트")
     @Test
-    void register() throws Exception {
+    void register() {
         // given
         MemberRegisterRequest registerRequest = new MemberRegisterRequest(
                 "test@test.com",
@@ -62,9 +64,8 @@ class MemberServiceTest extends IntegrationTestSupport {
         assertThat(member.getEmail()).isEqualTo("test@test.com");
 
         // 메인 계좌 생성 여부 검증
-        Optional<Account> account = accountRepository.findById(member.getAccountId());
+        Optional<Account> account = accountRepository.findByAccountNumberWithLock(member.getAccountNumber());
         assertThat(account).isPresent();
-
     }
 
     @DisplayName("이미 가입한 이메일로 회원가입 시도 시 DuplicateEmailException 가 발생한다.")
@@ -87,10 +88,10 @@ class MemberServiceTest extends IntegrationTestSupport {
 
     @DisplayName("로그인 테스트")
     @Test
-    void login() throws Exception {
+    void login() {
         // given
         Member member = Member.create("test@test.com", "테스트", passwordEncoder.encode("test"));
-        member.setMainAccountId(1L);
+        member.setMainAccountNumber("3333");
         memberRepository.save(member);
         MemberLoginRequest loginRequest = new MemberLoginRequest("test@test.com", "test");
 
@@ -99,13 +100,13 @@ class MemberServiceTest extends IntegrationTestSupport {
 
         // then
         assertThat(loginMember)
-                .extracting("memberId", "email", "accountId")
-                .contains(1L, "test@test.com", 1L);
+                .extracting("memberId", "email", "accountNumber")
+                .contains(member.getId(), "test@test.com", "3333");
     }
 
     @Test
     @DisplayName("가입한적 없는 이메일로 로그인 시도를 할 경우 NotFoundMemberException 예외가 발생한다.")
-    void loginWithNonExistentEmail() throws Exception {
+    void loginWithNonExistentEmail() {
         // given
         MemberLoginRequest loginRequest = new MemberLoginRequest("test@test.com", "test");
 
@@ -117,7 +118,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 
     @DisplayName("틀린 비밀번호로 로그인 시도할 경우 InvalidPasswordException 예외가 발생한다.")
     @Test
-    void test() throws Exception {
+    void test() {
         // given
         Member member = Member.create("test@test.com", "테스트", passwordEncoder.encode("test"));
         memberRepository.save(member);
@@ -128,6 +129,8 @@ class MemberServiceTest extends IntegrationTestSupport {
                 .isInstanceOf(InvalidPasswordException.class)
                 .hasMessage("잘못된 비밀번호 입니다.");
     }
+
+
 
 
 }

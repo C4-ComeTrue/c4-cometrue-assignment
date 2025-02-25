@@ -30,7 +30,7 @@ public class Settlement extends BaseEntity {
 	@Column(name = "settlement_id")
 	private Long id;
 
-	private Long requestAccountId; //정산 요청한 계좌 ID
+	private String requestAccountNumber; //정산 요청한 계좌 ID
 
 	private int totalAmount; //총 정산 금액
 
@@ -43,15 +43,15 @@ public class Settlement extends BaseEntity {
 	private List<SettlementDetail> settlementDetails = new ArrayList<>();
 
 	@Builder
-	private Settlement(Long requestAccountId, int totalAmount, SettlementType type) {
-		this.requestAccountId = requestAccountId;
+	private Settlement(String requestAccountNumber, int totalAmount, SettlementType type) {
+		this.requestAccountNumber = requestAccountNumber;
 		this.totalAmount = totalAmount;
 		this.type = type;
 	}
 
-	public static Settlement create(Long requestAccountId, int totalAmount, SettlementType type) {
+	public static Settlement create(String requestAccountNumber, int totalAmount, SettlementType type) {
 		return Settlement.builder()
-			.requestAccountId(requestAccountId)
+			.requestAccountNumber(requestAccountNumber)
 			.totalAmount(totalAmount)
 			.type(type)
 			.build();

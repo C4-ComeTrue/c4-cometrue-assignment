@@ -5,7 +5,7 @@ import java.io.Serializable;
 public record SessionMemberInfo(
     Long memberId,
     String email,
-    Long accountId
+    String accountNumber
 
 ) implements Serializable {
 }

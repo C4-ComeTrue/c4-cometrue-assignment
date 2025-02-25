@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.settlement.domain.Settlement;
 import org.c4marathon.assignment.settlement.domain.SettlementDetail;
 import org.c4marathon.assignment.settlement.domain.SettlementType;
@@ -32,9 +33,9 @@ class SettlementServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private SettlementService settlementService;
 
+	private static final String REQUEST_ACCOUNT_NUMBER = "33331234567811";
+	private static final List<String> PARTICIPANT_ACCOUNT_NUMBERS = List.of("33331234123456", "33331234123457", "33331234123458");
 
-	private static final Long REQUEST_ACCOUNT_ID = 1L;
-	private static final List<Long> PARTICIPANT_IDS = List.of(2L, 3L, 4L);
 	private static final int TOTAL_NUMBER = 4; // 요청자 포함
 
 	@DisplayName("정산 요청 시 정산 요청 데이터(Settlement, SettlementDetail)를 생성한다.")
@@ -43,26 +44,26 @@ class SettlementServiceTest extends IntegrationTestSupport {
 	void createSettlement() {
 	    // given
 		int totalAmount = 30000;
-		SettlementRequest request = new SettlementRequest(TOTAL_NUMBER, totalAmount, PARTICIPANT_IDS, EQUAL);
+		SettlementRequest request = new SettlementRequest(TOTAL_NUMBER, totalAmount, PARTICIPANT_ACCOUNT_NUMBERS, EQUAL);
 
 	    // when
-		settlementService.createSettlement(REQUEST_ACCOUNT_ID, request);
+		settlementService.createSettlement(REQUEST_ACCOUNT_NUMBER, request);
 
 	    // then
-		List<Settlement> settlements = settlementRepository.findByRequestAccountId(REQUEST_ACCOUNT_ID);
+		List<Settlement> settlements = settlementRepository.findByRequestAccountNumber(REQUEST_ACCOUNT_NUMBER);
 
 		assertThat(settlements).hasSize(1);
 		assertThat(settlements.get(0))
-			.extracting("requestAccountId", "totalAmount", "amount", "type")
-			.containsExactly(REQUEST_ACCOUNT_ID, totalAmount, 7500, EQUAL);
+			.extracting("requestAccountNumber", "totalAmount", "amount", "type")
+			.containsExactly(REQUEST_ACCOUNT_NUMBER, totalAmount, 7500, EQUAL);
 
 		assertThat(settlements.get(0).getSettlementDetails())
 			.hasSize(3)
-			.extracting("accountId", "amount")
+			.extracting("accountNumber", "amount")
 			.containsExactlyInAnyOrder(
-				tuple(2L, 7500),
-				tuple(3L, 7500),
-				tuple(4L, 7500)
+				tuple("33331234123456", 7500),
+				tuple("33331234123457", 7500),
+				tuple("33331234123458", 7500)
 			);
 	}
 
@@ -72,13 +73,13 @@ class SettlementServiceTest extends IntegrationTestSupport {
 	void divideEquallyWithRemainder() {
 	    // given
 		int totalAmount = 30006;
-		SettlementRequest request = new SettlementRequest(TOTAL_NUMBER, totalAmount, PARTICIPANT_IDS, EQUAL);
+		SettlementRequest request = new SettlementRequest(TOTAL_NUMBER, totalAmount, PARTICIPANT_ACCOUNT_NUMBERS, EQUAL);
 
 	    // when
-		settlementService.createSettlement(REQUEST_ACCOUNT_ID, request);
+		settlementService.createSettlement(REQUEST_ACCOUNT_NUMBER, request);
 
 	    // then
-		List<Settlement> settlements = settlementRepository.findByRequestAccountId(REQUEST_ACCOUNT_ID);
+		List<Settlement> settlements = settlementRepository.findByRequestAccountNumber(REQUEST_ACCOUNT_NUMBER);
 
 		Settlement settlement = settlements.get(0);
 		List<SettlementDetail> settlementDetails = settlement.getSettlementDetails();
@@ -93,8 +94,8 @@ class SettlementServiceTest extends IntegrationTestSupport {
 		assertThat(totalCalculatedAmount).isEqualTo(totalAmount);
 
 		assertThat(settlement)
-			.extracting("requestAccountId", "totalAmount", "type")
-			.containsExactly(1L, totalAmount, SettlementType.EQUAL);
+			.extracting("requestAccountNumber", "totalAmount", "type")
+			.containsExactly(REQUEST_ACCOUNT_NUMBER, totalAmount, SettlementType.EQUAL);
 		assertThat(settlement.getTotalAmount()).isEqualTo(totalCalculatedAmount);
 
 		assertThat(actualAmounts)
@@ -108,13 +109,13 @@ class SettlementServiceTest extends IntegrationTestSupport {
 	    // given
 		int totalAmount = 50000;
 
-		SettlementRequest request = new SettlementRequest(TOTAL_NUMBER, totalAmount, PARTICIPANT_IDS, SettlementType.RANDOM);
+		SettlementRequest request = new SettlementRequest(TOTAL_NUMBER, totalAmount, PARTICIPANT_ACCOUNT_NUMBERS, SettlementType.RANDOM);
 
 		// when
-		settlementService.createSettlement(REQUEST_ACCOUNT_ID, request);
+		settlementService.createSettlement(REQUEST_ACCOUNT_NUMBER, request);
 
 	    // then
-		List<Settlement> settlements = settlementRepository.findByRequestAccountId(REQUEST_ACCOUNT_ID);
+		List<Settlement> settlements = settlementRepository.findByRequestAccountNumber(REQUEST_ACCOUNT_NUMBER);
 
 		Settlement settlement = settlements.get(0);
 		List<SettlementDetail> settlementDetails = settlement.getSettlementDetails();
@@ -126,8 +127,8 @@ class SettlementServiceTest extends IntegrationTestSupport {
 		actualAmounts.add(settlement.getAmount());
 
 		assertThat(settlement)
-			.extracting("requestAccountId", "totalAmount", "type")
-			.containsExactly(REQUEST_ACCOUNT_ID, totalAmount, SettlementType.RANDOM);
+			.extracting("requestAccountNumber", "totalAmount", "type")
+			.containsExactly(REQUEST_ACCOUNT_NUMBER, totalAmount, SettlementType.RANDOM);
 
 		int totalCalculatedAmount = actualAmounts.stream().mapToInt(Integer::intValue).sum();
 		assertThat(totalCalculatedAmount).isEqualTo(totalAmount);
@@ -142,30 +143,30 @@ class SettlementServiceTest extends IntegrationTestSupport {
 	void getRequestedSettlements() {
 	    // given
 		int totalAmount = 30000;
-		Settlement settlement = Settlement.create(REQUEST_ACCOUNT_ID, totalAmount, SettlementType.EQUAL);
+		Settlement settlement = Settlement.create(REQUEST_ACCOUNT_NUMBER, totalAmount, SettlementType.EQUAL);
 		settlement.setAmount(7500);
 		settlementRepository.save(settlement);
 
-		List<SettlementDetail> settlementDetails = PARTICIPANT_IDS.stream()
+		List<SettlementDetail> settlementDetails = PARTICIPANT_ACCOUNT_NUMBERS.stream()
 			.map(participantId -> SettlementDetail.create(settlement, participantId, 7500))
 			.toList();
 		settlementDetailRepository.saveAll(settlementDetails);
 
 	    // when
-		List<SettlementResponse> response = settlementService.getRequestedSettlements(REQUEST_ACCOUNT_ID);
+		List<SettlementResponse> response = settlementService.getRequestedSettlements(REQUEST_ACCOUNT_NUMBER);
 
 		// then
 		assertThat(response).hasSize(1);
 		assertThat(response.get(0))
-			.extracting("requestAccountId", "totalAmount")
-			.containsExactly(REQUEST_ACCOUNT_ID, totalAmount);
+			.extracting("requestAccountNumber", "totalAmount")
+			.containsExactly(REQUEST_ACCOUNT_NUMBER, totalAmount);
 
 		assertThat(response.get(0).members())
-			.extracting(SettlementDetailInfo::accountId, SettlementDetailInfo::amount)
+			.extracting(SettlementDetailInfo::accountNumber, SettlementDetailInfo::amount)
 			.containsExactlyInAnyOrder(
-				tuple(2L, 7500),
-				tuple(3L, 7500),
-				tuple(4L, 7500)
+				tuple("33331234123456", 7500),
+				tuple("33331234123457", 7500),
+				tuple("33331234123458", 7500)
 			);
 	}
 
@@ -175,24 +176,24 @@ class SettlementServiceTest extends IntegrationTestSupport {
 	void getReceivedSettlements() {
 		// given
 		int totalAmount = 30000;
-		Settlement settlement = Settlement.create(REQUEST_ACCOUNT_ID, totalAmount, SettlementType.EQUAL);
+		Settlement settlement = Settlement.create(REQUEST_ACCOUNT_NUMBER, totalAmount, SettlementType.EQUAL);
 		settlement.setAmount(7500); // 요청자의 금액 설정
 		settlementRepository.save(settlement);
 
-		List<SettlementDetail> settlementDetails = PARTICIPANT_IDS.stream()
+		List<SettlementDetail> settlementDetails = PARTICIPANT_ACCOUNT_NUMBERS.stream()
 			.map(participantId -> SettlementDetail.create(settlement, participantId, 7500))
 			.toList();
 		settlementDetailRepository.saveAll(settlementDetails);
 
 		// when
-		List<ReceivedSettlementResponse> responses = settlementService.getReceivedSettlements(2L);
+		List<ReceivedSettlementResponse> responses = settlementService.getReceivedSettlements("33331234123457");
 
 		// then
 		assertThat(responses).hasSize(1);
 
 		ReceivedSettlementResponse response = responses.get(0);
 		assertThat(response)
-			.extracting("settlementId", "requestAccountId", "totalAmount", "myAccountId", "mySettlementAmount")
-			.containsExactly(settlement.getId(), REQUEST_ACCOUNT_ID, totalAmount, 2L, 7500);
+			.extracting("settlementId", "requestAccountNumber", "totalAmount", "myAccountNumber", "mySettlementAmount")
+			.containsExactly(settlement.getId(), REQUEST_ACCOUNT_NUMBER, totalAmount, "33331234123457", 7500);
 	}
 }

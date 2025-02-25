@@ -25,9 +25,9 @@ class AccountSchedulerTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.update("INSERT INTO account (account_id, money, charge_limit) VALUES (?, ?, ?)", 1L, 1000L, 3_000_000L);
-        jdbcTemplate.update("INSERT INTO account (account_id, money, charge_limit) VALUES (?, ?, ?)", 2L, 1000L, 1_500_000L);
-        jdbcTemplate.update("INSERT INTO account (account_id, money, charge_limit) VALUES (?, ?, ?)", 3L, 1000L, 50_000L);
+        jdbcTemplate.update("INSERT INTO account (account_id, account_number, money, charge_limit) VALUES (?, ?, ?, ?)", 1L, "33331", 1000L, 3_000_000L);
+        jdbcTemplate.update("INSERT INTO account (account_id, account_number, money, charge_limit) VALUES (?, ?, ?, ?)", 2L, "33332", 1000L, 1_500_000L);
+        jdbcTemplate.update("INSERT INTO account (account_id, account_number, money, charge_limit) VALUES (?, ?, ?, ?)", 3L, "33333", 1000L, 50_000L);
     }
 
     @AfterEach

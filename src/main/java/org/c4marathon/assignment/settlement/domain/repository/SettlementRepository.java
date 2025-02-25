@@ -6,5 +6,5 @@ import org.c4marathon.assignment.settlement.domain.Settlement;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SettlementRepository extends JpaRepository<Settlement, Long> {
-	List<Settlement> findByRequestAccountId(Long requestAccountId);
+	List<Settlement> findByRequestAccountNumber(String requestAccountNumber);
 }

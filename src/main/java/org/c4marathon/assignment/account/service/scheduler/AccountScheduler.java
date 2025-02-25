@@ -3,13 +3,14 @@ package org.c4marathon.assignment.account.service.scheduler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import static org.c4marathon.assignment.global.util.Const.CHARGE_LIMIT;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class AccountScheduler {
     private final JdbcTemplate jdbcTemplate;

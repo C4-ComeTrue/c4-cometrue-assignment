@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.member.domain.repository;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.member.domain.Member;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +24,7 @@ class MemberRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("중복된 이메일을 가진 유저가 있으면 true을 반환한다.")
     @Test
-    void validateDuplicateEmail() throws Exception {
+    void validateDuplicateEmail() {
         // given
         Member member = Member.create("test@naver.com", "테스트", "test");
         memberRepository.save(member);
@@ -37,7 +38,7 @@ class MemberRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("중복된 이메일을 가진 유저가 있으면 false을 반환한다.")
     @Test
-    void validateDuplicateEmail_2() throws Exception {
+    void validateDuplicateEmail_2() {
         // given
         Member member = Member.create("test@naver.com", "테스트", "test");
         memberRepository.save(member);
@@ -49,10 +50,9 @@ class MemberRepositoryTest extends IntegrationTestSupport {
         assertThat(result).isFalse();
     }
 
-
     @DisplayName("이메일로 멤버를 찾는다.")
     @Test
-    void findMemberByEmail() throws Exception {
+    void findMemberByEmail() {
         // given
         Member member = Member.create("test@naver.com", "테스트", "test");
         memberRepository.save(member);
@@ -64,5 +64,27 @@ class MemberRepositoryTest extends IntegrationTestSupport {
         assertThat(findMember.get())
                 .extracting("email", "name", "password")
                 .contains("test@naver.com", "테스트", "test");
+    }
+
+    @DisplayName("AccountId로 멤버를 찾는다.")
+    @Test
+    void findMemberByAccountId() {
+        // given
+        String accountNumber = generateAccountNumber();
+        Member member = Member.create("test@naver.com", "테스트", "test");
+        member.setMainAccountNumber(accountNumber);
+        memberRepository.save(member);
+
+        // when
+        Optional<Member> findMember = memberRepository.findByAccountNumber(accountNumber);
+
+        // then
+        assertThat(findMember.get())
+            .extracting("email", "name", "password", "accountNumber")
+            .contains("test@naver.com", "테스트", "test", accountNumber);
+    }
+
+    private String generateAccountNumber() {
+        return AccountNumberUtil.generateAccountNumber("3333");
     }
 }

@@ -54,7 +54,7 @@ public class MemberService {
 			throw new InvalidPasswordException();
 		}
 
-		return new SessionMemberInfo(member.getId(), member.getEmail(), member.getAccountId());
+		return new SessionMemberInfo(member.getId(), member.getEmail(), member.getAccountNumber());
 
 	}
 
