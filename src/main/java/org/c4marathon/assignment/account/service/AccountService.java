@@ -84,7 +84,7 @@ public class AccountService {
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void sendToSavingAccount(String accountNumber, String savingAccountNumber, long money) {
 		Account account = accountQueryService.findAccountWithLock(accountNumber);
-		SavingAccount savingAccount = savingAccountQueryService.findSavingAccountWithLock(savingAccountNumber);
+		SavingAccount savingAccount = savingAccountQueryService.findFreeSavingAccountWithLock(savingAccountNumber);
 
 		if (!account.isSend(money)) {
 			autoCharge(money, account);

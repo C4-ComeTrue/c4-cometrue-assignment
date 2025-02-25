@@ -73,4 +73,16 @@ public interface SavingAccountRepository extends JpaRepository<SavingAccount, Lo
 		@Param("lastId") Long lastId,
 		@Param("size") int size
 	);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+		SELECT sa
+		FROM SavingAccount sa
+		WHERE sa.savingAccountNumber = :freeSavingAccountNumber
+		AND sa.savingProduct.type = :savingProductType
+		""")
+	Optional<SavingAccount> findFreeSavingAccountWithLock(
+		@Param("freeSavingAccountNumber") String freeSavingAccountNumber,
+		@Param("type") SavingProductType savingProductType
+	);
 }

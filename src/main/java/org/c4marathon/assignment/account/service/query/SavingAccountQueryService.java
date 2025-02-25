@@ -22,6 +22,11 @@ public class SavingAccountQueryService {
 			.orElseThrow(NotFoundAccountException::new);
 	}
 
+	public SavingAccount findFreeSavingAccountWithLock(String freeSavingAccountNumber) {
+		return savingAccountRepository.findFreeSavingAccountWithLock(freeSavingAccountNumber, FREE)
+			.orElseThrow(NotFoundAccountException::new);
+	}
+
 	public List<SavingAccount> findSavingAccountByFixedWithLastId(Long lastId, int size) {
 		if (lastId == null) {
 			return savingAccountRepository.findSavingAccountByFixed(FIXED, size);
