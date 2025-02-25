@@ -8,6 +8,7 @@ import org.c4marathon.assignment.global.annotation.Login;
 import org.c4marathon.assignment.global.session.SessionMemberInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 
+@Validated
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class AccountController {
     @PostMapping("/charge")
     public ResponseEntity<Void> charge(
         @Login SessionMemberInfo loginMember,
-        @RequestParam @PositiveOrZero(message = "음수는 송금할 수 없습니다.") long money
+        @RequestParam  @PositiveOrZero(message = "음수는 송금할 수 없습니다.") long money
     ) {
         accountService.chargeMoney(loginMember.accountNumber(), money);
         return ResponseEntity.ok().build();
