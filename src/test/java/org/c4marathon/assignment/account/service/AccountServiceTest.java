@@ -3,7 +3,6 @@ package org.c4marathon.assignment.account.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.c4marathon.assignment.global.util.Const.*;
 import static org.c4marathon.assignment.transaction.domain.TransactionStatus.*;
-import static org.c4marathon.assignment.transaction.domain.TransactionStatus.PENDING_DEPOSIT;
 import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 import static org.mockito.BDDMockito.*;
 
@@ -12,11 +11,16 @@ import java.time.LocalDateTime;
 import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
 import org.c4marathon.assignment.account.domain.SavingAccount;
+import org.c4marathon.assignment.account.domain.SavingProduct;
+import org.c4marathon.assignment.account.domain.SavingProductType;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.domain.repository.SavingAccountRepository;
+import org.c4marathon.assignment.account.domain.repository.SavingProductRepository;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.exception.NotFoundAccountException;
+import org.c4marathon.assignment.account.service.query.AccountQueryService;
+import org.c4marathon.assignment.account.service.query.SavingAccountQueryService;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.member.domain.Member;
@@ -42,6 +46,15 @@ import org.springframework.transaction.annotation.Transactional;
 class AccountServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private AccountService accountService;
+
+	@Autowired
+	private AccountQueryService accountQueryService;
+
+	@Autowired
+	private SavingAccountQueryService savingAccountQueryService;
+
+	@Autowired
+	private SavingProductRepository savingProductRepository;
 
 	@Autowired
 	private AccountRepository accountRepository;
@@ -125,48 +138,66 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void sendToSavingAccount() {
 		// given
-		Member member = createMember();
 
 		String accountNumber = generateAccountNumber();
-		Account account = createAccount(accountNumber, 10_000L);
+		String savingAccountNumber = generateSavingAccountNumber();
 
-		member.setMainAccountNumber(account.getAccountNumber());
+		Account account = createAccount(accountNumber, 10_000L);
 		accountRepository.save(account);
 
-		SavingAccount savingAccount = SavingAccount.create(1000L, member);
-		savingAccountRepository.save(savingAccount);
+		SavingProduct savingProduct = SavingProduct.create(3.0, SavingProductType.FREE, 24);
+		savingProductRepository.save(savingProduct);
+
+		SavingAccount savingAccount = SavingAccount.create(
+			savingAccountNumber,
+			DEFAULT_BALANCE,
+			10000L,
+			savingProduct,
+			accountNumber
+		);
+		 savingAccountRepository.save(savingAccount);
 
 		long sendMoney = 5_000L;
 
 		// when
-		accountService.sendToSavingAccount(account.getAccountNumber(), savingAccount.getId(), sendMoney);
+		accountService.sendToSavingAccount(accountNumber, savingAccountNumber, sendMoney);
 
 		// then
 		Account updatedAccount = accountRepository.findById(account.getId()).orElseThrow();
 		SavingAccount updatedSavingAccount = savingAccountRepository.findById(savingAccount.getId()).orElseThrow();
 
 		assertThat(updatedAccount.getMoney()).isEqualTo(5_000L);
-		assertThat(updatedSavingAccount.getBalance()).isEqualTo(6_000L);
+		assertThat(updatedSavingAccount.getBalance()).isEqualTo(5_000L);
 	}
 
 	@DisplayName("송금 시도할 때 메인 계좌 잔액이 부족하면 10,000원 단위로 충전 후 송금 한다.")
 	@Test
 	void sendToSavingAccountWithInsufficientBalance() {
 		// given
-		Member member = createMember();
 
 		String accountNumber = generateAccountNumber();
+		String savingAccountNumber = generateSavingAccountNumber();
+
 		Account account = Account.create(accountNumber, 12000L);
-		member.setMainAccountNumber(account.getAccountNumber());
 		accountRepository.save(account);
 
-		SavingAccount savingAccount = SavingAccount.create(1000L, member);
+		SavingProduct savingProduct = SavingProduct.create(3.0, SavingProductType.FREE, 24);
+		savingProductRepository.save(savingProduct);
+
+		SavingAccount savingAccount = SavingAccount.create(
+			savingAccountNumber,
+			DEFAULT_BALANCE,
+			10000L,
+			savingProduct,
+			accountNumber
+		);
+
 		savingAccountRepository.save(savingAccount);
 
 		long sendMoney = 20_000L;
 
 		// when
-		accountService.sendToSavingAccount(account.getAccountNumber(), savingAccount.getId(), sendMoney);
+		accountService.sendToSavingAccount(account.getAccountNumber(), savingAccountNumber, sendMoney);
 
 		// then
 		Account updatedAccount = accountRepository.findById(account.getId())
@@ -175,7 +206,7 @@ class AccountServiceTest extends IntegrationTestSupport {
 			.orElseThrow(NotFoundAccountException::new);
 
 		assertThat(updatedAccount.getMoney()).isEqualTo(2000L);
-		assertThat(updatedSavingAccount.getBalance()).isEqualTo(21000L);
+		assertThat(updatedSavingAccount.getBalance()).isEqualTo(20000L);
 
 	}
 
@@ -187,6 +218,10 @@ class AccountServiceTest extends IntegrationTestSupport {
 		String accountNumber = generateAccountNumber();
 		String receiverAccountNumber = generateAccountNumber();
 		Account senderAccount = createAccount(accountNumber, 50000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 50000L);
+		accountRepository.save(senderAccount);
+		accountRepository.save(receiverAccount);
+
 		WithdrawRequest request = new WithdrawRequest(receiverAccountNumber, 20000L, IMMEDIATE_TRANSFER);
 
 		// when
@@ -209,6 +244,11 @@ class AccountServiceTest extends IntegrationTestSupport {
 		String accountNumber = generateAccountNumber();
 		String receiverAccountNumber = generateAccountNumber();
 		Account senderAccount = createAccount(accountNumber, 50000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 50000L);
+
+		accountRepository.save(senderAccount);
+		accountRepository.save(receiverAccount);
+
 		WithdrawRequest request = new WithdrawRequest(receiverAccountNumber, 200000L, IMMEDIATE_TRANSFER);
 
 		// when
@@ -228,14 +268,19 @@ class AccountServiceTest extends IntegrationTestSupport {
 	@Test
 	void withdrawWithDailyChargeLimit() {
 		// given
-		String accountNumber = generateAccountNumber();
+		String senderAccountNumber = generateAccountNumber();
 		String receiverAccountNumber = generateAccountNumber();
-		Account senderAccount = createAccount(accountNumber, 5000L);
+
+		Account senderAccount = createAccount(senderAccountNumber, 5000L);
+		Account receiverAccount = createAccount(receiverAccountNumber, 5000L);
+
+		accountRepository.save(senderAccount);
+		accountRepository.save(receiverAccount);
+
 		WithdrawRequest request = new WithdrawRequest(receiverAccountNumber, 3_500_000L, IMMEDIATE_TRANSFER);
 
 		// when // then
-		String senderAccountAccountNumber = senderAccount.getAccountNumber();
-		assertThatThrownBy(() -> accountService.withdraw(senderAccountAccountNumber, request))
+		assertThatThrownBy(() -> accountService.withdraw(senderAccountNumber, request))
 			.isInstanceOf(DailyChargeLimitExceededException.class);
 	}
 
@@ -372,4 +417,8 @@ class AccountServiceTest extends IntegrationTestSupport {
 	private String generateAccountNumber() {
 		return AccountNumberUtil.generateAccountNumber("3333");
 	}
+	private String generateSavingAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("2222");
+	}
+
 }
