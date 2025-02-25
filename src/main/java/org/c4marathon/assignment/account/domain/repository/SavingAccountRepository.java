@@ -83,6 +83,6 @@ public interface SavingAccountRepository extends JpaRepository<SavingAccount, Lo
 		""")
 	Optional<SavingAccount> findFreeSavingAccountWithLock(
 		@Param("freeSavingAccountNumber") String freeSavingAccountNumber,
-		@Param("type") SavingProductType savingProductType
+		@Param("savingProductType") SavingProductType savingProductType
 	);
 }
