@@ -3,7 +3,6 @@ package org.c4marathon.assignment.global;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +14,12 @@ public class QueryTemplate {
 	private static final int MAX_RETRY_COUNT = 3;
 	private static final Logger log = LoggerFactory.getLogger(QueryTemplate.class);
 
-	public static <T> void selectAndExecuteWithCursor(Supplier<List<T>> selectSupplier, Consumer<List<T>> resultConsumer,
+	public static <T> void selectAndExecuteWithCursor(Function<T, List<T>> selectSupplier, Consumer<List<T>> resultConsumer,
 		int limit) {
-		List<T> resList;
+		List<T> resList = null;
 
 		do {
-			resList = selectSupplier.get();
+			resList = selectSupplier.apply(resList == null ? null : resList.get(resList.size() - 1));
 
 			if (!resList.isEmpty()) {
 				resultConsumer.accept(resList);
