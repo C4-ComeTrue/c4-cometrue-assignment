@@ -5,6 +5,7 @@ import java.util.stream.IntStream;
 
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
+import org.c4marathon.assignment.domain.dto.request.UserRegisterDto;
 import org.c4marathon.assignment.domain.type.SettlementType;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.domain.UserRepository;
@@ -22,8 +23,8 @@ public class UserService {
 	private final AccountRepository accountRepository;
 
 	@Transactional
-	public boolean register(String email) {
-		User createdUser = User.builder().email(email).build();
+	public boolean register(UserRegisterDto dto) {
+		User createdUser = User.builder().email(dto.email()).name(dto.name()).build();
 		userRepository.save(createdUser);
 
 		Account account = Account.builder().isMain(true).userId(createdUser.getId()).build();

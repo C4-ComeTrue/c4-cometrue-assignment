@@ -29,6 +29,9 @@ public class User extends BaseEntity {
 	@Column(name = "id", nullable = false)
 	private Long id;
 
+	@Column(name = "name", nullable = false, length = 50)
+	private String name;
+
 	@Column(name = "email", unique = true, nullable = false, length = 50)
 	private String email;
 
@@ -43,9 +46,10 @@ public class User extends BaseEntity {
 	private SendingType sendingType;
 
 	@Builder
-	private User(Instant createdAt, Instant updatedAt, Instant deletedAt,
+	private User(Instant createdAt, Instant updatedAt, Instant deletedAt, String name,
 		String email, Long chargeLimit, long accCharge, SendingType sendingType) {
 		super(createdAt, updatedAt, deletedAt);
+		this.name = name;
 		this.email = email;
 		this.chargeLimit = (chargeLimit != null) ? chargeLimit : DEFAULT_CHARGE_LIMIT;
 		this.accCharge = accCharge;
