@@ -22,7 +22,7 @@ public class TransactionScheduledService {
 	private static final int BATCH_SIZE = 1000;
 	private static final String TEMP_TABLE_NAME = "temp_transaction_sum";
 
-	private final TransactionProcessor transactionProcessor;
+	private final TransactionService transactionService;
 	private final JdbcTemplate jdbcTemplate;
 	private final PlatformTransactionManager transactionManager;
 
@@ -35,7 +35,7 @@ public class TransactionScheduledService {
 		LocalDateTime end = LocalDateTime.now();
 
 		QueryTemplate.selectAndExecuteWithCursorAndTx(transactionManager,
-			info -> transactionProcessor.findAllAutoCancelInfo(info == null ? null : info.getId(), end, TransactionState.PENDING, BATCH_SIZE),
+			info -> transactionService.findAllAutoCancelInfo(info == null ? null : info.getId(), end, TransactionState.PENDING, BATCH_SIZE),
 			updateAllInBatch(),
 			BATCH_SIZE);
 	}
@@ -50,7 +50,7 @@ public class TransactionScheduledService {
 			List<Long> transactionIds = infos.stream().map(TransactionInfo::getId).toList();
 
 			createTempSavingTable();
-			transactionProcessor.updateState(transactionIds, TransactionState.PENDING, TransactionState.CANCELLED);
+			transactionService.updateState(transactionIds, TransactionState.PENDING, TransactionState.CANCELLED);
 			saveSumToTempTable(accountBalanceMap);
 			batchCancel();
 			dropTempSavingTable();

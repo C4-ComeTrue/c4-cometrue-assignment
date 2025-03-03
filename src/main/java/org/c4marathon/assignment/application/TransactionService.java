@@ -2,12 +2,22 @@ package org.c4marathon.assignment.application;
 
 import static org.c4marathon.assignment.global.CommonUtils.*;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
+import org.c4marathon.assignment.domain.Transaction;
+import org.c4marathon.assignment.domain.TransactionRepository;
+import org.c4marathon.assignment.domain.User;
+import org.c4marathon.assignment.domain.UserRepository;
+import org.c4marathon.assignment.domain.dto.TransactionInfo;
 import org.c4marathon.assignment.domain.dto.response.TransferResult;
 import org.c4marathon.assignment.domain.dto.response.WithdrawResult;
 import org.c4marathon.assignment.domain.type.AccountType;
+import org.c4marathon.assignment.domain.type.TransactionState;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,12 +26,15 @@ import lombok.RequiredArgsConstructor;
 public class TransactionService {
 	private static final long CEILING_POINT = 10_000L;
 
-	private final TransactionProcessor transactionProcessor;
 	private final AccountRepository accountRepository;
+	private final UserRepository userRepository;
+	private final TransactionRepository transactionRepository;
+	private final WireTransferStrategyContext wireTransferStrategyContext;
+	private final TransactionCommonProcessor transactionCommonProcessor;
 
 	// 단순 출금
 	public WithdrawResult withdraw(String accountNumber, long money) {
-		transactionProcessor.updateBalance(accountNumber, -money);
+		transactionCommonProcessor.updateBalance(accountNumber, -money);
 
 		return new WithdrawResult(money);
 	}
@@ -33,23 +46,67 @@ public class TransactionService {
 	 * @param money
 	 * @return
 	 */
+	@Transactional
 	public TransferResult wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
 		validateSender(senderAccountNumber, receiverAccountNumber);
 		long diff = computeBalanceDiff(senderAccountNumber, money);
 		if (diff < 0) {
-			transactionProcessor.updateBalance(senderAccountNumber, getCeil(-diff, CEILING_POINT));
+			transactionCommonProcessor.updateBalance(senderAccountNumber, getCeil(-diff, CEILING_POINT));
 		}
-		transactionProcessor.wireTransfer(senderAccountNumber, receiverAccountNumber, money);
+		wireTransferByStrategy(senderAccountNumber, receiverAccountNumber, money);
 
 		return new TransferResult(senderAccountNumber, receiverAccountNumber, money);
 	}
 
+	@Transactional
 	public TransferResult receive(long transactionId) {
-		return transactionProcessor.receive(transactionId);
+		Transaction transaction = transactionRepository.findById(transactionId)
+			.orElseThrow(() -> new RuntimeException("Transaction Not Found."));
+		updateState(transactionId, TransactionState.PENDING, TransactionState.FINISHED);
+		transactionCommonProcessor.updateBalance(transaction.getReceiverAccountNumber(), transaction.getBalance());
+
+		return new TransferResult(transaction.getSenderAccountNumber(),
+			transaction.getReceiverAccountNumber(),
+			transaction.getBalance());
 	}
 
+	@Transactional
 	public void cancel(long transactionId) {
-		transactionProcessor.cancel(transactionId);
+		Transaction transaction = transactionRepository.findById(transactionId)
+			.orElseThrow(() -> new RuntimeException("Transaction Not Found."));
+		updateState(transactionId, TransactionState.PENDING, TransactionState.CANCELLED);
+		transactionCommonProcessor.updateAccount(transaction.getSenderAccountNumber(), transaction.getBalance());
+	}
+
+	public void updateState(long transactionId, TransactionState preState, TransactionState updateState) {
+		int updatedRow = transactionRepository.updateState(transactionId, preState, updateState);
+
+		if (updatedRow == 0)
+			throw new RuntimeException("상태를 업데이트 하지 못했습니다.");
+	}
+
+	public void updateState(List<Long> transactionIds, TransactionState preState, TransactionState updateState) {
+		transactionRepository.updateState(transactionIds, preState, updateState);
+	}
+
+	public List<TransactionInfo> findAllAutoCancelInfo(Long id, LocalDateTime end, TransactionState state, int limit) {
+		if (id == null) {
+			return transactionRepository.findAllAutoCancelInfoWithXLockBy(end, state.name(), limit);
+		}
+
+		return transactionRepository.findAllAutoCancelInfoWithXLockBy(id, end, state.name(), limit);
+	}
+
+	private void wireTransferByStrategy(String senderAccountNumber, String receiverAccountNumber, long money) {
+		Account senderAccount = accountRepository.findByAccountNumber(senderAccountNumber)
+			.orElseThrow(() -> new RuntimeException("Account Not Found."));
+		User sender = userRepository.findById(senderAccount.getUserId())
+			.orElseThrow(() -> new RuntimeException("User Not Found."));
+
+		WireTransferStrategy wireTransferStrategy = wireTransferStrategyContext.getWireTransferStrategy(
+			sender.getSendingType());
+
+		wireTransferStrategy.wireTransfer(senderAccountNumber, receiverAccountNumber, money);
 	}
 
 	/**
