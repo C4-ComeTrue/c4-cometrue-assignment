@@ -1,6 +1,7 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.c4marathon.assignment.domain.type.TransactionState;
 
@@ -39,25 +40,23 @@ public class Transaction {
 	private Long balance;
 
 	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@Column(name = "deadline", nullable = false)
-	private LocalDateTime deadline;
+	private Instant deadline;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "state", nullable = false, length = 20)
 	private TransactionState state;
 
 	@Builder
-	public Transaction(String senderAccountNumber, String receiverAccountNumber, Long balance, LocalDateTime createdAt,
-		TransactionState state) {
-		LocalDateTime now = LocalDateTime.now();
-
+	public Transaction(String senderAccountNumber, String receiverAccountNumber,
+		Long balance, Instant createdAt, TransactionState state) {
 		this.senderAccountNumber = senderAccountNumber;
 		this.receiverAccountNumber = receiverAccountNumber;
 		this.balance = balance;
-		this.createdAt = (createdAt == null) ? now : createdAt;
-		this.deadline = this.createdAt.plusHours(DEADLINE_HOURS);
+		this.createdAt = (createdAt == null) ? Instant.now() : createdAt;
+		this.deadline = this.createdAt.plus(DEADLINE_HOURS, ChronoUnit.HOURS);
 		this.state = state;
 	}
 }

@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.c4marathon.assignment.domain.dto.TransactionInfo;
@@ -26,11 +26,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	@Query(value = """
 		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
 		FROM transaction
-		WHERE id > :cursorId AND deadline >= :cursorTime AND deadline <= :endTime AND state = :state
+		WHERE id > :cursorId AND deadline >= :cursorTime AND deadline < :endTime AND state = :state
 		LIMIT :limit
 	""", nativeQuery = true)
-	List<TransactionInfo> findAllInfoBy(@Param("cursorId") long cursorId, @Param("cursorTime") LocalDateTime cursorTime,
-		@Param("endTime") LocalDateTime endTime, @Param("state") String state, @Param("limit") int limit);
+	List<TransactionInfo> findAllInfoBy(
+		@Param("cursorId") long cursorId,
+		@Param("cursorTime") Instant cursorTime,
+		@Param("endTime") Instant endTime,
+		@Param("state") String state,
+		@Param("limit")
+		int limit);
 
 	@Query(value = """
 		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
@@ -38,7 +43,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		WHERE deadline <= :endTime AND state = :state
 		LIMIT :limit FOR UPDATE
 	""", nativeQuery = true)
-	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(@Param("endTime") LocalDateTime endTime, @Param("state") String state, @Param("limit") int limit);
+	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(@Param("endTime") Instant endTime,
+		@Param("state") String state,
+		@Param("limit") int limit);
 
 	@Query(value = """
 		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
@@ -46,6 +53,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		WHERE id > :cursorId AND deadline <= :endTime AND state = :state
 		LIMIT :limit FOR UPDATE
 	""", nativeQuery = true)
-	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(@Param("cursorId") long cursorId, @Param("endTime") LocalDateTime endTime,
-		@Param("state") String state, @Param("limit") int limit);
+	List<TransactionInfo> findAllAutoCancelInfoWithXLockBy(@Param("cursorId") long cursorId,
+		@Param("endTime") Instant endTime,
+		@Param("state") String state,
+		@Param("limit") int limit);
 }

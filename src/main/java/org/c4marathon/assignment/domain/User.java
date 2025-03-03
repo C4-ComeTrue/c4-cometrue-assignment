@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.c4marathon.assignment.domain.type.SendingType;
 
@@ -43,7 +43,7 @@ public class User extends BaseEntity {
 	private SendingType sendingType;
 
 	@Builder
-	private User(LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt,
+	private User(Instant createdAt, Instant updatedAt, Instant deletedAt,
 		String email, Long chargeLimit, long accCharge, SendingType sendingType) {
 		super(createdAt, updatedAt, deletedAt);
 		this.email = email;

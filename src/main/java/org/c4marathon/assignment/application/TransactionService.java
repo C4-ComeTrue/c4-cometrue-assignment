@@ -2,7 +2,7 @@ package org.c4marathon.assignment.application;
 
 import static org.c4marathon.assignment.global.CommonUtils.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.c4marathon.assignment.domain.Account;
@@ -89,7 +89,7 @@ public class TransactionService {
 		transactionRepository.updateState(transactionIds, preState, updateState);
 	}
 
-	public List<TransactionInfo> findAllAutoCancelInfo(Long id, LocalDateTime end, TransactionState state, int limit) {
+	public List<TransactionInfo> findAllAutoCancelInfo(Long id, Instant end, TransactionState state, int limit) {
 		if (id == null) {
 			return transactionRepository.findAllAutoCancelInfoWithXLockBy(end, state.name(), limit);
 		}

@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.application;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -30,9 +30,9 @@ public class TransactionScheduledService {
 	 * 데드라인이 지난 송금은 자동 취소합니다. 커서 기반으로 배치 처리합니다.
 	 * 임시 테이블에 (송금 계좌, 되돌릴 금액)을 저장하고 이를 토대로 계좌 내역을 한 번에 업데이트합니다.
 	 */
-	@Scheduled(cron = "${transaction.auto-cancel-interval}")
+	@Scheduled(cron = "${transaction.scheduled.interval.auto-cancel}")
 	public void cancelPendingAuto() {
-		LocalDateTime end = LocalDateTime.now();
+		Instant end = Instant.now();
 
 		QueryTemplate.selectAndExecuteWithCursorAndTx(transactionManager,
 			info -> transactionService.findAllAutoCancelInfo(info == null ? null : info.getId(), end, TransactionState.PENDING, BATCH_SIZE),

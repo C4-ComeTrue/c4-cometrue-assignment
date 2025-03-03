@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -18,17 +18,17 @@ public abstract class BaseEntity {
 
 	@CreatedDate
 	@Column(name = "created_at", nullable = false, columnDefinition = "datetime")
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@LastModifiedDate
 	@Column(name = "updated_at", nullable = false, columnDefinition = "datetime")
-	private LocalDateTime updatedAt;
+	private Instant updatedAt;
 
 	@Column(name = "deleted_at", columnDefinition = "datetime")
-	private LocalDateTime deletedAt;
+	private Instant deletedAt;
 
-	protected BaseEntity(LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
-		this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+	protected BaseEntity(Instant createdAt, Instant updatedAt, Instant deletedAt) {
+		this.createdAt = createdAt != null ? createdAt : Instant.now();
 		this.updatedAt = updatedAt != null ? updatedAt : this.createdAt;
 		this.deletedAt = deletedAt;
 	}

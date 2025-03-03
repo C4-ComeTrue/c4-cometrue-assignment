@@ -1,6 +1,6 @@
 package org.c4marathon.assignment.domain;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.c4marathon.assignment.domain.type.AccountType;
 import org.c4marathon.assignment.global.AccountUtils;
@@ -50,7 +50,7 @@ public class Account extends BaseEntity {
 
 	@Builder
 	private Account(long balance, String accountNumber, boolean isMain, AccountType accountType, Long userId,
-		LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
+		Instant createdAt, Instant updatedAt, Instant deletedAt) {
 		super(createdAt, updatedAt, deletedAt);
 		this.balance = balance;
 		this.accountNumber = accountNumber != null ? accountNumber : AccountUtils.getAccountNumber();
