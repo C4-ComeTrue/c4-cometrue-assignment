@@ -1,8 +1,8 @@
 package org.c4marathon.assignment.controller;
 
 import org.c4marathon.assignment.application.AccountService;
-import org.c4marathon.assignment.domain.type.AccountType;
 import org.c4marathon.assignment.domain.dto.response.CreatedAccountInfo;
+import org.c4marathon.assignment.domain.type.AccountType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

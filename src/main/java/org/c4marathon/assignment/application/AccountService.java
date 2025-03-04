@@ -4,9 +4,9 @@ import static org.c4marathon.assignment.global.AccountUtils.*;
 
 import org.c4marathon.assignment.domain.Account;
 import org.c4marathon.assignment.domain.AccountRepository;
-import org.c4marathon.assignment.domain.type.AccountType;
 import org.c4marathon.assignment.domain.UserRepository;
 import org.c4marathon.assignment.domain.dto.response.CreatedAccountInfo;
+import org.c4marathon.assignment.domain.type.AccountType;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
