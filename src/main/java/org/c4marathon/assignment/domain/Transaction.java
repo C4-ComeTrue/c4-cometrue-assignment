@@ -30,6 +30,9 @@ public class Transaction {
 	@Column(name = "id", nullable = false)
 	private Long id;
 
+	@Column(name = "sending_name", nullable = false, length = 20)
+	private String sendingName;
+
 	@Column(name = "sender_account_number", nullable = false, length = 50)
 	private String senderAccountNumber;
 
@@ -50,8 +53,9 @@ public class Transaction {
 	private TransactionState state;
 
 	@Builder
-	public Transaction(String senderAccountNumber, String receiverAccountNumber,
+	public Transaction(String sendingName, String senderAccountNumber, String receiverAccountNumber,
 		Long balance, Instant createdAt, TransactionState state) {
+		this.sendingName = sendingName;
 		this.senderAccountNumber = senderAccountNumber;
 		this.receiverAccountNumber = receiverAccountNumber;
 		this.balance = balance;
