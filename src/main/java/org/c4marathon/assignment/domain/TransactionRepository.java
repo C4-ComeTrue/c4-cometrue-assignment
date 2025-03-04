@@ -24,7 +24,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		@Param("updateState") TransactionState updateState);
 
 	@Query(value = """
-		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
+		SELECT id, sending_name as sendingName, sender_account_number as senderAccountNumber,
+			       receiver_account_number as receiverAccountNumber, balance, created_at as createdAt, deadline
 		FROM transaction
 		WHERE id > :cursorId AND deadline >= :cursorTime AND deadline < :endTime AND state = :state
 		LIMIT :limit
@@ -38,7 +39,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		int limit);
 
 	@Query(value = """
-		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
+		SELECT id, sending_name as sendingName, sender_account_number as senderAccountNumber,
+			       receiver_account_number as receiverAccountNumber, balance, created_at as createdAt, deadline
 		FROM transaction
 		WHERE deadline <= :endTime AND state = :state
 		LIMIT :limit FOR UPDATE
@@ -48,7 +50,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 		@Param("limit") int limit);
 
 	@Query(value = """
-		SELECT id, sender_account_number as senderAccountNumber, receiver_account_number as receiverAccountNumber, balance, deadline
+		SELECT id, sending_name as sendingName, sender_account_number as senderAccountNumber,
+			       receiver_account_number as receiverAccountNumber, balance, created_at as createdAt, deadline
 		FROM transaction
 		WHERE id > :cursorId AND deadline <= :endTime AND state = :state
 		LIMIT :limit FOR UPDATE
