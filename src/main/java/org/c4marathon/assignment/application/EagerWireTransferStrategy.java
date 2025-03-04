@@ -24,7 +24,7 @@ public class EagerWireTransferStrategy implements WireTransferStrategy {
 	 */
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
+	public void wireTransfer(String sendingName, String senderAccountNumber, String receiverAccountNumber, long money) {
 		if (senderAccountNumber.compareTo(receiverAccountNumber) < 0) {
 			transactionCommonProcessor.updateBalance(senderAccountNumber, -money);
 			transactionCommonProcessor.updateBalance(receiverAccountNumber, money);
@@ -34,7 +34,9 @@ public class EagerWireTransferStrategy implements WireTransferStrategy {
 			transactionCommonProcessor.updateBalance(senderAccountNumber, -money);
 		}
 
-		Transaction transaction = Transaction.builder().senderAccountNumber(senderAccountNumber)
+		Transaction transaction = Transaction.builder()
+			.senderAccountNumber(senderAccountNumber)
+			.sendingName(sendingName)
 			.receiverAccountNumber(receiverAccountNumber)
 			.state(TransactionState.FINISHED)
 			.balance(money)

@@ -30,7 +30,7 @@ public class TransactionController {
 	@PostMapping("/transfer")
 	public ResponseEntity<TransferResult> wireTransfer(@RequestBody TransferRequest request) {
 		return ResponseEntity.ok(
-			transactionService.wireTransfer(request.senderAccountNumber(), request.receiverAccountNumber(), request.money()));
+			transactionService.wireTransfer(request.sendingName(), request.senderAccountNumber(), request.receiverAccountNumber(), request.money()));
 	}
 
 	@PostMapping("/receive")

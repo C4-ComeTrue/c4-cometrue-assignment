@@ -47,13 +47,13 @@ public class TransactionService {
 	 * @return
 	 */
 	@Transactional
-	public TransferResult wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
+	public TransferResult wireTransfer(String sendingName, String senderAccountNumber, String receiverAccountNumber, long money) {
 		validateSender(senderAccountNumber, receiverAccountNumber);
 		long diff = computeBalanceDiff(senderAccountNumber, money);
 		if (diff < 0) {
 			transactionCommonProcessor.updateBalance(senderAccountNumber, getCeil(-diff, CEILING_POINT));
 		}
-		wireTransferByStrategy(senderAccountNumber, receiverAccountNumber, money);
+		wireTransferByStrategy(sendingName, senderAccountNumber, receiverAccountNumber, money);
 
 		return new TransferResult(senderAccountNumber, receiverAccountNumber, money);
 	}
@@ -97,7 +97,7 @@ public class TransactionService {
 		return transactionRepository.findAllAutoCancelInfoWithXLockBy(id, end, state.name(), limit);
 	}
 
-	private void wireTransferByStrategy(String senderAccountNumber, String receiverAccountNumber, long money) {
+	private void wireTransferByStrategy(String sendingName, String senderAccountNumber, String receiverAccountNumber, long money) {
 		Account senderAccount = accountRepository.findByAccountNumber(senderAccountNumber)
 			.orElseThrow(() -> new RuntimeException("Account Not Found."));
 		User sender = userRepository.findById(senderAccount.getUserId())
@@ -106,7 +106,8 @@ public class TransactionService {
 		WireTransferStrategy wireTransferStrategy = wireTransferStrategyContext.getWireTransferStrategy(
 			sender.getSendingType());
 
-		wireTransferStrategy.wireTransfer(senderAccountNumber, receiverAccountNumber, money);
+		sendingName = (sendingName == null) ? sender.getName() : sendingName;
+		wireTransferStrategy.wireTransfer(sendingName, senderAccountNumber, receiverAccountNumber, money);
 	}
 
 	/**

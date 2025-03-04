@@ -24,8 +24,9 @@ public class LazyWireTransferStrategy implements WireTransferStrategy {
 	 */
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void wireTransfer(String senderAccountNumber, String receiverAccountNumber, long money) {
+	public void wireTransfer(String sendingName, String senderAccountNumber, String receiverAccountNumber, long money) {
 		Transaction transaction = Transaction.builder()
+			.sendingName(sendingName)
 			.senderAccountNumber(senderAccountNumber)
 			.receiverAccountNumber(receiverAccountNumber)
 			.balance(money)
