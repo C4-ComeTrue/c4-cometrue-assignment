@@ -30,7 +30,7 @@ public class DepositFailureHandler {
 		transactionRepository.save(transactional);
 	}
 
-	@AfterThrowing(pointcut = "execution(* org.c4marathon.assignment.account.service.DepositService.failedDeposit(..))", throwing = "ex")
+	@AfterThrowing(pointcut = "execution(* org.c4marathon.assignment.account.service.DepositService.retryDeposit(..))", throwing = "ex")
 	// @Retryable()
 	public void handleFailedDepositFailure(JoinPoint joinPoint, Exception ex) {
 		Object[] args = joinPoint.getArgs();

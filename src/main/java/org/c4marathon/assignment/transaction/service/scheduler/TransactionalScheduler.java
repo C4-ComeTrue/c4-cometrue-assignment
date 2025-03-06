@@ -16,10 +16,12 @@ public class TransactionalScheduler {
 	public void cancelExpiredTransactions() {
 		transactionService.processCancelExpiredTransactions();
 	}
+/*
 
 	@Scheduled(fixedRate = 10000)
 	public void remindNotificationTransactions() {
 		transactionService.processRemindNotifications();
 	}
+*/
 
 }

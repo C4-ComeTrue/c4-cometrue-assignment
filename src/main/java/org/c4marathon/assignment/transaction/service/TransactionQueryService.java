@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.transaction.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.c4marathon.assignment.transaction.domain.Transaction;
@@ -17,16 +19,31 @@ import lombok.RequiredArgsConstructor;
 public class TransactionQueryService {
 	private final TransactionRepository transactionRepository;
 
-	public Transaction findTransactionByIdWithLock(Long transactionId) {
-		return transactionRepository.findTransactionalByTransactionIdWithLock(transactionId)
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public Transaction findTransactionByIdWithLock(Long transactionId, LocalDateTime sendTime) {
+		return transactionRepository.findTransactionalByTransactionIdWithLock(transactionId, sendTime)
 			.orElseThrow(NotFoundTransactionException::new);
 	}
 
-	@Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
-	public List<Transaction> findTransactionByStatusWithLastId(TransactionStatus status, Long lastId, int size) {
-		if (lastId == null) {
-			return transactionRepository.findTransactionByStatus(status, size);
-		}
-		return transactionRepository.findTransactionByStatusWithLastId(status, lastId, size);
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public List<Transaction> findTransactionByStatusWithLock(
+		LocalDateTime sendTime,
+		TransactionStatus status,
+		int size
+	) {
+		return transactionRepository.findTransactionByStatusWithLock(sendTime, status, size);
 	}
+/*
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public List<Transaction> findTransactionByStatusWithLastId(
+		TransactionStatus status,
+		LocalDate partitionSendTime,
+		Long lastId,
+		int size
+	) {
+		if (lastId == null) {
+			return transactionRepository.findTransactionByStatus(partitionSendTime, status, size);
+		}
+		return transactionRepository.findTransactionByStatusWithLastId(partitionSendTime, status, lastId, size);
+	}*/
 }
