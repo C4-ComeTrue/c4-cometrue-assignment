@@ -48,8 +48,6 @@ public class Transaction {
 	@Column(nullable = false)
 	private TransactionStatus status;
 
-
-
 	private LocalDateTime receiverTime;
 
 	@Builder

@@ -1,6 +1,5 @@
 package org.c4marathon.assignment.transaction.domain.repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,41 +15,6 @@ import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
 
 public interface TransactionRepository extends JpaRepository<Transaction, TransactionId> {
-
-	//index(TransactionalStatus, id)
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("""
-		SELECT t
-		FROM Transaction t
-		WHERE t.partitionSendTime = :partitonSendTime 
-		AND t.status = :status 
-		AND t.id > :lastId
-		ORDER BY t.id
-		LIMIT :size
-		""")
-	List<Transaction> findTransactionByStatusWithLastId(
-		@Param("partitionSendTime") LocalDate partitionSendTime,
-		@Param("status") TransactionStatus status,
-		@Param("lastId") Long lastId,
-		@Param("size") int size
-	);
-
-
-	//index(TransactionalStatus, id)
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("""
-		SELECT t
-		FROM Transaction t
-		WHERE t.partitionSendTime = :partitionSendTime
-		AND t.status = :status
-		ORDER BY t.id
-		LIMIT :size
-		""")
-	List<Transaction> findTransactionByStatus(
-		@Param("partitionSendTime") LocalDate partitionSendTime,
-		@Param("status") TransactionStatus status,
-		@Param("size") int size
-	);
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query(value = """
@@ -78,5 +42,66 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
 		@Param("sendTime") LocalDateTime sendTime,
 		@Param("status") TransactionStatus status,
 		@Param("size") int size
+	);
+
+	@Query("""
+		SELECT t
+		FROM Transaction t
+		WHERE t.senderAccountNumber = :accountNumber
+		AND t.status = 'SUCCESS_DEPOSIT'
+		ORDER BY t.receiverTime DESC, t.id ASC
+		LIMIT :limit
+		""")
+	List<Transaction> findTransactionsBySenderAccount(
+		@Param("accountNumber") String accountNumber,
+		@Param("size") int limit
+	);
+
+	@Query("""
+		SELECT t
+		FROM Transaction t
+		WHERE t.receiverAccountNumber = :accountNumber
+		AND t.status = 'SUCCESS_DEPOSIT'
+		ORDER BY t.receiverTime DESC, t.id ASC
+		LIMIT :limit
+		""")
+	List<Transaction> findTransactionsByReceiverAccount(
+		@Param("accountNumber") String accountNumber,
+		@Param("size") int limit
+	);
+
+	//index(senderAccountNumber, receiverTime DESC, id ASC)
+	@Query("""
+		SELECT t
+		FROM Transaction t
+		WHERE t.senderAccountNumber = :accountNumber
+		AND t.status = 'SUCCESS_DEPOSIT'
+		AND ((t.receiverTime < :receiverTime) OR (t.receiverTime = :receiverTime AND t.id > :id))
+		ORDER BY t.receiverTime DESC, t.id ASC
+		LIMIT :limit
+		"""
+	)
+	List<Transaction> findTransactionsBySenderAccountWithPageToken(
+		@Param("accountNumber") String accountNumber,
+		@Param("receiverTime") LocalDateTime receiverTime,
+		@Param("id") Long id,
+		@Param("limit") int limit
+	);
+
+	//index(receiverAccountNumber, receiverTime DESC, id ASC)
+	@Query("""
+		SELECT t
+		FROM Transaction t
+		WHERE t.receiverAccountNumber = :accountNumber
+		AND t.status = 'SUCCESS_DEPOSIT'
+		AND ((t.receiverTime < :receiverTime) OR (t.receiverTime = :receiverTime AND t.id > :id))
+		ORDER BY t.receiverTime DESC, t.id ASC
+		LIMIT :limit
+		""")
+	List<Transaction> findTransactionsByReceiverAccountWithPageToken(
+		@Param("accountNumber") String accountNumber,
+		@Param("receiverTime") LocalDateTime receiverTime,
+		@Param("id") Long id,
+		@Param("limit") int limit
 	);
 }

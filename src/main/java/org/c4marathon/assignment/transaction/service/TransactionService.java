@@ -8,9 +8,12 @@ import java.util.List;
 
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
+import org.c4marathon.assignment.global.model.PageInfo;
 import org.c4marathon.assignment.mail.NotificationService;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
+import org.c4marathon.assignment.transaction.dto.TransactionGetRequest;
+import org.c4marathon.assignment.transaction.dto.TransactionResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +43,15 @@ public class TransactionService {
 			request.sendTime()
 		);
 		transactionRepository.save(transaction);
+	}
+
+	@Transactional(readOnly = true)
+	public PageInfo<TransactionResponse> getTransactions(String accountNumber, TransactionGetRequest request) {
+		if (request.pageToken() == null) {
+			return transactionQueryService.findTransactionsWithoutPageToken(accountNumber, request.option(), request.count());
+		} else {
+			return transactionQueryService.findTransactionsWithPageToken(accountNumber, request.pageToken(), request.option(), request.count());
+		}
 	}
 
 	/**

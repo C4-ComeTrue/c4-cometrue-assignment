@@ -33,6 +33,7 @@ public record PageInfo<T>(
 			firstPageTokenFunction.apply(lastValue),
 			secondPageTokenFunction.apply(lastValue)
 		));
+
 		return new PageInfo<>(pageToken, data.subList(0, expectedSize), true);
 	}
 }
