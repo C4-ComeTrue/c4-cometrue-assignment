@@ -23,7 +23,7 @@ public class TransferService {
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void transferBatch(List<String> keys) {
-		for (String key : keys) {
+		for (String key : keys) { //TransferScheduler에서 batch 사이즈 만큼 keys를 넘겨줌
 			try {
 				String[] parts = key.split(":");
 				long receiverAccountId = Long.parseLong(parts[2]);

@@ -12,6 +12,8 @@ public enum ErrorCode {
 	NOT_FOUND_SAVING_ACCOUNT(HttpStatus.NOT_FOUND, "적금 계좌가 존재하지 않습니다."),
 	NOT_FOUND_SETTLEMENT_MEMBER(HttpStatus.NOT_FOUND, "정산 멤버가 존재하지 않습니다."),
 	NOT_FOUND_SETTLEMENT(HttpStatus.NOT_FOUND, "정산 정보가 존재하지 않습니다."),
+	NOT_FOUND_USER(HttpStatus.NOT_FOUND, "유저 정보가 존재하지 않습니다."),
+
 	//409
 	DAILY_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "일일 한도를 초과했습니다."),
 	REDIS_RESET_EXCEPTION(HttpStatus.CONFLICT, "일일 한도 초기화 중입니다."),

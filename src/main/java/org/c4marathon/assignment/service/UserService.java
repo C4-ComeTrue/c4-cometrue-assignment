@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.service;
 
+import org.c4marathon.assignment.common.exception.NotFoundException;
+import org.c4marathon.assignment.common.exception.enums.ErrorCode;
 import org.c4marathon.assignment.domain.User;
 import org.c4marathon.assignment.dto.request.SignUpRequestDto;
 import org.c4marathon.assignment.repository.UserRepository;
@@ -16,8 +18,13 @@ public class UserService {
 
 	@Transactional
 	public void signUp(SignUpRequestDto requestDto){
-		User user = new User(requestDto.username());
+		User user = new User(requestDto.username(), requestDto.email());
 		userRepository.save(user);
 		mainAccountService.createMainAccount(user);
 	}
+
+	public User getUser(long userId){
+		return userRepository.findById(userId).orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_USER));
+	}
+
 }
