@@ -72,6 +72,7 @@ public class TransactionService {
 		expiredTransactions.forEach(accountService::cancelWithdrawByExpirationTime);
 	}
 
+
 /*	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void processRemindNotifications() {
 		LocalDateTime now = LocalDateTime.now();
