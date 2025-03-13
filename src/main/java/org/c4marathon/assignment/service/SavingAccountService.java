@@ -1,6 +1,5 @@
 package org.c4marathon.assignment.service;
 
-import java.util.Random;
 
 import org.c4marathon.assignment.common.exception.BalanceUpdateException;
 import org.c4marathon.assignment.common.exception.NotFoundException;
@@ -12,7 +11,9 @@ import org.c4marathon.assignment.dto.request.ChargeSavingAccountRequestDto;
 import org.c4marathon.assignment.dto.request.SavingAccountRequestDto;
 import org.c4marathon.assignment.repository.SavingAccountRepository;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -36,14 +37,13 @@ public class SavingAccountService {
 	 * [3] 적금 계좌 업데이트
 	 * [4] 메인 계좌 업데이트
 	 * */
-	@Transactional
+	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void chargeFromMainAccount(ChargeSavingAccountRequestDto requestDto){
 		MainAccount mainAccount = mainAccountService.getMainAccountWithXLock(requestDto.mainAccountId());
 
 		//잔고 파악
 		if(!mainAccount.checkBalanceAvailability(requestDto.money())){
 			throw new BalanceUpdateException(ErrorCode.BALANCE_NOT_ENOUGH);
-
 		}
 
 		SavingAccount savingAccount = getSavingAccountWithXLock(requestDto.savingAccountId());
