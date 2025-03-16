@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.transaction.domain;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -9,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,12 +18,18 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@IdClass(TransactionId.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Transaction {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "transactional_id")
+	@Column(name = "transaction_id")
 	private Long id;
+
+	@Id
+	@Column(nullable = false)
+	private LocalDateTime sendTime;
 
 	@Column(nullable = false)
 	private String senderAccountNumber;
@@ -39,9 +47,6 @@ public class Transaction {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private TransactionStatus status;
-
-	@Column(nullable = false)
-	private LocalDateTime sendTime;
 
 	private LocalDateTime receiverTime;
 

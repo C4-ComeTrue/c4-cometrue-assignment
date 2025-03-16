@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.account.presentation;
 
+import java.time.LocalDateTime;
+
 import org.c4marathon.assignment.account.dto.SendToSavingAccountRequest;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.service.AccountService;
@@ -64,18 +66,20 @@ public class AccountController {
     @PostMapping("/deposit")
     public ResponseEntity<Void> deposit(
         @Login SessionMemberInfo loginMember,
-        @RequestParam @NotNull @Positive Long transactionalId
+        @RequestParam @NotNull @Positive Long transactionalId,
+        @RequestParam @NotNull LocalDateTime sendTime
     ) {
-        depositService.depositByReceiver(loginMember.accountNumber(), transactionalId);
+        depositService.depositByReceiver(loginMember.accountNumber(), transactionalId, sendTime);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/cancel/withdraw")
     public ResponseEntity<Void> cancelWithdraw(
         @Login SessionMemberInfo loginMember,
-        @RequestParam @NotNull @Positive Long transactionalId
+        @RequestParam @NotNull @Positive Long transactionalId,
+        @RequestParam @NotNull LocalDateTime sendTime
     ) {
-        accountService.cancelWithdraw(loginMember.accountNumber(), transactionalId);
+        accountService.cancelWithdraw(loginMember.accountNumber(), transactionalId, sendTime);
         return ResponseEntity.ok().build();
     }
 }

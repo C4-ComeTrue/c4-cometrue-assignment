@@ -152,14 +152,14 @@ public class AccountService {
 	/**
 	 * 송금 취소 기능(사용자가 직접 취소 요청)
 	 * 취소하려는 송금 내역을 가져와 검증 후 송금을 취소함
-	 *
+	 * partitionSendTime 포함해야함
 	 * @param senderAccountNumber
 	 * @param transactionalId
 	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void cancelWithdraw(String senderAccountNumber, Long transactionalId) {
+	public void cancelWithdraw(String senderAccountNumber, Long transactionalId, LocalDateTime sendTime) {
 
-		Transaction transaction = transactionQueryService.findTransactionByIdWithLock(transactionalId);
+		Transaction transaction = transactionQueryService.findTransactionByIdWithLock(transactionalId, sendTime);
 
 		validateTransactional(senderAccountNumber, transaction);
 

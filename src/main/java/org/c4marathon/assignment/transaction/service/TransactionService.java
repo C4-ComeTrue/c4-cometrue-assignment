@@ -8,9 +8,12 @@ import java.util.List;
 
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
+import org.c4marathon.assignment.global.model.PageInfo;
 import org.c4marathon.assignment.mail.NotificationService;
 import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
+import org.c4marathon.assignment.transaction.dto.TransactionGetRequest;
+import org.c4marathon.assignment.transaction.dto.TransactionResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,41 +45,45 @@ public class TransactionService {
 		transactionRepository.save(transaction);
 	}
 
-	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void processCancelExpiredTransactions() {
-
-		LocalDateTime expirationTime = LocalDateTime.now().minusHours(EXPIRATION_HOURS);
-		Long lastId = null;
-
-		while (true) {
-			List<Transaction> transactions = transactionQueryService.findTransactionByStatusWithLastId(
-				PENDING_DEPOSIT, lastId, PAGE_SIZE);
-
-			if (transactions == null || transactions.isEmpty()) {
-				break;
-			}
-			// transactions 데이터를 스트림을 사용해서 72시간이 지난 transactions 데이터를 필터링
-			List<Transaction> expiredTransactions = transactions.stream()
-				.filter(t -> t.getSendTime().isBefore(expirationTime))
-				.toList();
-
-			expiredTransactions.forEach(accountService::cancelWithdrawByExpirationTime);
-
-			lastId = transactions.get(transactions.size() - 1).getId();
+	@Transactional(readOnly = true)
+	public PageInfo<TransactionResponse> getTransactions(String accountNumber, TransactionGetRequest request) {
+		if (request.pageToken() == null) {
+			return transactionQueryService.findTransactionsWithoutPageToken(accountNumber, request.option(), request.count());
+		} else {
+			return transactionQueryService.findTransactionsWithPageToken(accountNumber, request.pageToken(), request.option(), request.count());
 		}
 	}
 
+	/**
+	 * 72시간이 지나도록 수령인이 송금을 받지 않으면 송금을 취소시키는 로직
+	 */
 	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public void processCancelExpiredTransactions() {
+		LocalDateTime expirationTime = LocalDateTime.now().minusHours(EXPIRATION_HOURS);
+
+		List<Transaction> transactions = transactionQueryService.findTransactionByStatusWithLock(
+			expirationTime, PENDING_DEPOSIT, PAGE_SIZE);
+
+		// transactions 데이터를 스트림을 사용해서 72시간이 지난 transactions 데이터를 필터링
+		List<Transaction> expiredTransactions = transactions.stream()
+			.filter(t -> t.getSendTime().isBefore(expirationTime))
+			.toList();
+
+		expiredTransactions.forEach(accountService::cancelWithdrawByExpirationTime);
+	}
+
+
+/*	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void processRemindNotifications() {
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime remindTime = now.minusHours(REMIND_HOURS);
 		LocalDateTime expirationTime = now.minusHours(EXPIRATION_HOURS);
 
-		Long lastId = null;
+
 
 		while (true) {
-			List<Transaction> transactions = transactionQueryService.findTransactionByStatusWithLastId(
-				PENDING_DEPOSIT, lastId, PAGE_SIZE);
+			List<Transaction> transactions = transactionQueryService.findTransactionByStatusWithLock(
+				PENDING_DEPOSIT, PAGE_SIZE);
 			if (transactions == null || transactions.isEmpty()) {
 				break;
 			}
@@ -92,5 +99,5 @@ public class TransactionService {
 
 			lastId = transactions.get(transactions.size() - 1).getId();
 		}
-	}
+	}*/
 }
