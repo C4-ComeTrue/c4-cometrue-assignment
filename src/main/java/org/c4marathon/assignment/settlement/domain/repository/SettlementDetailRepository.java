@@ -13,9 +13,9 @@ public interface SettlementDetailRepository extends JpaRepository<SettlementDeta
 		SELECT sd
 		FROM SettlementDetail sd
 		JOIN FETCH sd.settlement s
-		WHERE sd.accountId = :accountId
+		WHERE sd.accountNumber = :accountNumber
 	""")
-	List<SettlementDetail> findByAccountId(@Param("accountId") Long accountId);
+	List<SettlementDetail> findByAccountNumber(@Param("accountNumber") String accountNumber);
 
 }
 

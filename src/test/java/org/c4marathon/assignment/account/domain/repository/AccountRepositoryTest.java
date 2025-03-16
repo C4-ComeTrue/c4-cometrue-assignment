@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.c4marathon.assignment.IntegrationTestSupport;
 import org.c4marathon.assignment.account.domain.Account;
+import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,21 +19,26 @@ class AccountRepositoryTest extends IntegrationTestSupport {
 	@Autowired
 	private AccountRepository accountRepository;
 
-	@DisplayName("Account Id를 통해 Account를 조회한다. ")
-	@Test
 	@Transactional
+	@DisplayName("AccountNumber 를 통해 Account를 조회한다. ")
+	@Test
 	void findAccountByAccountId() throws Exception {
 	    // given
-		Account account = Account.create(DEFAULT_BALANCE);
+		String accountNumber = generateAccountNumber();
+		Account account = Account.create(accountNumber, DEFAULT_BALANCE);
 		accountRepository.save(account);
 
 	    // when
-		Optional<Account> findAccount = accountRepository.findByIdWithLock(account.getId());
+		Optional<Account> findAccount = accountRepository.findByAccountNumberWithLock(account.getAccountNumber());
 
 		// then
 
 		assertThat(findAccount.get())
-			.extracting("money", "chargeLimit")
-			.contains(0L, CHARGE_LIMIT);
+			.extracting("accountNumber", "money", "chargeLimit")
+			.contains(accountNumber, 0L, CHARGE_LIMIT);
+	}
+
+	private String generateAccountNumber() {
+		return AccountNumberUtil.generateAccountNumber("3333");
 	}
 }

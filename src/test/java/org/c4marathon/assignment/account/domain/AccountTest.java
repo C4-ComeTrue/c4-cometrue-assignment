@@ -12,7 +12,7 @@ class AccountTest {
 	@Test
 	void deposit() {
 	    // given
-		Account account = Account.create(10000L);
+		Account account = Account.create("3333", 10000L);
 
 		// when
 		account.deposit(10000L);
@@ -24,7 +24,7 @@ class AccountTest {
 	@Test
 	void withdraw() {
 		// given
-		Account account = Account.create(10000L);
+		Account account = Account.create("3333",10000L);
 
 		// when
 		account.withdraw(10000L);
@@ -37,7 +37,7 @@ class AccountTest {
 	@Test
 	void chargeLimitExceeded() {
 		// given
-		Account account = Account.create(10000L);
+		Account account = Account.create("3333", 10000L);
 		long exceedAmount = CHARGE_LIMIT + 1;
 
 		// when
@@ -52,7 +52,7 @@ class AccountTest {
 	@Test
 	void chargeWithinLimit() {
 		// given
-		Account account = Account.create(10000L);
+		Account account = Account.create("3333", 10000L);
 		long chargeAmount = 5_000L;
 
 		// when
@@ -67,7 +67,7 @@ class AccountTest {
 	@Test
 	void insufficientBalanceForSend() {
 		// given
-		Account account = Account.create(10000L);
+		Account account = Account.create("3333", 10000L);
 		long sendAmount = 20_000L; // 잔액보다 큰 금액
 
 		// when
@@ -81,7 +81,7 @@ class AccountTest {
 	@Test
 	void sufficientBalanceForSend() {
 		// given
-		Account account = Account.create(10000L);
+		Account account = Account.create("3333", 10000L);
 		long sendAmount = 5_000L;
 
 		// when
