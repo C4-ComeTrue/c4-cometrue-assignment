@@ -1,7 +1,7 @@
 package org.c4marathon.assignment.transaction.domain;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -16,5 +16,5 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class TransactionId implements Serializable {
 	private Long id;
-	private LocalDate partitionSendTime;
+	private LocalDateTime sendTime;
 }

@@ -7,19 +7,16 @@ import static org.c4marathon.assignment.transaction.domain.TransactionType.*;
 import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.account.domain.Account;
-import org.c4marathon.assignment.account.domain.SavingAccount;
 import org.c4marathon.assignment.account.domain.repository.AccountRepository;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.exception.DailyChargeLimitExceededException;
 import org.c4marathon.assignment.account.service.query.AccountQueryService;
-import org.c4marathon.assignment.account.service.query.SavingAccountQueryService;
 import org.c4marathon.assignment.global.event.transactional.TransactionCreateEvent;
 import org.c4marathon.assignment.global.util.AccountNumberUtil;
 import org.c4marathon.assignment.member.domain.Member;
 import org.c4marathon.assignment.member.domain.repository.MemberRepository;
 import org.c4marathon.assignment.member.exception.NotFoundMemberException;
 import org.c4marathon.assignment.transaction.domain.Transaction;
-import org.c4marathon.assignment.transaction.domain.repository.TransactionRepository;
 import org.c4marathon.assignment.transaction.exception.InvalidTransactionStatusException;
 import org.c4marathon.assignment.transaction.exception.UnauthorizedTransactionException;
 import org.c4marathon.assignment.transaction.service.TransactionQueryService;
@@ -35,9 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class AccountService {
 	private final AccountRepository accountRepository;
 	private final MemberRepository memberRepository;
-	private final TransactionRepository transactionRepository;
 	private final AccountQueryService accountQueryService;
-	private final SavingAccountQueryService savingAccountQueryService;
 	private final TransactionQueryService transactionQueryService;
 
 	private final ApplicationEventPublisher eventPublisher;
@@ -72,38 +67,6 @@ public class AccountService {
 
 		account.deposit(money);
 		accountRepository.save(account);
-	}
-
-	/**
-	 * 적금 계좌로 송금하는 로직
-	 * 자유 적금일 때 사용
-	 * @param accountNumber
-	 * @param savingAccountNumber
-	 * @param money
-	 */
-	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public void sendToSavingAccount(String accountNumber, String savingAccountNumber, long money) {
-		Account account = accountQueryService.findAccountWithLock(accountNumber);
-		SavingAccount savingAccount = savingAccountQueryService.findFreeSavingAccountWithLock(savingAccountNumber);
-
-		if (!account.isSend(money)) {
-			autoCharge(money, account);
-		}
-
-		account.withdraw(money);
-		savingAccount.deposit(money);
-
-		Transaction transaction = Transaction.create(
-			account.getAccountNumber(),
-			savingAccountNumber,
-			money,
-			IMMEDIATE_TRANSFER,
-			SUCCESS_DEPOSIT,
-			LocalDateTime.now()
-		);
-
-		transactionRepository.save(transaction);
-
 	}
 
 	/**
