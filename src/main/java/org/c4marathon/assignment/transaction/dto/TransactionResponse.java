@@ -6,9 +6,6 @@ import org.c4marathon.assignment.transaction.domain.Transaction;
 import org.c4marathon.assignment.transaction.domain.TransactionStatus;
 import org.c4marathon.assignment.transaction.domain.TransactionType;
 
-import lombok.Getter;
-
-@Getter
 public record TransactionResponse(
 	Long transactionId,
 	String senderAccountNumber,

@@ -46,6 +46,10 @@ public class DepositService {
 		List<Transaction> transactions = transactionQueryService.findTransactionByStatusWithLock(
 			partitionSendTime, WITHDRAW, PAGE_SIZE);
 
+		if (transactions.isEmpty()) {
+			return;
+		}
+
 		for (Transaction transactional : transactions) {
 			threadPoolExecutor.execute(() -> processDeposit(transactional));
 		}
@@ -66,6 +70,10 @@ public class DepositService {
 		LocalDateTime partitionSendTime = LocalDateTime.now();
 		List<Transaction> transactions = transactionQueryService.findTransactionByStatusWithLock(
 			partitionSendTime, FAILED_DEPOSIT, PAGE_SIZE);
+
+		if (transactions.isEmpty()) {
+			return;
+		}
 
 		for (Transaction transaction : transactions) {
 			processDeposit(transaction);

@@ -18,11 +18,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query(value = """
-		SELECT t.*
+		SELECT t
 		FROM Transaction t
-		WHERE t.send_time = :sendTime
-		AND t.transaction_id = :id
-		""", nativeQuery = true)
+		WHERE t.sendTime = :sendTime
+		AND t.id = :id
+		""")
 	Optional<Transaction> findTransactionalByTransactionIdWithLock(
 		@Param("id") Long id,
 		@Param("sendTime") LocalDateTime sendTime
@@ -31,13 +31,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
 	//index(status, transaction_id)
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query(value = """
-		SELECT t.*
+		SELECT t
 		FROM Transaction t
-		WHERE t.send_time = :sendTime
+		WHERE t.sendTime = :sendTime
 		AND t.status = :status
-		ORDER BY t.transaction_id
+		ORDER BY t.id
 		LIMIT :size
-		""", nativeQuery = true)
+		""")
 	List<Transaction> findTransactionByStatusWithLock(
 		@Param("sendTime") LocalDateTime sendTime,
 		@Param("status") TransactionStatus status,
@@ -54,7 +54,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
 		""")
 	List<Transaction> findTransactionsBySenderAccount(
 		@Param("accountNumber") String accountNumber,
-		@Param("size") int limit
+		@Param("limit") int limit
 	);
 
 	@Query("""
@@ -67,7 +67,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Transa
 		""")
 	List<Transaction> findTransactionsByReceiverAccount(
 		@Param("accountNumber") String accountNumber,
-		@Param("size") int limit
+		@Param("limit") int limit
 	);
 
 	//index(senderAccountNumber, receiverTime DESC, id ASC)

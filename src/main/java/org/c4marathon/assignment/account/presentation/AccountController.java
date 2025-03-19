@@ -2,7 +2,6 @@ package org.c4marathon.assignment.account.presentation;
 
 import java.time.LocalDateTime;
 
-import org.c4marathon.assignment.account.dto.SendToSavingAccountRequest;
 import org.c4marathon.assignment.account.dto.WithdrawRequest;
 import org.c4marathon.assignment.account.service.AccountService;
 import org.c4marathon.assignment.account.service.DepositService;
@@ -38,19 +37,6 @@ public class AccountController {
         @RequestParam  @PositiveOrZero(message = "음수는 송금할 수 없습니다.") long money
     ) {
         accountService.chargeMoney(loginMember.accountNumber(), money);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/send/saving-account")
-    public ResponseEntity<Void> sendToSavingAccount(
-        @Login SessionMemberInfo loginMember,
-        @Valid @RequestBody SendToSavingAccountRequest request
-    ) {
-        accountService.sendToSavingAccount(
-            loginMember.accountNumber(),
-            request.savingAccountNumber(),
-            request.money()
-        );
         return ResponseEntity.ok().build();
     }
 
