@@ -39,6 +39,6 @@ public class Adjust extends BaseEntity {
     @Column(name = "adjustmentStatus", nullable = false)
     private AdjustmentStatus adjustmentStatus;
 
-    @OneToMany(mappedBy = "adjustTarget", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "adjust", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<AdjustTarget> adjustTargetList = new ArrayList<>();
 }

@@ -50,7 +50,7 @@ public class AdjustController {
 
     // 정산 받기 요청
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PostMapping("")
+    @PostMapping("/targets")
     public void postAdjustAndAdjustTarget() {
 
     }

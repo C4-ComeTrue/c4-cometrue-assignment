@@ -46,7 +46,7 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Account> account = new ArrayList<>();
 
-    @OneToMany(mappedBy = "adjustTarget", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<AdjustTarget> adjustTargetList = new ArrayList<>();
 
     @Builder
