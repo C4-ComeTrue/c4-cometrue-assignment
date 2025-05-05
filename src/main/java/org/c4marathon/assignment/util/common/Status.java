@@ -1,4 +1,4 @@
-package org.c4marathon.assignment.util.entity;
+package org.c4marathon.assignment.util.common;
 
 public enum Status {
     ACTIVE,

@@ -37,7 +37,10 @@ public enum ErrorCode {
     NOT_REGULAR_ACCOUNT(FORBIDDEN, "일반 계좌에서만 송금이 가능합니다."),
     INSUFFICIENT_BALANCE(FORBIDDEN, "잔액이 부족합니다."),
     REGULAR_ACCOUNT_DOES_NOT_EXIST(FORBIDDEN, "메인 계좌가 존재하지 않습니다."),
-    ACCOUNT_DOES_NOT_EXIST(FORBIDDEN, "계좌가 존재하지 않습니다.");
+    ACCOUNT_DOES_NOT_EXIST(FORBIDDEN, "계좌가 존재하지 않습니다."),
+
+    // ----- Adjust Response -----
+    NO_ADJUST_TARGET_REMAINING(BAD_REQUEST, "해당 정산에 대한 정산 대상자가 남아있지 않습니다.");
 
     private final HttpStatus status;
     private final String message;

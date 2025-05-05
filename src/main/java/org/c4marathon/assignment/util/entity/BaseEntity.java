@@ -2,6 +2,8 @@ package org.c4marathon.assignment.util.entity;
 
 import java.time.LocalDateTime;
 
+import org.c4marathon.assignment.util.common.Status;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
