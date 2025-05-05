@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.c4marathon.assignment.util.common.AdjustmentStatus;
-import org.c4marathon.assignment.util.common.Status;
 import org.c4marathon.assignment.util.entity.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -18,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -41,4 +41,11 @@ public class Adjust extends BaseEntity {
 
     @OneToMany(mappedBy = "adjust", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<AdjustTarget> adjustTargetList = new ArrayList<>();
+
+    @Builder
+    public Adjust(Long id, Long adjustTotalAmount, AdjustmentStatus adjustmentStatus) {
+        this.id = id;
+        this.adjustTotalAmount = adjustTotalAmount;
+        this.adjustmentStatus = adjustmentStatus;
+    }
 }

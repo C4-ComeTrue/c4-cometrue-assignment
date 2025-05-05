@@ -40,7 +40,8 @@ public enum ErrorCode {
     ACCOUNT_DOES_NOT_EXIST(FORBIDDEN, "계좌가 존재하지 않습니다."),
 
     // ----- Adjust Response -----
-    NO_ADJUST_TARGET_REMAINING(BAD_REQUEST, "해당 정산에 대한 정산 대상자가 남아있지 않습니다.");
+    NO_ADJUST_TARGET_REMAINING(BAD_REQUEST, "해당 정산에 대한 정산 대상자가 남아있지 않습니다."),
+    INSUFFICIENT_ADJUST_AMOUNT(BAD_REQUEST, "정산 금액이 인원수보다 작을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

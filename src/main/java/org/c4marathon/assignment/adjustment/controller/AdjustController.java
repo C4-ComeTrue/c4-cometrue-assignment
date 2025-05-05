@@ -1,5 +1,6 @@
 package org.c4marathon.assignment.adjustment.controller;
 
+import org.c4marathon.assignment.adjustment.dto.req.AdjustRequestDto;
 import org.c4marathon.assignment.adjustment.dto.res.AdjustResponseDto;
 import org.c4marathon.assignment.adjustment.service.AdjustService;
 import org.springframework.http.HttpStatus;
@@ -8,10 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,8 +33,12 @@ public class AdjustController {
     // 정산 하기 생성 요청
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("")
-    public void postAdjust() {
-
+    public void postAdjust(
+        @Valid
+        @RequestBody
+        AdjustRequestDto adjustRequestDto
+    ) {
+        adjustService.postAdjust(adjustRequestDto);
     }
     
     // 정산 완료 요청

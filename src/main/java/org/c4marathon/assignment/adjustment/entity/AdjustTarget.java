@@ -1,10 +1,8 @@
 package org.c4marathon.assignment.adjustment.entity;
 
 import org.c4marathon.assignment.member.entity.Member;
-import org.c4marathon.assignment.util.common.Status;
 import org.c4marathon.assignment.util.entity.BaseEntity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,12 +13,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Getter
 @Entity
 @Table(name = "adjustTarget")
@@ -41,4 +38,12 @@ public class AdjustTarget extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @Builder
+    public AdjustTarget(Long id, Long adjustAmount, Adjust adjust, Member member) {
+        this.id = id;
+        this.adjustAmount = adjustAmount;
+        this.adjust = adjust;
+        this.member = member;
+    }
 }

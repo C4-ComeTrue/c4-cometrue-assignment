@@ -50,8 +50,8 @@ public class Member extends BaseEntity {
     private List<AdjustTarget> adjustTargetList = new ArrayList<>();
 
     @Builder
-    public Member(String email, String password, String name) {
-
+    public Member(Long id, String email, String password, String name) {
+        this.id = id;
         this.email = email;
         this.password = password;
         this.name = name;
