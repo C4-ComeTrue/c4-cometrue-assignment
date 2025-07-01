@@ -80,6 +80,7 @@ class ConcurrencyTest {
 	@Test
 	void 동시에_같은_계좌에_송금이_발생한다() throws InterruptedException {
 		// given
+		// 편의상 100명의 회원을 생성하지 않고 한명만 생성, 대신 돈은 100명이서 보내는 만큼 충전
 		// 1. 회원 가입 -> 메인 계좌 자동 생성
 		var userA = memberService.register("email1", "password1");
 		var userB = memberService.register("email2", "password2");
@@ -96,20 +97,15 @@ class ConcurrencyTest {
 
 		var concurrentUser = 1000;
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
-		var executorService = Executors.newFixedThreadPool(1000);
-		var countDownLatch = new CountDownLatch(concurrentUser);
 
 		// when
 		for (int i = 0; i < concurrentUser; i++) {
 			futures.add(CompletableFuture.runAsync(() -> {
 				accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);
-				countDownLatch.countDown();
-			}, executorService));
+			}));
 		}
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-		countDownLatch.await();
-		executorService.shutdown();
 
 		// then
 		var accountAEntity = accountRepository.findById(userAAccountId).orElseThrow();
