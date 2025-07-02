@@ -86,7 +86,7 @@ class AccountServiceTest {
 		TransferEvent transferEvent = new TransferEvent(this, accountId, transferAccountNumber, transferAmount);
 
 		// when
-		accountService.transferV2(accountId, transferAccountNumber, transferAmount);
+		accountService.transferAsync(accountId, transferAccountNumber, transferAmount);
 		accountService.transferPostProcess(transferEvent); // 실제 이벤트 리스너 수동 호출
 
 		// then
@@ -111,7 +111,7 @@ class AccountServiceTest {
 		given(accountRepository.existsByAccountNumber(anyString())).willReturn(true);
 
 		// when
-		accountService.transferV2(accountId, transferAccountNumber, transferAmount);
+		accountService.transferAsync(accountId, transferAccountNumber, transferAmount);
 
 		// then
 		verify(chargeService, times(1)).autoChargeByUnit(anyLong(), anyLong());
@@ -125,7 +125,7 @@ class AccountServiceTest {
 		var transferAmount = 10000L;
 
 		// when + then
-		assertThatThrownBy(() -> accountService.transferV2(accountId, transferAccountNumber, transferAmount))
+		assertThatThrownBy(() -> accountService.transferAsync(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
 	}
@@ -143,7 +143,7 @@ class AccountServiceTest {
 		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
 		given(accountRepository.existsByAccountNumber(anyString())).willReturn(false);
 
-		assertThatThrownBy(() -> accountService.transferV2(accountId, transferAccountNumber, transferAmount))
+		assertThatThrownBy(() -> accountService.transferAsync(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
 	}
@@ -162,7 +162,7 @@ class AccountServiceTest {
 		given(accountRepository.existsByAccountNumber(anyString())).willReturn(true);
 		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(0);
 
-		assertThatThrownBy(() -> accountService.transferV2(accountId, transferAccountNumber, transferAmount))
+		assertThatThrownBy(() -> accountService.transferAsync(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining(ErrorCode.ACCOUNT_LACK_OF_AMOUNT.getMessage());
 	}

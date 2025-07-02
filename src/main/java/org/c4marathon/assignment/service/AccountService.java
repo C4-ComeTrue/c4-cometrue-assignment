@@ -80,7 +80,7 @@ public class AccountService {
 	 * A -> B 메인 계좌 송금 API
 	 */
 	@Transactional
-	public TransferAccountDto.Res transferV2(
+	public TransferAccountDto.Res transferAsync(
 		long accountId, String transferAccountNumber, long transferAmount
 	) {
 		// 1. 유효성 검사를 수행한다. B 계좌도 미리 앞단에서 수행해서 불필요한 동작을 방지한다.

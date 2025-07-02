@@ -111,7 +111,7 @@ class ConcurrencyTest {
 		// when
 		for (int i = 0; i < concurrentUser; i++) {
 			futures.add(CompletableFuture.runAsync(() -> {
-				accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount);
+				accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount);
 			}));
 		}
 
@@ -157,7 +157,7 @@ class ConcurrencyTest {
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
-			accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount)
+			accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount)
 		);
 
 		CompletableFuture.allOf(future1, future2).join();  // wait
@@ -187,7 +187,7 @@ class ConcurrencyTest {
 		// when
 		var future1 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount);  // userB로 5000원 송금
+			accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount);  // userB로 5000원 송금
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
@@ -232,12 +232,12 @@ class ConcurrencyTest {
 		// when
 		var future1 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount);  // userA -> B로 5000원 송금 시도 -> 잔액 부족으로 자동 충전 수행
+			accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount);  // userA -> B로 5000원 송금 시도 -> 잔액 부족으로 자동 충전 수행
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transferV2(userBAccountId, userAAccount.getAccountNumber(), transferAmount);  // userB -> A로 5000원 송금 시도
+			accountService.transferAsync(userBAccountId, userAAccount.getAccountNumber(), transferAmount);  // userB -> A로 5000원 송금 시도
 		});
 
 		// 다수의 비동기 작업을 수행할 때 까지 대기
