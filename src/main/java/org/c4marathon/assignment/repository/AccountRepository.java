@@ -19,6 +19,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
 	Optional<Account> findByAccountNumber(String accountNumber);
 
+	boolean existsByAccountNumber(String accountNumber);
+
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select ac from Account ac where ac.accountNumber = :accountNumber")
 	Optional<Account> findByAccountNumberWithWriteLock(@Param("accountNumber") String accountNumber);

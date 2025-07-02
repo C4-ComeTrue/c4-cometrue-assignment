@@ -8,5 +8,5 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
+#        show_sql: true
     database-platform: H2

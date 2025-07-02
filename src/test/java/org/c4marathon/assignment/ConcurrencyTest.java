@@ -5,8 +5,6 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 
 import org.c4marathon.assignment.common.exception.BusinessException;
 import org.c4marathon.assignment.common.exception.ErrorCode;
@@ -73,8 +71,15 @@ class ConcurrencyTest {
 		// then
 		var accountAmount = accountRepository.findAmount(accountId);
 		var savingsAccountEntity = savingsAccountRepository.findById(savingAccountId).orElseThrow();
-		assertThat(accountAmount).isEqualTo(chargeAmount);   // 충전은 성공
-		assertThat(savingsAccountEntity.getAmount()).isEqualTo(0);  // 적금 이체는 실패
+
+		// 충전이나 적금 이체 중에 하나만 성공해야 한다.
+		if (accountAmount == chargeAmount) {
+			assertThat(savingsAccountEntity.getAmount()).isEqualTo(0);
+		} else if (savingsAccountEntity.getAmount() == chargeAmount) {
+			assertThat(accountAmount).isEqualTo(0);
+		} else {
+			fail("충전 또는 적금 중 하나만 성공해야 합니다.");
+		}
 	}
 
 	@Test
@@ -146,7 +151,7 @@ class ConcurrencyTest {
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
-			accountService.transfer(userAAccountId, userBAccountNumber, transferAmount)
+			accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount)
 		);
 
 		CompletableFuture.allOf(future1, future2).join();  // wait
@@ -175,7 +180,7 @@ class ConcurrencyTest {
 		// when
 		var future1 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);  // userB로 5000원 송금
+			accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount);  // userB로 5000원 송금
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
@@ -219,12 +224,12 @@ class ConcurrencyTest {
 		// when
 		var future1 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);  // userA -> B로 5000원 송금 시도 -> 잔액 부족으로 자동 충전 수행
+			accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount);  // userA -> B로 5000원 송금 시도 -> 잔액 부족으로 자동 충전 수행
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transfer(userBAccountId, userAAccount.getAccountNumber(), transferAmount);  // userB -> A로 5000원 송금 시도
+			accountService.transferV2(userBAccountId, userAAccount.getAccountNumber(), transferAmount);  // userB -> A로 5000원 송금 시도
 		});
 
 		// 다수의 비동기 작업을 수행할 때 까지 대기

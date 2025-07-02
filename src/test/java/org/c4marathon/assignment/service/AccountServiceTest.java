@@ -5,17 +5,21 @@ import static org.mockito.BDDMockito.*;
 
 import java.util.Optional;
 
+import org.c4marathon.assignment.common.event.TransferEvent;
 import org.c4marathon.assignment.common.exception.BusinessException;
 import org.c4marathon.assignment.common.exception.ErrorCode;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.Member;
+import org.c4marathon.assignment.domain.entity.TransferLog;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
+import org.c4marathon.assignment.repository.TransferLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
@@ -28,6 +32,12 @@ class AccountServiceTest {
 
 	@Mock
 	ChargeService chargeService;
+
+	@Mock
+	ApplicationEventPublisher eventPublisher;
+
+	@Mock
+	TransferLogRepository transferLogRepository;
 
 	@InjectMocks
 	AccountService accountService;
@@ -53,27 +63,37 @@ class AccountServiceTest {
 	@Test
 	void 계좌_송금에_성공한다() {
 		// given
-		var accountId = 1L;
-		var transferAccountId = 2L;
-		var transferAccountNumber = "11-22";
-		var amount = 10000L;
-		var transferAmount = 1000L;
-		var account = mock(Account.class);
-		var transferAccount = mock(Account.class);
+		long accountId = 1L;
+		long transferAccountId = 2L;
+		String transferAccountNumber = "11-22";
+		long transferAmount = 1000L;
 
-		given(account.isAmountLackToWithDraw(anyLong())).willReturn(false);
-		given(transferAccount.getId()).willReturn(transferAccountId);
-
-		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
-		given(accountRepository.findByAccountNumber(anyString())).willReturn(Optional.of(transferAccount));
+		// A 계좌 (송금자)
+		Account senderAccount = mock(Account.class);
+		given(accountRepository.findById(accountId)).willReturn(Optional.of(senderAccount));
+		given(senderAccount.isAmountLackToWithDraw(transferAmount)).willReturn(false);
+		given(accountRepository.existsByAccountNumber(transferAccountNumber)).willReturn(true);
 		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(1);
+		given(accountRepository.findAmount(accountId)).willReturn(9000L);
+
+		// B 계좌 (수신자)
+		Account receiverAccount = mock(Account.class);
+		given(accountRepository.findByAccountNumberWithWriteLock(transferAccountNumber))
+			.willReturn(Optional.of(receiverAccount));
+		given(receiverAccount.getId()).willReturn(transferAccountId);
+
+		// 이벤트 객체
+		TransferEvent transferEvent = new TransferEvent(this, accountId, transferAccountNumber, transferAmount);
 
 		// when
-		accountService.transfer(accountId, transferAccountNumber, transferAmount);
+		accountService.transferV2(accountId, transferAccountNumber, transferAmount);
+		accountService.transferPostProcess(transferEvent); // 실제 이벤트 리스너 수동 호출
 
 		// then
-		verify(accountRepository, times(1)).withdraw(accountId, transferAmount);
-		verify(accountRepository, times(1)).deposit(transferAccountId, transferAmount);
+		verify(accountRepository).withdraw(accountId, transferAmount);
+		verify(eventPublisher).publishEvent(any(TransferEvent.class));
+		verify(accountRepository).deposit(transferAccountId, transferAmount);
+		verify(transferLogRepository).save(any(TransferLog.class));
 	}
 
 
@@ -83,16 +103,15 @@ class AccountServiceTest {
 		var transferAccountNumber = "11-22";
 		var transferAmount = 1000L;
 		var account = mock(Account.class);
-		var transferAccount = mock(Account.class);
 
 		given(account.isAmountLackToWithDraw(anyLong())).willReturn(true);
 
 		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
 		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(1);
-		given(accountRepository.findByAccountNumber(anyString())).willReturn(Optional.of(transferAccount));
+		given(accountRepository.existsByAccountNumber(anyString())).willReturn(true);
 
 		// when
-		accountService.transfer(accountId, transferAccountNumber, transferAmount);
+		accountService.transferV2(accountId, transferAccountNumber, transferAmount);
 
 		// then
 		verify(chargeService, times(1)).autoChargeByUnit(anyLong(), anyLong());
@@ -106,7 +125,7 @@ class AccountServiceTest {
 		var transferAmount = 10000L;
 
 		// when + then
-		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
+		assertThatThrownBy(() -> accountService.transferV2(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
 	}
@@ -121,12 +140,10 @@ class AccountServiceTest {
 		var account = mock(Account.class);
 
 		// when
-		given(account.isAmountLackToWithDraw(anyLong())).willReturn(false);
-
 		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
-		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(1);
+		given(accountRepository.existsByAccountNumber(anyString())).willReturn(false);
 
-		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
+		assertThatThrownBy(() -> accountService.transferV2(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining(ErrorCode.INVALID_ACCOUNT.getMessage());
 	}
@@ -142,9 +159,10 @@ class AccountServiceTest {
 		given(account.isAmountLackToWithDraw(anyLong())).willReturn(false);
 
 		given(accountRepository.findById(anyLong())).willReturn(Optional.of(account));
+		given(accountRepository.existsByAccountNumber(anyString())).willReturn(true);
 		given(accountRepository.withdraw(accountId, transferAmount)).willReturn(0);
 
-		assertThatThrownBy(() -> accountService.transfer(accountId, transferAccountNumber, transferAmount))
+		assertThatThrownBy(() -> accountService.transferV2(accountId, transferAccountNumber, transferAmount))
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining(ErrorCode.ACCOUNT_LACK_OF_AMOUNT.getMessage());
 	}
