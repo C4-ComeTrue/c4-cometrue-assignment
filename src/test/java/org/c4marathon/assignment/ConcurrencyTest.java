@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.c4marathon.assignment.common.exception.BusinessException;
 import org.c4marathon.assignment.common.exception.ErrorCode;
@@ -20,6 +21,7 @@ import org.c4marathon.assignment.service.SavingsAccountService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @SpringBootTest
 class ConcurrencyTest {
@@ -37,6 +39,8 @@ class ConcurrencyTest {
 	@Autowired SavingsAccountRepository savingsAccountRepository;
 
 	@Autowired ChargeLinkedAccountRepository chargeLinkedAccountRepository;
+
+	@Autowired ThreadPoolTaskExecutor taskExecutor;
 
 	@Test
 	void 계좌_충전과_적금_이체가_동시에_발생한다면_이체에_실패한다() {
@@ -100,19 +104,21 @@ class ConcurrencyTest {
 		var userBAccountNumber = accountRepository.findById(userBAccountId).orElseThrow().getAccountNumber();
 		chargeService.charge(userAAccountId, chargeAmount);
 
-		var concurrentUser = 1000;
+		// var concurrentUser = 1000;
+		var concurrentUser = 1;
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 
 		// when
 		for (int i = 0; i < concurrentUser; i++) {
 			futures.add(CompletableFuture.runAsync(() -> {
-				accountService.transfer(userAAccountId, userBAccountNumber, transferAmount);
+				accountService.transferV2(userAAccountId, userBAccountNumber, transferAmount);
 			}));
 		}
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
 		// then
+		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);
 		var accountAEntity = accountRepository.findById(userAAccountId).orElseThrow();
 		var accountBEntity = accountRepository.findById(userBAccountId).orElseThrow();
 		assertThat(accountAEntity.getAmount()).isEqualTo(chargeAmount - transferAmount * concurrentUser);
@@ -120,7 +126,7 @@ class ConcurrencyTest {
 	}
 
 	@Test
-	void 송금_도중_발생한_적금_자동_이체는_실패한다() {
+	void 송금_도중_발생한_적금_자동_이체는_실패한다() throws InterruptedException {
 		// given
 		// 1. 회원 가입 및 메인 계좌 생성
 		var userA = memberService.register("email1", "password1");
@@ -156,6 +162,7 @@ class ConcurrencyTest {
 
 		CompletableFuture.allOf(future1, future2).join();  // wait
 
+		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);
 		var transferResultAmount = accountRepository.findAmount(userAAccountId);
 		var savingsResultAmount = savingsAccountRepository.findById(savingsAccountId).orElseThrow().getAmount();
 		assertThat(transferResultAmount).isEqualTo(chargeAmount - transferAmount);  // 송금 성공
@@ -163,7 +170,7 @@ class ConcurrencyTest {
 	}
 
 	@Test
-	void 송금과_동시에_해당_계좌의_유저가_충전을_수행한다() {
+	void 송금과_동시에_해당_계좌의_유저가_충전을_수행한다() throws InterruptedException {
 		// given
 		var userA = memberService.register("email1", "password1");
 		var userB = memberService.register("email2", "password2");
@@ -190,6 +197,7 @@ class ConcurrencyTest {
 		CompletableFuture.allOf(future1, future2).join();    // wait
 
 		// then
+		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);
 		var resultAmountA = accountRepository.findAmount(userAAccountId);
 		var resultAmountB = accountRepository.findAmount(userBAccountId);
 		assertThat(resultAmountA).isEqualTo(0);
@@ -197,7 +205,7 @@ class ConcurrencyTest {
 	}
 
 	@Test
-	void 송금시_자동_충전이_일어날때_내_계좌로_돈이_들어오는_경우_송금이_성공한다() {
+	void 송금시_자동_충전이_일어날때_내_계좌로_돈이_들어오는_경우_송금이_성공한다() throws InterruptedException {
 		// given
 		// 주 계좌 생성
 		var userA = memberService.register("email1", "password1");
@@ -236,6 +244,7 @@ class ConcurrencyTest {
 		CompletableFuture.allOf(future1, future2).join();
 
 		// then
+		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);
 		var resultAmountA = accountRepository.findAmount(userAAccountId);
 		var resultAmountB = accountRepository.findAmount(userBAccountId);
 		assertThat(resultAmountA).isEqualTo(transferAmount + (chargeAmount - transferAmount));

@@ -11,6 +11,7 @@ import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.TransferLogRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,13 +109,9 @@ public class AccountService {
 
 	/**
 	 * B 입금 로직 수행
-	 * 새로운 트랜잭션을 열고, A 차감 로직이 롤백 없이 커밋된 경우에 B 입금 이벤트가 수행되도록 한다.
-	 * @Async 비동기 방식은 별도 멀티 스레드에서 처리가 되는거고, 유저에게는 해당 이벤트 처리 로직과 상관 없이 바로 반환이 된다. (같은 스레드를 계속 점유 X)
-	 * 문제는 B 입금 로직이 실패 --> 몇번 텀 두고 재시도해도 실패하면 A 차감 로직까지 롤백이 필요하지 않나 싶은데,
-	 * 비동기를 도입하면 사용자에게는 A 차감만 성공해도 송금이 성공했다고 알려지게 되니까,
-	 * 그냥 동기 방식으로 수행하고 재시도 해도 B 입금 실패 시 예외 발생 → 사용자에게 송금 실패로 응답하는게 맞는 것 같다.
-	 * 사용자 관점에서 일관된 성공/실패 처리 가능하지만, 대신 이러면 API 응답 시간이 느려진다는 단점은 존재한다.
+	 * 새로운 트랜잭션을 열고, A 차감 로직이 롤백 없이 커밋된 경우에 B 입금 이벤트가 비동기로 수행되도록 한다.
 	 */
+	@Async("customTaskExecutor")
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void transferPostProcess(TransferEvent transferEvent) {
