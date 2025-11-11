@@ -31,4 +31,10 @@ public class AccountController {
 	public TransferAccountDto.Res transfer(@Valid @RequestBody TransferAccountDto.Req req) {
 		return accountService.transfer(req.accountId(), req.accountNumber(), req.transferAmount());
 	}
+
+	@PostMapping("/transfer/v2")
+	@ResponseStatus(HttpStatus.OK)
+	public TransferAccountDto.Res transferAsync(@Valid @RequestBody TransferAccountDto.Req req) {
+		return accountService.transferAsync(req.accountId(), req.accountNumber(), req.transferAmount());
+	}
 }

@@ -1,5 +1,7 @@
 package org.c4marathon.assignment.service;
 
+import java.time.LocalDateTime;
+
 import org.c4marathon.assignment.api.dto.CreateAccountDto;
 import org.c4marathon.assignment.api.dto.TransferAccountDto;
 import org.c4marathon.assignment.common.event.TransferEvent;
@@ -11,6 +13,11 @@ import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.TransferLogRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,7 +26,9 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -53,7 +62,10 @@ public class AccountService {
 	}
 
 	/**
-	 * 메인 계좌 송금 API
+	 * 메인 계좌 송금 API V1
+	 * 한 트랜잭션 내부에서 A 출금과 B 입금 로직이 수행된다.
+	 * ** 주의 : 같은 은행이 아닌 타행에 대한 송금 로직이라면 한 트랜잭션이 애초에 불가능하다.
+	 * 그니까 타행에 입금 요청을 날리고,
 	 */
 	@Transactional
 	public TransferAccountDto.Res transfer(
@@ -62,6 +74,10 @@ public class AccountService {
 		// A는 바로 데이터 가져오기
 		Account account = accountRepository.findById(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
+
+		if (!accountRepository.existsByAccountNumber(transferAccountNumber)) {
+			throw ErrorCode.INVALID_ACCOUNT.businessException();
+		}
 
 		// 1. 잔액이 부족할 경우 10000원 단위로 자동 충전한다.
 		if (account.isAmountLackToWithDraw(transferAmount)) {
@@ -77,12 +93,14 @@ public class AccountService {
 	}
 
 	/**
-	 * A -> B 메인 계좌 송금 API
+	 * 메인 계좌 송금 API V2 (같은 은행 기준, 타행 송금은 고려 X)
+	 * A 계좌 출금 로직을 수행하고 B 입금 로직 이벤트를 발행한다.
 	 */
 	@Transactional
 	public TransferAccountDto.Res transferAsync(
 		long accountId, String transferAccountNumber, long transferAmount
 	) {
+		log.info("A 출금 트랜잭션 로직 수행 : 스레드 {}", Thread.currentThread().getId());
 		// 1. 유효성 검사를 수행한다. B 계좌도 미리 앞단에서 수행해서 불필요한 동작을 방지한다.
 		Account account = accountRepository.findById(accountId)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
@@ -112,26 +130,58 @@ public class AccountService {
 	 * 새로운 트랜잭션을 열고, A 차감 로직이 롤백 없이 커밋된 경우에 B 입금 이벤트가 비동기로 수행되도록 한다.
 	 */
 	@Async("customTaskExecutor")
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Retryable(
+		retryFor = QueryTimeoutException.class, // 복구가 가능한 일시적 예외의 경우에 Retry 설정
+		maxAttempts = 3,
+		backoff = @Backoff(delay = 2000),
+		recover = "recoverMethod"
+	)  // Ordered.LOWEST_PRECEDENCE - 1(@transactional 보다 먼저 적용 필요)
+	@Transactional(propagation = Propagation.REQUIRES_NEW) // Ordered.LOWEST_PRECEDENCE
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void transferPostProcess(TransferEvent transferEvent) {
-		// 1. B 계좌를 비관적 락을 통해 조회해서 금액을 업데이트한다.
+		log.info("B 입금 트랜잭션 로직 수행, 스레드 : {} 현재 시각 : {}", Thread.currentThread().getId(), LocalDateTime.now());
 		Long amount = transferEvent.getAmount();
 		String transferAccountNumber = transferEvent.getReceiveAccountNumber();
 
-		Account transferAccount = accountRepository.findByAccountNumberWithWriteLock(transferAccountNumber)
-			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
+		try {
+			// 1. B 계좌를 비관적 락을 통해 조회해서 금액을 업데이트한다.
+			Account transferAccount = accountRepository.findByAccountNumberWithWriteLock(transferAccountNumber)
+				.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-		accountRepository.deposit(transferAccount.getId(), amount);
+			accountRepository.deposit(transferAccount.getId(), amount);
 
-		// 2. A 차감과 B 입금이 정상적으로 끝났다면 이체 기록을 데이터베이스에 저장한다.
-		TransferLog transferLog = TransferLog.builder()
-			.sendAccountId(transferEvent.getSendAccountId())
-			.receiveAccountNumber(transferAccountNumber)
-			.amount(amount)
-			.build();
+			// 2. A 차감과 B 입금이 정상적으로 끝났다면 이체 기록을 데이터베이스에 저장한다.
+			TransferLog transferLog = TransferLog.builder()
+				.sendAccountId(transferEvent.getSendAccountId())
+				.receiveAccountNumber(transferAccountNumber)
+				.amount(amount)
+				.build();
 
-		transferLogRepository.save(transferLog);
+			transferLogRepository.save(transferLog);
+		} catch (Exception exception) {
+			// 일시적 예외가 아닌 경우는 재시도 진행 X
+			if (!(exception instanceof TransientDataAccessException)) {
+		     	log.error("재시도가 불가능한 예외 발생", exception);
+				plusMyAccount(transferEvent.getSendAccountId(), transferEvent.getAmount());
+				throw ErrorCode.FAILED_TO_TRANSFER.businessException();
+			}
+
+			// 일시적 예외라면 재시도 진행 이후 복구
+			throw exception;
+		}
+	}
+
+	@Recover
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void recoverMethod(TransientDataAccessException e, TransferEvent transferEvent) {
+		// 재시도 끝난 후에도 실패했을 때 해당 메서드에서 보상 트랜잭션 수행 & 송금 실패 예외 반환
+		log.error("재시도 전체 실패 후 A 입금 보상 트랜잭션 수행", e);
+		plusMyAccount(transferEvent.getSendAccountId(), transferEvent.getAmount());
+		throw ErrorCode.FAILED_TO_TRANSFER.businessException();
+	}
+
+	public void plusMyAccount(long accountId, long transferAmount) {
+		accountRepository.deposit(accountId, transferAmount);
 	}
 
 	private void minusMyAccount(long accountId, long transferAmount) {

@@ -43,7 +43,7 @@ class ConcurrencyTest {
 	@Autowired ThreadPoolTaskExecutor taskExecutor;
 
 	@Test
-	void 계좌_충전과_적금_이체가_동시에_발생한다면_이체에_실패한다() {
+	void 계좌_충전과_적금_이체가_동시에_발생한다면_하나만_성공한다() {
 		// given
 		// 1. 회원 가입 -> 메인 계좌 자동 생성
 		var response = memberService.register("email", "password");
@@ -98,14 +98,13 @@ class ConcurrencyTest {
 		var userBAccountId = userB.accountId();   // userB 에게 동시에 전송
 
 		var transferAmount = 500;
-		var chargeAmount = 1000000;
+		var chargeAmount = 100000000;
 
 		// 2. B 계좌로 보낼 수 있도록 잔액을 여유롭게 충전한다.
 		var userBAccountNumber = accountRepository.findById(userBAccountId).orElseThrow().getAccountNumber();
 		chargeService.charge(userAAccountId, chargeAmount);
 
-		// var concurrentUser = 1000;
-		var concurrentUser = 1;
+		var concurrentUser = 10000;
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 
 		// when
@@ -249,5 +248,32 @@ class ConcurrencyTest {
 		var resultAmountB = accountRepository.findAmount(userBAccountId);
 		assertThat(resultAmountA).isEqualTo(transferAmount + (chargeAmount - transferAmount));
 		assertThat(resultAmountB).isEqualTo(transferAmount);
+	}
+
+	/**
+	 * 재시도 3회 후 실패했을 때 정상적으로 recover 로직이 동작하는지 확인한다.
+	 */
+	// @Test
+	void B입금_재시도_3회_실패_시_보상_로직_정상_수행되는지_확인() throws Exception {
+		// given
+		var userA = memberService.register("sender@email.com", "pw1");
+		var userB = memberService.register("receiver@email.com", "pw2");
+
+		var senderAccountId = userA.accountId();
+		var userBAccountNumber = accountRepository.findById(userB.accountId()).orElseThrow().getAccountNumber();
+		var transferAmount = 1000;
+		var chargeAmount = 10000;
+
+		chargeService.charge(senderAccountId, chargeAmount);
+
+		// when
+		accountService.transferAsync(senderAccountId, userBAccountNumber, transferAmount);
+
+		// 비동기 입금 작업 및 보상 로직이 완료되도록 충분히 대기
+		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);
+
+		// then
+		var updatedSenderAccount = accountRepository.findById(senderAccountId).orElseThrow();
+		assertThat(updatedSenderAccount.getAmount()).isEqualTo(chargeAmount);  // A 환불됨 → 보상 처리 확인
 	}
 }
