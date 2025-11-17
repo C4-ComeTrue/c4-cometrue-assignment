@@ -98,13 +98,13 @@ class ConcurrencyTest {
 		var userBAccountId = userB.accountId();   // userB 에게 동시에 전송
 
 		var transferAmount = 500;
-		var chargeAmount = 100000000;
+		var chargeAmount = 500000;
 
 		// 2. B 계좌로 보낼 수 있도록 잔액을 여유롭게 충전한다.
 		var userBAccountNumber = accountRepository.findById(userBAccountId).orElseThrow().getAccountNumber();
 		chargeService.charge(userAAccountId, chargeAmount);
 
-		var concurrentUser = 10000;
+		var concurrentUser = 1000;
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 
 		// when

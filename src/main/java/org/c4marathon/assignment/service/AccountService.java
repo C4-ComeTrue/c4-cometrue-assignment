@@ -144,8 +144,8 @@ public class AccountService {
 		String transferAccountNumber = transferEvent.getReceiveAccountNumber();
 
 		try {
-			// 1. B 계좌를 비관적 락을 통해 조회해서 금액을 업데이트한다.
-			Account transferAccount = accountRepository.findByAccountNumberWithWriteLock(transferAccountNumber)
+			// 1. B 계좌의 유효성을 검사하고 DB 원자적 연산을 통해(get + set) 입금 로직을 처리한다.
+			Account transferAccount = accountRepository.findByAccountNumber(transferAccountNumber)
 				.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 			accountRepository.deposit(transferAccount.getId(), amount);
@@ -192,7 +192,7 @@ public class AccountService {
 	}
 
 	private void plusTargetAccount(String accountNumber, long transferAmount) {
-		Account transferAccount = accountRepository.findByAccountNumberWithWriteLock(accountNumber)
+		Account transferAccount = accountRepository.findByAccountNumber(accountNumber)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 		accountRepository.deposit(transferAccount.getId(), transferAmount);
 	}
