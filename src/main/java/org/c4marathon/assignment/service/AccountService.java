@@ -12,6 +12,8 @@ import org.c4marathon.assignment.domain.entity.TransferLog;
 import org.c4marathon.assignment.repository.AccountRepository;
 import org.c4marathon.assignment.repository.MemberRepository;
 import org.c4marathon.assignment.repository.TransferLogRepository;
+import org.c4marathon.assignment.service.transfer.DepositService;
+import org.c4marathon.assignment.service.transfer.WithdrawService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
@@ -42,6 +44,10 @@ public class AccountService {
 	private final TransferLogRepository transferLogRepository;
 
 	private final ApplicationEventPublisher eventPublisher;
+
+	private final DepositService depositService;
+
+	private final WithdrawService withdrawService;
 
 	/**
 	 * 메인 계좌 생성 API
@@ -150,7 +156,7 @@ public class AccountService {
 
 			accountRepository.deposit(transferAccount.getId(), amount);
 
-			// 2. A 차감과 B 입금이 정상적으로 끝났다면 이체 기록을 데이터베이스에 저장한다.
+			// 2. A 차감과 B 입금이 정상적으로 끝났다면 이체 기록을 데이터베이스에 저장한다. (위치 이동 필요)
 			TransferLog transferLog = TransferLog.builder()
 				.sendAccountId(transferEvent.getSendAccountId())
 				.receiveAccountNumber(transferAccountNumber)
@@ -196,4 +202,16 @@ public class AccountService {
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 		accountRepository.deposit(transferAccount.getId(), transferAmount);
 	}
+
+	/**
+	 * 메인 계좌 송금 API V3 (같은 은행 기준, 타행 송금은 고려 X)
+	 * A 계좌 출금 로직을 수행하고 B 입금 로직을 별도 트랜잭션을 열어서 수행하지만, 같은 스레드 내에서 진행한다.
+	 */
+	public void transferSync(
+		long accountId, String transferAccountNumber, long transferAmount
+	) {
+		withdrawService.withdraw(accountId, transferAccountNumber, transferAmount);
+		depositService.deposit(accountId, transferAccountNumber, transferAmount);
+	}
+
 }

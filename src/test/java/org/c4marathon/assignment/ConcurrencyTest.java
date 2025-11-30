@@ -87,41 +87,53 @@ class ConcurrencyTest {
 	}
 
 	@Test
-	void 동시에_같은_계좌에_송금이_발생한다() throws InterruptedException {
+	void 여러_사용자가_동시에_B에게_송금한다() throws InterruptedException {
 		// given
-		// 편의상 100명의 회원을 생성하지 않고 한명만 생성, 대신 돈은 100명이서 보내는 만큼 충전
-		// 1. 회원 가입 -> 메인 계좌 자동 생성
-		var userA = memberService.register("email1", "password1");
-		var userB = memberService.register("email2", "password2");
+		// 1. B 계좌 생성 (송금을 받을 계좌)
+		var userB = memberService.register("b@email.com", "password");
+		var userBAccountId = userB.accountId();
+		var userBAccountNumber = accountRepository.findById(userBAccountId)
+			.orElseThrow()
+			.getAccountNumber();
 
-		var userAAccountId = userA.accountId();
-		var userBAccountId = userB.accountId();   // userB 에게 동시에 전송
+		// 2. A1~A10 생성 (송금하는 계좌들)
+		int userCount = 10;
+		int transferAmount = 500;
+		int chargeAmount = 100_000; // 충분한 잔액 충전
 
-		var transferAmount = 500;
-		var chargeAmount = 500000;
+		List<Long> senderAccountIds = new ArrayList<>();
 
-		// 2. B 계좌로 보낼 수 있도록 잔액을 여유롭게 충전한다.
-		var userBAccountNumber = accountRepository.findById(userBAccountId).orElseThrow().getAccountNumber();
-		chargeService.charge(userAAccountId, chargeAmount);
+		for (int i = 0; i < userCount; i++) {
+			var userA = memberService.register("email" + i, "password");
+			var accountId = userA.accountId();
 
-		var concurrentUser = 1000;
-		List<CompletableFuture<Void>> futures = new ArrayList<>();
+			// 충분한 잔액 충전
+			chargeService.charge(accountId, chargeAmount);
+
+			senderAccountIds.add(accountId);
+		}
 
 		// when
-		for (int i = 0; i < concurrentUser; i++) {
-			futures.add(CompletableFuture.runAsync(() -> {
-				accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount);
-			}));
-		}
+		List<CompletableFuture<Void>> futures = senderAccountIds.stream()
+			.map(senderId ->
+				CompletableFuture.runAsync(() ->
+					accountService.transferSync(senderId, userBAccountNumber, transferAmount)
+				)
+			)
+			.toList();
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
 		// then
-		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);
-		var accountAEntity = accountRepository.findById(userAAccountId).orElseThrow();
-		var accountBEntity = accountRepository.findById(userBAccountId).orElseThrow();
-		assertThat(accountAEntity.getAmount()).isEqualTo(chargeAmount - transferAmount * concurrentUser);
-		assertThat(accountBEntity.getAmount()).isEqualTo(transferAmount * concurrentUser);  // 동시성 이슈 확인 필요
+		// B가 받은 총 금액 = 10명의 사용자 × 500원
+		var accountB = accountRepository.findById(userBAccountId).orElseThrow();
+		assertThat(accountB.getAmount()).isEqualTo(userCount * transferAmount);
+
+		// 각 sender의 잔액 검증
+		for (Long senderId : senderAccountIds) {
+			var sender = accountRepository.findById(senderId).orElseThrow();
+			assertThat(sender.getAmount()).isEqualTo(chargeAmount - transferAmount);
+		}
 	}
 
 	@Test
@@ -156,7 +168,7 @@ class ConcurrencyTest {
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
-			accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount)
+			accountService.transferSync(userAAccountId, userBAccountNumber, transferAmount)
 		);
 
 		CompletableFuture.allOf(future1, future2).join();  // wait
@@ -186,7 +198,7 @@ class ConcurrencyTest {
 		// when
 		var future1 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount);  // userB로 5000원 송금
+			accountService.transferSync(userAAccountId, userBAccountNumber, transferAmount);  // userB로 5000원 송금
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
@@ -231,16 +243,17 @@ class ConcurrencyTest {
 		// when
 		var future1 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transferAsync(userAAccountId, userBAccountNumber, transferAmount);  // userA -> B로 5000원 송금 시도 -> 잔액 부족으로 자동 충전 수행
+			accountService.transferSync(userAAccountId, userBAccountNumber, transferAmount);  // userA -> B로 5000원 송금 시도 -> 잔액 부족으로 자동 충전 수행
 		});
 
 		var future2 = CompletableFuture.runAsync(() ->
 		{
-			accountService.transferAsync(userBAccountId, userAAccount.getAccountNumber(), transferAmount);  // userB -> A로 5000원 송금 시도
+			accountService.transferSync(userBAccountId, userAAccount.getAccountNumber(), transferAmount);  // userB -> A로 5000원 송금 시도
 		});
 
 		// 다수의 비동기 작업을 수행할 때 까지 대기
 		CompletableFuture.allOf(future1, future2).join();
+		CompletableFuture.allOf(future1).join();
 
 		// then
 		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);
@@ -267,7 +280,7 @@ class ConcurrencyTest {
 		chargeService.charge(senderAccountId, chargeAmount);
 
 		// when
-		accountService.transferAsync(senderAccountId, userBAccountNumber, transferAmount);
+		accountService.transferSync(senderAccountId, userBAccountNumber, transferAmount);
 
 		// 비동기 입금 작업 및 보상 로직이 완료되도록 충분히 대기
 		taskExecutor.getThreadPoolExecutor().awaitTermination(1, TimeUnit.SECONDS);

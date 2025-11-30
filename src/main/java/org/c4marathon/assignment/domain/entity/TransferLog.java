@@ -39,4 +39,8 @@ public class TransferLog {
 		this.amount = amount;
 		this.status = transferStatus;
 	}
+
+	public void changeCompleted() {
+		this.status = TransferStatus.SUCCESS;
+	}
 }

@@ -24,7 +24,10 @@ public enum ErrorCode {
 
 	// charge
 	EXCEED_CHARGE_LIMIT(HttpStatus.BAD_REQUEST, "1일 충전 한도를 넘어 충전이 불가능합니다."),
-	INVALID_CHARGE_LINKED_ACCOUNT(HttpStatus.BAD_REQUEST, "주 충전 계좌가 존재하지 않습니다.");
+	INVALID_CHARGE_LINKED_ACCOUNT(HttpStatus.BAD_REQUEST, "주 충전 계좌가 존재하지 않습니다."),
+
+	// transfer log
+	INVALID_TRANSFER_LOG(HttpStatus.NOT_FOUND, "존재하지 않는 이체 내역입니다.");
 
 
 	private final HttpStatus status;
