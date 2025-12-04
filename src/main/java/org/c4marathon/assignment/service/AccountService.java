@@ -6,6 +6,7 @@ import org.c4marathon.assignment.api.dto.CreateAccountDto;
 import org.c4marathon.assignment.api.dto.TransferAccountDto;
 import org.c4marathon.assignment.common.event.TransferEvent;
 import org.c4marathon.assignment.common.exception.ErrorCode;
+import org.c4marathon.assignment.domain.TransferStatus;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.Member;
 import org.c4marathon.assignment.domain.entity.TransferLog;
@@ -123,7 +124,17 @@ public class AccountService {
 		// 3. 잔액이 여유로워졌다면, A 계좌의 잔액을 차감시킨다.
 		minusMyAccount(accountId, transferAmount);
 
-		// 3. B 차감 로직을 수행하기 위해 메시지를 발행한다. 커밋이 완료되면 이벤트 리스너가 수행된다.
+		// 4. A 차감이 끝난다면 pending 상태로 DB에 이채 내역을 기록한다.
+		TransferLog transferLog = TransferLog.builder()
+			.sendAccountId(accountId)
+			.receiveAccountNumber(transferAccountNumber)
+			.amount(transferAmount)
+			.transferStatus(TransferStatus.PENDING)
+			.build();
+
+		transferLogRepository.save(transferLog);
+
+		// 5. B 차감 로직을 수행하기 위해 메시지를 발행한다. 커밋이 완료되면 이벤트 리스너가 수행된다.
 		TransferEvent transferEvent = new TransferEvent(this, accountId, transferAccountNumber, transferAmount);
 		eventPublisher.publishEvent(transferEvent);
 
@@ -137,8 +148,8 @@ public class AccountService {
 	 */
 	@Async("customTaskExecutor")
 	@Retryable(
-		retryFor = QueryTimeoutException.class, // 복구가 가능한 일시적 예외의 경우에 Retry 설정
-		maxAttempts = 3,
+		retryFor = TransientDataAccessException.class, // 복구가 가능한 일시적 예외의 경우에 Retry 설정
+		maxAttempts = 5,
 		backoff = @Backoff(delay = 2000),
 		recover = "recoverMethod"
 	)  // Ordered.LOWEST_PRECEDENCE - 1(@transactional 보다 먼저 적용 필요)
@@ -156,19 +167,19 @@ public class AccountService {
 
 			accountRepository.deposit(transferAccount.getId(), amount);
 
-			// 2. A 차감과 B 입금이 정상적으로 끝났다면 이체 기록을 데이터베이스에 저장한다. (위치 이동 필요)
-			TransferLog transferLog = TransferLog.builder()
-				.sendAccountId(transferEvent.getSendAccountId())
-				.receiveAccountNumber(transferAccountNumber)
-				.amount(amount)
-				.build();
+			// 2. B 입금까지 정상적으로 끝났다면 이체 기록을 pending -> completed 상태로 변환한다.
+			TransferLog transferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
+				transferEvent.getSendAccountId(), transferAccountNumber, amount
+			).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
 
-			transferLogRepository.save(transferLog);
+			transferLog.changeCompleted();
 		} catch (Exception exception) {
 			// 일시적 예외가 아닌 경우는 재시도 진행 X
 			if (!(exception instanceof TransientDataAccessException)) {
 		     	log.error("재시도가 불가능한 예외 발생", exception);
 				plusMyAccount(transferEvent.getSendAccountId(), transferEvent.getAmount());
+
+				// TODO: 앱 -> FCM 알림 전송으로 실패 상태 통지
 				throw ErrorCode.FAILED_TO_TRANSFER.businessException();
 			}
 
@@ -183,7 +194,20 @@ public class AccountService {
 		// 재시도 끝난 후에도 실패했을 때 해당 메서드에서 보상 트랜잭션 수행 & 송금 실패 예외 반환
 		log.error("재시도 전체 실패 후 A 입금 보상 트랜잭션 수행", e);
 		plusMyAccount(transferEvent.getSendAccountId(), transferEvent.getAmount());
+
+		// TODO: 앱 -> FCM 알림 전송으로 실패 상태 통지
 		throw ErrorCode.FAILED_TO_TRANSFER.businessException();
+	}
+
+	/**
+	 * 메인 계좌 송금 API V3 (같은 은행 기준, 타행 송금은 고려 X)
+	 * A 계좌 출금 로직을 수행하고 B 입금 로직을 별도 트랜잭션을 열어서 수행하지만, 같은 스레드 내에서 진행한다.
+	 */
+	public void transferSync(
+		long accountId, String transferAccountNumber, long transferAmount
+	) {
+		withdrawService.withdraw(accountId, transferAccountNumber, transferAmount);
+		depositService.deposit(accountId, transferAccountNumber, transferAmount);
 	}
 
 	public void plusMyAccount(long accountId, long transferAmount) {
@@ -201,17 +225,6 @@ public class AccountService {
 		Account transferAccount = accountRepository.findByAccountNumber(accountNumber)
 			.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 		accountRepository.deposit(transferAccount.getId(), transferAmount);
-	}
-
-	/**
-	 * 메인 계좌 송금 API V3 (같은 은행 기준, 타행 송금은 고려 X)
-	 * A 계좌 출금 로직을 수행하고 B 입금 로직을 별도 트랜잭션을 열어서 수행하지만, 같은 스레드 내에서 진행한다.
-	 */
-	public void transferSync(
-		long accountId, String transferAccountNumber, long transferAmount
-	) {
-		withdrawService.withdraw(accountId, transferAccountNumber, transferAmount);
-		depositService.deposit(accountId, transferAccountNumber, transferAmount);
 	}
 
 }
