@@ -16,7 +16,6 @@ import org.c4marathon.assignment.repository.TransferLogRepository;
 import org.c4marathon.assignment.service.transfer.DepositService;
 import org.c4marathon.assignment.service.transfer.WithdrawService;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -163,13 +162,16 @@ public class AccountService {
 			Account transferAccount = accountRepository.findByAccountNumber(transferAccountNumber)
 				.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-			accountRepository.deposit(transferAccount.getId(), amount);
-
-			// 2. B 입금까지 정상적으로 끝났다면 이체 기록을 pending -> completed 상태로 변환한다.
+			// 2. 중복 핸들링 - 이체 내역이 이미 success 상태가 아닌 경우에만 수행한다.
 			TransferLog transferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
 				transferEvent.getSendAccountId(), transferAccountNumber, amount
 			).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
 
+			if (transferLog.getStatus() != TransferStatus.SUCCESS) {
+				accountRepository.deposit(transferAccount.getId(), amount);
+			}
+
+			// 2. B 입금까지 정상적으로 끝났다면 이체 기록을 pending -> success 상태로 변환한다.
 			transferLog.changeCompleted();
 		} catch (Exception exception) {
 			// 일시적 예외가 아닌 경우는 재시도 진행 X

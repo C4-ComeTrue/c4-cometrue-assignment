@@ -45,6 +45,6 @@ public class TransferLog {
 	}
 
 	public void changeFailed() {
-		this.status = TransferStatus.FAIL;
+		this.status = TransferStatus.FAILED;
 	}
 }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.c4marathon.assignment.common.event.TransferEvent;
 import org.c4marathon.assignment.common.exception.ErrorCode;
+import org.c4marathon.assignment.domain.TransferStatus;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.TransferLog;
 import org.c4marathon.assignment.repository.AccountRepository;
@@ -49,11 +50,16 @@ public class DepositService {
 
 			accountRepository.deposit(transferAccount.getId(), transferAmount);
 
-			// 2. B 입금까지 정상적으로 끝났다면 이체 기록을 pending -> completed 상태로 변환한다.
+			// 2. 중복 핸들링 - 이체 내역이 이미 success 상태가 아닌 경우에만 수행한다.
 			TransferLog transferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
 				sendAccountId, transferAccountNumber, transferAmount
 			).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
 
+			if (transferLog.getStatus() != TransferStatus.SUCCESS) {
+				accountRepository.deposit(transferAccount.getId(), transferAmount);
+			}
+
+			// 2. B 입금까지 정상적으로 끝났다면 이체 기록을 pending -> success 상태로 변환한다.
 			transferLog.changeCompleted();
 		} catch (Exception exception) {
 			// 일시적 예외가 아닌 경우는 재시도 진행 X
