@@ -2,6 +2,7 @@ package org.c4marathon.assignment.service.transfer;
 
 import java.time.LocalDateTime;
 
+import org.c4marathon.assignment.common.event.TransferEvent;
 import org.c4marathon.assignment.common.exception.ErrorCode;
 import org.c4marathon.assignment.domain.entity.Account;
 import org.c4marathon.assignment.domain.entity.TransferLog;
@@ -59,6 +60,7 @@ public class DepositService {
 			if (!(exception instanceof TransientDataAccessException)) {
 				log.error("재시도가 불가능한 예외 발생", exception);
 				plusMyAccount(sendAccountId, transferAmount);
+				changeTransferLogStatusFailed(sendAccountId, transferAccountNumber, transferAmount);
 				throw ErrorCode.FAILED_TO_TRANSFER.businessException();
 			}
 
@@ -73,10 +75,20 @@ public class DepositService {
 		// 재시도 끝난 후에도 실패했을 때 해당 메서드에서 보상 트랜잭션 수행 & 송금 실패 예외 반환
 		log.error("재시도 전체 실패 후 A 입금 보상 트랜잭션 수행", e);
 		plusMyAccount(sendAccountId, transferAmount);
+		changeTransferLogStatusFailed(sendAccountId, transferAccountNumber, transferAmount);
 		throw ErrorCode.FAILED_TO_TRANSFER.businessException();
 	}
 
 	public void plusMyAccount(long accountId, long transferAmount) {
 		accountRepository.deposit(accountId, transferAmount);
+	}
+
+	private void changeTransferLogStatusFailed(long sendAccountId, String receiveAccountNumber, long amount) {
+		// 송금 내역의 상태를 실패로 변경
+		TransferLog failedTransferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
+			sendAccountId, receiveAccountNumber, amount
+		).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
+
+		failedTransferLog.changeFailed();
 	}
 }

@@ -71,8 +71,6 @@ public class AccountService {
 	/**
 	 * 메인 계좌 송금 API V1
 	 * 한 트랜잭션 내부에서 A 출금과 B 입금 로직이 수행된다.
-	 * ** 주의 : 같은 은행이 아닌 타행에 대한 송금 로직이라면 한 트랜잭션이 애초에 불가능하다.
-	 * 그니까 타행에 입금 요청을 날리고,
 	 */
 	@Transactional
 	public TransferAccountDto.Res transfer(
@@ -176,11 +174,9 @@ public class AccountService {
 		} catch (Exception exception) {
 			// 일시적 예외가 아닌 경우는 재시도 진행 X
 			if (!(exception instanceof TransientDataAccessException)) {
-		     	log.error("재시도가 불가능한 예외 발생", exception);
+		     	log.error("재시도가 불가능한 예외 발생, 재시도 진행하지 않고 실패 통지", exception);
 				plusMyAccount(transferEvent.getSendAccountId(), transferEvent.getAmount());
-
-				// TODO: 앱 -> FCM 알림 전송으로 실패 상태 통지
-				throw ErrorCode.FAILED_TO_TRANSFER.businessException();
+				changeTransferLogStatusFailedAndAlertFail(transferEvent);
 			}
 
 			// 일시적 예외라면 재시도 진행 이후 복구
@@ -194,6 +190,16 @@ public class AccountService {
 		// 재시도 끝난 후에도 실패했을 때 해당 메서드에서 보상 트랜잭션 수행 & 송금 실패 예외 반환
 		log.error("재시도 전체 실패 후 A 입금 보상 트랜잭션 수행", e);
 		plusMyAccount(transferEvent.getSendAccountId(), transferEvent.getAmount());
+		changeTransferLogStatusFailedAndAlertFail(transferEvent);
+	}
+
+	private void changeTransferLogStatusFailedAndAlertFail(TransferEvent transferEvent) {
+		// 송금 내역의 상태를 실패로 변경
+		TransferLog failedTransferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
+			transferEvent.getSendAccountId(), transferEvent.getReceiveAccountNumber(), transferEvent.getAmount()
+		).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
+
+		failedTransferLog.changeFailed();
 
 		// TODO: 앱 -> FCM 알림 전송으로 실패 상태 통지
 		throw ErrorCode.FAILED_TO_TRANSFER.businessException();

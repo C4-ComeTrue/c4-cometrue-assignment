@@ -43,4 +43,8 @@ public class TransferLog {
 	public void changeCompleted() {
 		this.status = TransferStatus.SUCCESS;
 	}
+
+	public void changeFailed() {
+		this.status = TransferStatus.FAIL;
+	}
 }
