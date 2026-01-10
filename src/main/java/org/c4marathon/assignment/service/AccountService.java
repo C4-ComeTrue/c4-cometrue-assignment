@@ -93,7 +93,7 @@ public class AccountService {
 		plusTargetAccount(transferAccountNumber, transferAmount);
 
 		long resultAmount = accountRepository.findAmount(accountId);
-		return new TransferAccountDto.Res(resultAmount);
+		return new TransferAccountDto.Res(resultAmount, null);
 	}
 
 	/**
@@ -132,11 +132,12 @@ public class AccountService {
 		transferLogRepository.save(transferLog);
 
 		// 5. B 차감 로직을 수행하기 위해 메시지를 발행한다. 커밋이 완료되면 이벤트 리스너가 수행된다.
-		TransferEvent transferEvent = new TransferEvent(this, accountId, transferAccountNumber, transferAmount);
+		TransferEvent transferEvent = new TransferEvent(this, transferLog.getId(),
+			accountId, transferAccountNumber, transferAmount);
 		eventPublisher.publishEvent(transferEvent);
 
 		long resultAmount = accountRepository.findAmount(accountId);
-		return new TransferAccountDto.Res(resultAmount);
+		return new TransferAccountDto.Res(resultAmount, transferLog.getId());
 	}
 
 	/**
@@ -147,10 +148,10 @@ public class AccountService {
 	@Retryable(
 		retryFor = TransientDataAccessException.class, // 복구가 가능한 일시적 예외의 경우에 Retry 설정
 		maxAttempts = 5,
-		backoff = @Backoff(delay = 2000),
+		backoff = @Backoff(delay = 1000, multiplier = 2.0),
 		recover = "recoverMethod"
 	)  // Ordered.LOWEST_PRECEDENCE - 1(@transactional 보다 먼저 적용 필요)
-	@Transactional(propagation = Propagation.REQUIRES_NEW) // Ordered.LOWEST_PRECEDENCE
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void transferPostProcess(TransferEvent transferEvent) {
 		log.info("B 입금 트랜잭션 로직 수행, 스레드 : {} 현재 시각 : {}", Thread.currentThread().getId(), LocalDateTime.now());
@@ -163,12 +164,11 @@ public class AccountService {
 				.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
 			// 2. 중복 핸들링 - 이체 내역이 이미 success 상태가 아닌 경우에만 수행한다.
-			TransferLog transferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
-				transferEvent.getSendAccountId(), transferAccountNumber, amount
-			).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
+			TransferLog transferLog = transferLogRepository.findById(transferEvent.getTransferId())
+				.orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
 
 			if (transferLog.getStatus() != TransferStatus.SUCCESS) {
-				accountRepository.deposit(transferAccount.getId(), amount);
+				plusMyAccount(transferAccount.getId(), amount);
 			}
 
 			// 2. B 입금까지 정상적으로 끝났다면 이체 기록을 pending -> success 상태로 변환한다.
@@ -197,9 +197,8 @@ public class AccountService {
 
 	private void changeTransferLogStatusFailedAndAlertFail(TransferEvent transferEvent) {
 		// 송금 내역의 상태를 실패로 변경
-		TransferLog failedTransferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
-			transferEvent.getSendAccountId(), transferEvent.getReceiveAccountNumber(), transferEvent.getAmount()
-		).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
+		TransferLog failedTransferLog = transferLogRepository.findById(transferEvent.getTransferId())
+			.orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
 
 		failedTransferLog.changeFailed();
 
@@ -214,8 +213,8 @@ public class AccountService {
 	public void transferSync(
 		long accountId, String transferAccountNumber, long transferAmount
 	) {
-		withdrawService.withdraw(accountId, transferAccountNumber, transferAmount);
-		depositService.deposit(accountId, transferAccountNumber, transferAmount);
+		TransferAccountDto.Res withdrawRes = withdrawService.withdraw(accountId, transferAccountNumber, transferAmount);
+		depositService.deposit(withdrawRes.transferLogId(), accountId, transferAccountNumber, transferAmount);
 	}
 
 	public void plusMyAccount(long accountId, long transferAmount) {

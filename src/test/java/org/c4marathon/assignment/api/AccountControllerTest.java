@@ -80,7 +80,7 @@ class AccountControllerTest {
 		var transferAmount = 1000L;
 		var totalAmount = 9000L;
 		var request = new TransferAccountDto.Req(accountId, accountNumber, transferAmount);
-		var response = new TransferAccountDto.Res(totalAmount);
+		var response = new TransferAccountDto.Res(totalAmount, 1L);
 
 		given(accountService.transfer(anyLong(), anyString(), anyLong())).willReturn(response);
 

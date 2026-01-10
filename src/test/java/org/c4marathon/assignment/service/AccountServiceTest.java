@@ -83,7 +83,7 @@ class AccountServiceTest {
 		given(receiverAccount.getId()).willReturn(transferAccountId);
 
 		// 이벤트 객체
-		TransferEvent transferEvent = new TransferEvent(this, accountId, transferAccountNumber, transferAmount);
+		TransferEvent transferEvent = new TransferEvent(this, null, accountId, transferAccountNumber, transferAmount);
 
 		// when
 		accountService.transferAsync(accountId, transferAccountNumber, transferAmount);

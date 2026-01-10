@@ -2,7 +2,6 @@ package org.c4marathon.assignment.service.transfer;
 
 import java.time.LocalDateTime;
 
-import org.c4marathon.assignment.common.event.TransferEvent;
 import org.c4marathon.assignment.common.exception.ErrorCode;
 import org.c4marathon.assignment.domain.TransferStatus;
 import org.c4marathon.assignment.domain.entity.Account;
@@ -34,12 +33,12 @@ public class DepositService {
 	@Retryable(
 		retryFor = TransientDataAccessException.class, // 복구가 가능한 일시적 예외의 경우에 Retry 설정
 		maxAttempts = 5,
-		backoff = @Backoff(delay = 2000),
+		backoff = @Backoff(delay = 1000, multiplier = 2.0),
 		recover = "recoverMethod"
 	)
-	@Transactional(propagation = Propagation.REQUIRES_NEW) // Ordered.LOWEST_PRECEDENCE
+	@Transactional
 	public void deposit(
-		long sendAccountId, String transferAccountNumber, long transferAmount
+		long transferLogId, long sendAccountId, String transferAccountNumber, long transferAmount
 	) {
 		log.info("B 입금 트랜잭션 로직 수행, 스레드 : {} 현재 시각 : {}", Thread.currentThread().getId(), LocalDateTime.now());
 
@@ -48,12 +47,9 @@ public class DepositService {
 			Account transferAccount = accountRepository.findByAccountNumber(transferAccountNumber)
 				.orElseThrow(ErrorCode.INVALID_ACCOUNT::businessException);
 
-			accountRepository.deposit(transferAccount.getId(), transferAmount);
-
 			// 2. 중복 핸들링 - 이체 내역이 이미 success 상태가 아닌 경우에만 수행한다.
-			TransferLog transferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
-				sendAccountId, transferAccountNumber, transferAmount
-			).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
+			TransferLog transferLog = transferLogRepository.findById(transferLogId)
+				.orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
 
 			if (transferLog.getStatus() != TransferStatus.SUCCESS) {
 				accountRepository.deposit(transferAccount.getId(), transferAmount);
@@ -66,7 +62,7 @@ public class DepositService {
 			if (!(exception instanceof TransientDataAccessException)) {
 				log.error("재시도가 불가능한 예외 발생", exception);
 				plusMyAccount(sendAccountId, transferAmount);
-				changeTransferLogStatusFailed(sendAccountId, transferAccountNumber, transferAmount);
+				changeTransferLogStatusFailed(transferLogId);
 				throw ErrorCode.FAILED_TO_TRANSFER.businessException();
 			}
 
@@ -77,11 +73,11 @@ public class DepositService {
 
 	@Recover
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void recoverMethod(TransientDataAccessException e, long sendAccountId, String transferAccountNumber, long transferAmount) {
+	public void recoverMethod(TransientDataAccessException e, long transferLogId, long sendAccountId, String transferAccountNumber, long transferAmount) {
 		// 재시도 끝난 후에도 실패했을 때 해당 메서드에서 보상 트랜잭션 수행 & 송금 실패 예외 반환
 		log.error("재시도 전체 실패 후 A 입금 보상 트랜잭션 수행", e);
 		plusMyAccount(sendAccountId, transferAmount);
-		changeTransferLogStatusFailed(sendAccountId, transferAccountNumber, transferAmount);
+		changeTransferLogStatusFailed(transferLogId);
 		throw ErrorCode.FAILED_TO_TRANSFER.businessException();
 	}
 
@@ -89,11 +85,10 @@ public class DepositService {
 		accountRepository.deposit(accountId, transferAmount);
 	}
 
-	private void changeTransferLogStatusFailed(long sendAccountId, String receiveAccountNumber, long amount) {
+	private void changeTransferLogStatusFailed(long transferLongId) {
 		// 송금 내역의 상태를 실패로 변경
-		TransferLog failedTransferLog = transferLogRepository.findBySendAccountIdAndReceiveAccountNumberAndAmount(
-			sendAccountId, receiveAccountNumber, amount
-		).orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
+		TransferLog failedTransferLog = transferLogRepository.findById(transferLongId)
+			.orElseThrow(ErrorCode.INVALID_TRANSFER_LOG::businessException);
 
 		failedTransferLog.changeFailed();
 	}

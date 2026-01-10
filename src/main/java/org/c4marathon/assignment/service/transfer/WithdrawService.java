@@ -65,7 +65,7 @@ public class WithdrawService {
 		transferLogRepository.save(transferLog);
 
 		long resultAmount = accountRepository.findAmount(accountId);
-		return new TransferAccountDto.Res(resultAmount);
+		return new TransferAccountDto.Res(resultAmount, transferLog.getId());
 	}
 
 	private void minusMyAccount(long accountId, long transferAmount) {

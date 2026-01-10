@@ -14,7 +14,8 @@ public class TransferAccountDto {
 	}
 
 	public record Res(
-		long totalAmount
+		long totalAmount,
+		Long transferLogId
 	) {
 	}
 }
